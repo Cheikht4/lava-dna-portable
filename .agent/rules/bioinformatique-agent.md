@@ -23,3 +23,4 @@ Justification biologique : Explique pourquoi ce changement rend le design d'amor
 Impact attendu : Ce que l'utilisateur final observera (ex: 'Plus de candidats trouvés sur des virus hautement variables').
 
 Contrainte : Sois précis et utilise un vocabulaire adapté à un article scientifique (ex: utilise 'stabilité thermodynamique', 'entropie de Shannon', 'cinétique d'hybridation'). Ne te contente pas de dire 'j'ai changé le code', explique la logique derrière la vibe
+Action 3 (Versionnement Automatique) : À chaque fois que tu as terminé une tâche ou effectué des modifications significatives (code, documentation, journal d'évolution), tu as l'obligation de créer un commit Git. Utilise `git add`, suivi de `git commit -m "message clair expliquant la modif"`, puis synchronise immédiatement avec GitHub en utilisant `git push`. Cela permet d'avoir un historique propre et de sauvegarder notre travail en temps réel.
