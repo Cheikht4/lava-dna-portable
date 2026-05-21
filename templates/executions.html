@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}LAVA-DNA - {{ 'execution_list'|t }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- En-tête -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-list me-2"></i>{{ 'execution_list'|t }}
+                    <span class="badge bg-light text-dark ms-2">{{ executions | length }}</span>
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('index') }}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>{{ 'new_execution'|t }}
+                    </a>
+                    <button onclick="location.reload()" class="btn btn-outline-primary">
+                        <i class="fas fa-sync-alt me-2"></i>{{ 'refresh'|t }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liste des exécutions -->
+        {% if executions %}
+            <div class="row">
+                {% for execution_id, execution in executions.items() %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card card-hover h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-dna me-2"></i>{{ execution.script_type }}
+                            </h6>
+                            <span class="badge badge-status-{{ execution.status }}">
+                                {% if execution.status == 'running' %}
+                                    <i class="fas fa-spinner fa-spin me-1"></i>{{ 'status_running'|t }}
+                                {% elif execution.status == 'completed' %}
+                                    <i class="fas fa-check-circle me-1"></i>{{ 'status_completed'|t }}
+                                {% elif execution.status == 'error' %}
+                                    <i class="fas fa-times me-1"></i>{{ 'status_error'|t }}
+                                {% elif execution.status == 'stopped' %}
+                                    <i class="fas fa-stop me-1"></i>{{ 'status_stopped'|t }}
+                                {% elif execution.status == 'starting' %}
+                                    <i class="fas fa-clock me-1"></i>{{ 'status_starting'|t }}
+                                {% else %}
+                                    <i class="fas fa-question-circle me-1"></i>{{ execution.status }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <strong>ID :</strong> 
+                                <code class="small">{{ execution_id[:8] }}...</code>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <strong>{{ 'file'|t }} :</strong>
+                                <small>{{ execution.input_file | basename }}</small>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <strong>Sortie :</strong>
+                                <small>{{ execution.output_name }}</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong>Créé :</strong>
+                                <small>{{ execution.created_time.strftime('%d/%m %H:%M') }}</small>
+                            </div>
+                            
+                            {% if execution.get('start_time') %}
+                            <div class="mb-2">
+                                <strong>Démarré :</strong>
+                                <small>{{ execution.start_time.strftime('%H:%M:%S') }}</small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if execution.get('end_time') %}
+                            <div class="mb-2">
+                                <strong>Terminé :</strong>
+                                <small>{{ execution.end_time.strftime('%H:%M:%S') }}</small>
+                                <br>
+                                <strong>Durée :</strong>
+                                <small>{{ (execution.end_time - execution.start_time) | string | truncate(8) }}</small>
+                            </div>
+                            {% endif %}
+                            
+                            {% if execution.get('total_lines') %}
+                            <div class="mb-2">
+                                <strong>Logs :</strong>
+                                <small>{{ execution.total_lines }} lignes</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="card-footer">
+                            <div class="d-flex gap-1 flex-wrap">
+                                <a href="{{ url_for('monitor', execution_id=execution_id) }}" 
+                                   class="btn btn-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>Voir
+                                </a>
+                                
+                                {% if execution.status in ['running', 'starting'] %}
+                                <form method="post" action="{{ url_for('stop_execution', execution_id=execution_id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-danger btn-sm" 
+                                            onclick="return confirm('Arrêter l\'exécution ?')">
+                                        <i class="fas fa-stop me-1"></i>Stop
+                                    </button>
+                                </form>
+                                {% endif %}
+                                
+                                {% if execution.get('result_files') %}
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-success btn-sm dropdown-toggle" 
+                                            data-bs-toggle="dropdown">
+                                        <i class="fas fa-download me-1"></i>Résultats
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        {% for result_file in execution.result_files %}
+                                        <li>
+                                            <a class="dropdown-item" 
+                                               href="{{ url_for('download_result', execution_id=execution_id, filename=result_file | basename) }}">
+                                                <i class="fas fa-file me-2"></i>{{ result_file | basename }}
+                                            </a>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">{{ 'no_execution'|t }}</h5>
+                    <p class="text-muted">{{ 'launch_first'|t }}</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>{{ 'new_execution'|t }}
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh si des exécutions sont en cours
+const runningExecutions = [
+    {% for execution_id, execution in executions.items() %}
+        {% if execution.status in ['running', 'starting'] %}
+            "{{ execution_id }}",
+        {% endif %}
+    {% endfor %}
+];
+
+if (runningExecutions.length > 0) {
+    setTimeout(() => location.reload(), 5000);
+}
+</script>
+
+<style>
+.badge-status-running {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+.badge-status-completed {
+    background-color: #28a745 !important;
+    color: #fff !important;
+}
+
+.badge-status-error {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+}
+
+.badge-status-stopped {
+    background-color: #6c757d !important;
+    color: #fff !important;
+}
+
+.badge-status-starting {
+    background-color: #17a2b8 !important;
+    color: #fff !important;
+}
+</style>
+{% endblock %}

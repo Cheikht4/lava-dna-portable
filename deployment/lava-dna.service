@@ -1,0 +1,46 @@
+# Service systemd pour LAVA-DNA
+[Unit]
+Description=LAVA-DNA Web Application
+After=network.target
+Requires=network.target
+
+[Service]
+Type=notify
+User=lavauser
+Group=lavauser
+WorkingDirectory=/opt/lava-dna
+Environment=PATH=/opt/lava-dna/venv/bin
+Environment=FLASK_ENV=production
+Environment=FLASK_SECRET_KEY=your-secret-key-here
+Environment=LAVA_ADMIN_PASSWORD=your-admin-password-here
+ExecStart=/opt/lava-dna/venv/bin/gunicorn --config /opt/lava-dna/deployment/gunicorn_config.py lava_flask_app_secure:create_app()
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=10
+KillMode=mixed
+TimeoutStopSec=30
+
+# Sécurité renforcée
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/lava-dna/uploads /opt/lava-dna/results /var/log/lava /var/run/lava
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+
+# Limites de ressources
+LimitNOFILE=65536
+LimitNPROC=4096
+MemoryMax=2G
+CPUQuota=150%
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lava-dna
+
+[Install]
+WantedBy=multi-user.target

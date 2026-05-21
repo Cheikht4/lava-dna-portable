@@ -1,0 +1,151 @@
+
+# RÉFÉRENCE COMPLÈTE DES PARAMÈTRES LAVA (Version 2026)
+
+Ce document liste l'ensemble des paramètres modifiables via la ligne de commande pour les scripts `lava_loop_primer.pl` (Mode Classique + Loop) et `lava_stem_primer.pl` (Mode Stem).
+
+---
+
+## 1. Entrée / Sortie (Obligatoires)
+
+| Paramètre | Description |
+|-----------|-------------|
+| `--alignment_fasta <path>` | Chemin vers le fichier d'alignement au format FASTA (contenant les séquences cibles). |
+| `--output_file <path>` | Chemin complet du fichier de sortie où seront écrites les signatures (extensions suggérées: .txt, .fasta). |
+
+---
+
+## 2. Géométrie & Structure Globale
+
+| Paramètre | Défaut | Label Interface (FR) | Description |
+|-----------|--------|----------------------|-------------|
+| `--signature_max_length` | 400 | Longueur max signature | Longueur maximale totale de la signature LAMP (de F3 à B3). |
+| `--min_signatures_for_success` | 1 | Nb Signatures Min | Nombre de signatures valides à trouver avant d'arrêter la recherche (si >1, le script continue). |
+| `--min_primer_spacing` | 1 | N/A | Distance minimale (en bases) entre deux amorces adjacentes. |
+| `--min_inner_pair_spacing` | 1 | N/A | Distance minimale entre F1c et B1c (Spacer central). |
+| `--max_overlap_percent` | 0 | Chevauchement Max (%) | Pourcentage maximum de chevauchement autorisé entre deux signatures pour qu'elles soient considérées distinctes. |
+
+---
+
+## 3. Paramètres Thermodynamiques (Critiques)
+
+| Paramètre | Défaut | Label Interface (FR) | Description |
+|-----------|--------|----------------------|-------------|
+| `--max_tm_diff` | 5.0 | Différence Tm Max (°C) | [NOUVEAU] Différence de Tm maximale autorisée entre deux amorces voisines (Filtre Thermique Dynamique). |
+| `--dna_conc` | 400 | ADN (nM) | Concentration d'ADN (nM) pour le calcul du Tm (Primer3 / Owczarzy). |
+| `--dntp_conc` | 1.4 | dNTP (mM) | Concentration de dNTP (mM). |
+| `--salt_monovalent` | 50 | Sel Monovalent (mM) | Concentration de sels monovalents (mM) (ex: KCl). |
+| `--salt_divalent` | 8 | Sel Divalent (mM) | Concentration de sels divalents (mM) (ex: Mg++). |
+| `--thermodynamic_path` | /etc/primer3_config/ | N/A | Dossier contenant les tables thermodynamiques de Primer3. |
+| `--primer3_executable` | /usr/bin/primer3_core | N/A | Chemin vers l'exécutable Primer3. |
+
+---
+
+## 4. Design des Amorces (Par Type)
+
+Ces paramètres contrôlent la taille et la température de fusion (Tm) de chaque type d'amorce.
+
+### Amorces Outer (F3 / B3)
+| Paramètre | Défaut | Label Interface (FR) | Description |
+|-----------|--------|----------------------|-------------|
+| `--outer_primer_target_length` | 20 | Longueur cible | Longueur cible. |
+| `--outer_primer_min_length` | 18 | Longueur min | Longueur minimale. |
+| `--outer_primer_max_length` | 23 | Longueur max | Longueur maximale. |
+| `--outer_primer_target_tm` | 60.0 | Tm cible (°C) | Tm cible. |
+| `--outer_primer_min_tm` | 59.0 | N/A | Tm minimal (Calculé auto: cible - 1). |
+| `--outer_primer_max_tm` | 61.0 | N/A | Tm maximal (Calculé auto: cible + 1). |
+
+### Amorces Middle/Interne (F2 / B2 - Partie de FIP/BIP)
+| Paramètre | Défaut | Label Interface (FR) | Description |
+|-----------|--------|----------------------|-------------|
+| `--middle_primer_target_length` | 20 | Longueur cible | Longueur cible. |
+| `--middle_primer_min_length` | 18 | Longueur min | Longueur minimale. |
+| `--middle_primer_max_length` | 23 | Longueur max | Longueur maximale. |
+| `--middle_primer_target_tm` | 60.0 | Tm cible (°C) | Tm cible. |
+| `--middle_primer_min_tm` | 59.0 | N/A | Tm minimal. |
+| `--middle_primer_max_tm` | 61.0 | N/A | Tm maximal. |
+
+### Amorces Inner (F1c / B1c - Partie de FIP/BIP)
+*Note : Souvent conçues pour avoir un Tm plus élevé que F2/B2.*
+| Paramètre | Défaut | Label Interface (FR) | Description |
+|-----------|--------|----------------------|-------------|
+| `--inner_primer_target_length` | 23 | Longueur cible | Longueur cible. |
+| `--inner_primer_min_length` | 20 | Longueur min | Longueur minimale. |
+| `--inner_primer_max_length` | 26 | Longueur max | Longueur maximale. |
+| `--inner_primer_target_tm` | 62.0 | Tm cible (°C) | Tm cible. |
+| `--inner_primer_min_tm` | 61.0 | N/A | Tm minimal. |
+| `--inner_primer_max_tm` | 63.0 | N/A | Tm maximal. |
+
+---
+
+## 5. Paramètres Spécifiques - Mode LOOP (`lava_loop_primer.pl`)
+
+| Paramètre | Défaut | Label Interface (FR) | Description |
+|-----------|--------|----------------------|-------------|
+| `--include_loop_primers` | 1 | Checkbox 'LOOP primers' | 1 = Générer des Loop Primers (Fichier 6 amorces), 0 = Standard LAMP (4 amorces). |
+| `--loop_primer_target_length` | 20 | Longueur cible LOOP | Longueur cible des Loop Primers. |
+| `--loop_primer_min_length` | 18 | Longueur min | Longueur minimale. |
+| `--loop_primer_max_length` | 23 | Longueur max | Longueur maximale. |
+| `--loop_primer_target_tm` | 60.0 | Tm cible (°C) | Tm cible. |
+| `--loop_min_gap` | 25 | Gap min LOOP | Espace minimal requis dans la boucle pour insérer une Loop Primer. |
+
+---
+
+## 6. Paramètres Spécifiques - Mode STEM (`lava_stem_primer.pl`)
+
+| Paramètre | Défaut | Label Interface (FR) | Description |
+|-----------|--------|----------------------|-------------|
+| `--include_stem_primers` | 1 | Checkbox 'STEM primers' | 1 = Générer des Stem Primers, 0 = Standard LAMP. |
+| `--stem_primer_target_length` | 20 | Longueur cible | Longueur cible des Stem Primers. |
+| `--stem_primer_min_length` | 18 | Longueur min | Longueur minimale. |
+| `--stem_primer_max_length` | 23 | Longueur max | Longueur maximale. |
+| `--stem_primer_target_tm` | 60.0 | Tm cible (°C) | Tm cible. |
+| `--stem_min_gap` | 1 | N/A | Espace minimal pour insérer une Stem Primer. |
+| `--max_dist_outer_middle` | 30 | Dist. Max Outer-Middle | [Architecture] Distance max entre F3 et F2. |
+| `--max_dist_middle_inner` | 30 | Dist. Max Middle-Inner | [Architecture] Distance max entre F2 et le début de la structure Stem. |
+
+---
+
+## 7. Gestion de la Diversité & Mismatches (Avancé)
+
+Ces paramètres permettent de gérer les alignements avec variabilité (virus, variants).
+
+| Paramètre | Défaut | Label Interface (FR) | Description |
+|-----------|--------|----------------------|-------------|
+| `--entropy_threshold` | 1.5 | Seuil Entropie | [NOUVEAU] Seuil d'entropie (Shannon) au-dessus duquel une région est exclue. |
+| `--min_base_frequency` | 0.05 | Fréquence min. bruit | [NOUVEAU] Fréquence minimale (5%) pour qu'une base soit incluse dans un code IUPAC. |
+| `--max_total_mismatches` | 2 | Max Mismatches Total | Nombre maximum de mismatches autorisés par amorce contre une séquence cible. |
+| `--max_consecutive_mismatches` | 2 | Max Mismatches Consécutifs | Nombre maximum de mismatches consécutifs (évite les bulles instables). |
+| `--max_3prime_mismatches` | 2 | Max Mismatches 3' | Mismatches tolérés en 3' (zone critique pour la polymérase). |
+| `--three_prime_zone_size` | 5 | Zone 3' (bases) | Taille de la zone 3' (en bases) surveillée plus strictement. |
+| `--primer_min_match_percent` | 80.0 | % Match minimum | Pourcentage minimal de conservation requis pour une amorce stricte. |
+| `--primer_iupac_min_percent` | 98.0 | % Match après IUPAC | Pourcentage de couverture requis si l'amorce contient des bases IUPAC (dégénérées). |
+| `--min_primer_coverage` | 80.0 | % Élimination primer | Pourcentage des séquences de l'alignement qui doivent être reconnues par l'amorce. |
+
+---
+
+## 8. Filtres Qualité
+
+| Paramètre | Défaut | Label Interface (FR) | Description |
+|-----------|--------|----------------------|-------------|
+| `--max_poly_bases` | 2 | Max Poly-Bases | Nombre max de bases identiques répétées (ex: AAAAA). 2 est très strict, souvent augmenté à 3 ou 4. |
+| `--max_primer_gen` | 10001 | Max primers générés | Nombre maximum d'amorces candidates générées par Primer3 par région. |
+
+---
+
+## 9. Paramètres Avancés (Hardcoded dans `lib/LLNL/LAVA/Core.pm`)
+
+Ces paramètres ne sont pas modifiables en ligne de commande mais définissent le comportement interne du moteur LAVA 2026.
+
+### Modèle de Pénalité (Sigmoïde)
+### Modèle de Pénalité (Sigmoïde)
+| Constante (CLI Option) | Valeur | Label Interface (FR) | Rôle |
+|------------------------|--------|----------------------|------|
+| `--penalty_plateau` | 0.25 | Plateau de Pénalité | Zone de "confort" autour de la distance cible où la pénalité est nulle (+/- 25%). |
+| `--penalty_slope` | 0.15 | Pente Sigmoïde | Pente de la courbe de pénalité au-delà du plateau (plus c'est élevé, plus la pénalité monte vite). |
+| `max_penalty` | 100 | N/A | Score de pénalité maximal possible pour un critère de distance. |
+
+### ratios Géométriques (Target Distances)
+Les distances cibles entre amorces sont calculées proportionnellement à la longueur totale de la signature.
+- **F3-F2** : 12% de la longueur totale.
+- **F2-F1** : 18% de la longueur totale.
+- **Inner (F1c-B1c)** : 40% de la longueur totale.

@@ -1,0 +1,448 @@
+package LLNL::LAVA::Validator;
+
+use strict;
+use warnings;
+use vars qw(@ISA @EXPORT_OK);
+
+require Exporter;
+@ISA = qw(Exporter);
+
+@EXPORT_OK = qw(
+    checkPrimerMismatchTolerance
+    isIUPACCompatible
+    rev_comp
+    generateIUPACCode
+    getPrimerTargetedSequences
+    validateCompleteSignatureSpacing
+);
+
+#=============================================================================
+# IUPAC & SEQUENCE UTILITIES
+#=============================================================================
+
+sub rev_comp {
+  my $seq = shift;
+  my $rc = reverse($seq);
+  $rc =~ tr/ACGTUacgtu/TGCAAtgcaa/;
+  $rc =~ tr/RYSWKMBDHVNryswkmbdhvn/YRSWMKVHDBNyrswmkvhdbn/;
+  return $rc;
+}
+
+sub isIUPACCompatible {
+  my ($base, $iupac_code) = @_;
+  
+  my %iupac_map = (
+    'A' => ['A'], 'T' => ['T'], 'G' => ['G'], 'C' => ['C'],
+    'R' => ['A', 'G'], 'Y' => ['C', 'T'], 'S' => ['G', 'C'], 'W' => ['A', 'T'],
+    'K' => ['G', 'T'], 'M' => ['A', 'C'],
+    'B' => ['C', 'G', 'T'], 'D' => ['A', 'G', 'T'], 'H' => ['A', 'C', 'T'], 'V' => ['A', 'C', 'G'],
+    'N' => ['A', 'C', 'G', 'T']
+  );
+  
+  my $allowed_bases = $iupac_map{uc($iupac_code)} || [$iupac_code];
+  my $target_base = uc($base);
+  return grep { $_ eq $target_base } @{$allowed_bases};
+}
+
+sub generateIUPACCode {
+    my ($bases_ref) = @_;
+    return 'N' if !@$bases_ref;
+    
+    my $key = join('', sort @$bases_ref);
+    my %table = (
+        'A'=>'A', 'C'=>'C', 'G'=>'G', 'T'=>'T',
+        'AG'=>'R', 'CT'=>'Y', 'GT'=>'K', 'AC'=>'M', 'CG'=>'S', 'AT'=>'W',
+        'ACG'=>'V', 'ACT'=>'H', 'AGT'=>'D', 'CGT'=>'B',
+        'ACGT'=>'N'
+    );
+    return $table{$key} || 'N';
+}
+
+#=============================================================================
+# HELPER: Get Primer Targeted Sequences
+#=============================================================================
+# Helper to check matching sequences based on IUPAC logic
+sub getPrimerTargetedSequences {
+  my ($sequences_r, $position, $length, $final_sequence) = @_;
+  
+  my $num_sequences = scalar(@{$sequences_r});
+  my @targeted_sequences = ();
+  
+  for my $seq_idx (0 .. $num_sequences - 1) {
+    my $sequence = $sequences_r->[$seq_idx];
+    my $matches = 1;
+    
+    # Vérifier si ce primer matche cette séquence
+    for my $pos_offset (0 .. $length - 1) {
+      my $abs_position = $position + $pos_offset;
+      if ($abs_position >= length($sequence)) {
+        $matches = 0;
+        last;
+      }
+      
+      my $seq_base = uc(substr($sequence, $abs_position, 1));
+      my $primer_base = substr($final_sequence, $pos_offset, 1);
+      
+      # Vérifier compatibilité IUPAC
+      if (!isIUPACCompatible($seq_base, $primer_base)) {
+        $matches = 0;
+        last;
+      }
+    }
+    
+    if ($matches) {
+      push @targeted_sequences, $seq_idx;
+    }
+  }
+  
+  return @targeted_sequences;
+}
+
+
+#=============================================================================
+# CORE VALIDATION LOGIC
+#=============================================================================
+
+sub checkPrimerMismatchTolerance {
+  my ($sequences_r, $position, $length, $candidate_primer, $min_match_percent, $min_iupac_percent, $min_primer_coverage, $max_total_degen, $max_consec_degen, $max_3p_degen, $max_tolerated_mismatch, $zone_size, $min_base_freq) = @_;
+  
+  # Paramètres par défaut si non fournis
+  $min_primer_coverage = 80 unless defined $min_primer_coverage;
+  $min_base_freq = 0.05 unless defined $min_base_freq;
+  
+  my $num_sequences = scalar(@{$sequences_r});
+  return ("", 0, 0, []) if $num_sequences == 0;
+  
+  my $candidate_primer_uc = uc($candidate_primer);
+  
+  # DEBUG LOGS (Condensed for shared usage)
+  print "\n[LAVA::Validator] Checking Primer: $candidate_primer_uc @ Pos $position\n";
+  
+  # ========================================================================
+  # PHASE 1: EXTRACTION DES RÉGIONS CIBLES (GAP-AWARE)
+  # ========================================================================
+  my @target_regions = ();
+    for my $seq_idx (0 .. $num_sequences - 1) {
+      my $sequence = $sequences_r->[$seq_idx];
+    if ($position < length($sequence)) {
+      my $region = substr($sequence, $position, $length);
+      $region = uc($region);
+      $region =~ s/-//g; # Séquence physique sans gaps
+      
+      if (length($region) == $length) {
+         push @target_regions, { 
+            seq_idx => $seq_idx, 
+            region => $region 
+         };
+      }
+    }
+  }
+  
+  return ("", 0, 0, []) if @target_regions == 0;
+  my $total_regions = scalar(@target_regions);
+  
+  # ========================================================================
+  # PHASE 2: TEST D'ORIENTATION & COMPATIBILITÉ (SENSE vs ANTISENSE)
+  # ========================================================================
+  
+  # Fonction locale
+  my $test_orientation = sub {
+      my ($prim, $targets_ref) = @_;
+      my @perf = ();
+      my @non = ();
+      foreach my $t (@$targets_ref) {
+          my $matches = 1;
+          for(my $i=0; $i<$length; $i++) {
+              my $pb = substr($prim, $i, 1);
+              my $tb = substr($t->{region}, $i, 1);
+              if (!isIUPACCompatible($tb, $pb)) {
+                  $matches = 0;
+                  last;
+              }
+          }
+          if ($matches) { push @perf, $t; }
+          else { push @non, $t; }
+      }
+      return (\@perf, \@non);
+  };
+  
+  # 1. Test Sense
+  my ($sense_perfect, $sense_non) = $test_orientation->($candidate_primer_uc, \@target_regions);
+  my $sense_score = scalar(@$sense_perfect);
+  
+  # 2. Test Antisense (RC des cibles)
+  my @target_regions_rc = ();
+  foreach my $t (@target_regions) {
+      push @target_regions_rc, { seq_idx => $t->{seq_idx}, region => rev_comp($t->{region}) };
+  }
+  my ($anti_perfect, $anti_non) = $test_orientation->($candidate_primer_uc, \@target_regions_rc);
+  my $anti_score = scalar(@$anti_perfect);
+  
+  my @perfect_matches = ();
+  my @non_matches = ();
+  my $orientation = "SENSE";
+  
+  if ($anti_score > $sense_score) {
+      @target_regions = @target_regions_rc;
+      @perfect_matches = @$anti_perfect;
+      @non_matches = @$anti_non;
+      $orientation = "ANTISENSE";
+  } else {
+      @perfect_matches = @$sense_perfect;
+      @non_matches = @$sense_non;
+  }
+
+  my $perfect_match_count = scalar(@perfect_matches);
+  my $perfect_match_percent = ($perfect_match_count / $total_regions) * 100;
+  
+  # ========================================================================
+  # PHASE 2b: DÉCISION RAPIDE (EARLY EXIT)
+  # ========================================================================
+  if ($perfect_match_percent >= $min_primer_coverage) {
+    return ($candidate_primer_uc, $perfect_match_percent, 0, [map {$_->{seq_idx}} @perfect_matches]);
+  }
+  
+  # ========================================================================
+  # PHASE 3: ANALYSE POSITION PAR POSITION (Avec contraintes de dégénérescence)
+  # ========================================================================
+  
+  my $optimized_primer = $candidate_primer_uc;
+  my @position_compatible_seqs = ();
+  my $has_modifications = 0;
+  
+  my $degen_total = 0;
+  my $degen_consec = 0;
+  my $degen_3p = 0;
+  
+  # L'extrémité 3' est TOUJOURS à la fin de la chaîne (5' -> 3') 
+  # car les séquences cibles ont déjà été RC si nécessaire.
+  # 3' end is ALWAYS at the end of the string (5' -> 3') since targets are RC'd.
+  my $three_prime_start_idx = $length - $zone_size;
+  $three_prime_start_idx = 0 if $three_prime_start_idx < 0;
+  my $three_prime_end_idx = $length - 1;
+  
+  # Initialiser tracking
+  for my $pos_offset (0 .. $length - 1) {
+    $position_compatible_seqs[$pos_offset] = [ map { $_->{seq_idx} } @perfect_matches ];
+  }
+  
+  for my $pos_offset (0 .. $length - 1) {
+    my $primer_base = substr($candidate_primer_uc, $pos_offset, 1);
+    my %base_counts = ();
+    my @position_matches = @{$position_compatible_seqs[$pos_offset]};
+    
+    for my $target (@non_matches) {
+      my $target_base = substr($target->{region}, $pos_offset, 1);
+      $base_counts{$target_base}++;
+      if ($target_base eq $primer_base) {
+        push @position_matches, $target->{seq_idx};
+      }
+    }
+    
+    my $primer_base_count = $base_counts{$primer_base} || 0;
+    my $total_primer_matches = scalar(@position_matches);
+    my $primer_base_percent = ($total_primer_matches / $total_regions) * 100;
+    
+    if ($primer_base_percent < $min_match_percent) {
+      # Besoin d'une base dégénérée
+      
+      # Vérifier les limites de dégénérescence avant de générer le code
+      $degen_total++;
+      $degen_consec++;
+      
+      if ($pos_offset >= $three_prime_start_idx && $pos_offset <= $three_prime_end_idx) {
+        $degen_3p++;
+      }
+      
+      if ($degen_total > $max_total_degen || 
+          $degen_consec > $max_consec_degen || 
+          $degen_3p > $max_3p_degen) {
+        return ("", $perfect_match_percent, 0, []); # Limite dépassée, amorce rejetée mais on retourne la couverture réelle
+      }
+      
+      # FILTRE BRUIT (min_base_freq)
+      my $min_count_noise = $total_regions * $min_base_freq;
+      my %significant_bases = ();
+      $significant_bases{$primer_base} = 1;
+      
+      foreach my $b (keys %base_counts) {
+          if ($base_counts{$b} >= $min_count_noise) {
+              $significant_bases{$b} = 1;
+          }
+      }
+      my @all_bases = keys %significant_bases;
+      my $iupac_code = generateIUPACCode(\@all_bases);
+      
+      if ($iupac_code eq 'N') {
+        # Trop de variation, pas de modif possible fiable
+        return ("", $perfect_match_percent, 0, []);
+      }
+      
+      my @iupac_matches = @{$position_compatible_seqs[$pos_offset]};
+      for my $target (@non_matches) {
+        my $target_base = substr($target->{region}, $pos_offset, 1);
+        if (isIUPACCompatible($target_base, $iupac_code)) {
+          push @iupac_matches, $target->{seq_idx} unless grep { $_ == $target->{seq_idx} } @iupac_matches;
+        }
+      }
+      
+      my $iupac_percent = (scalar(@iupac_matches) / $total_regions) * 100;
+      
+      if ($iupac_percent < $min_iupac_percent) {
+        return ("", $perfect_match_percent, 0, []);
+      }
+      
+      substr($optimized_primer, $pos_offset, 1) = $iupac_code;
+      $position_compatible_seqs[$pos_offset] = \@iupac_matches;
+      $has_modifications = 1;
+    } else {
+      # Pas de dégénérescence à cette position
+      $degen_consec = 0;
+      $position_compatible_seqs[$pos_offset] = \@position_matches;
+    }
+  }
+  
+  # ========================================================================
+  # PHASE 4: VALIDATION FINALE (Tolérance Mismatches & Protection 3')
+  # ========================================================================
+  my @final_compatible_sequences = ();
+  
+  # L'extrémité 3' est TOUJOURS à la fin de la chaîne (5' -> 3')
+  $three_prime_start_idx = $length - $zone_size;
+  $three_prime_start_idx = 0 if $three_prime_start_idx < 0;
+  $three_prime_end_idx = $length - 1;
+  
+  for my $target (@target_regions) {
+    my $is_fully_compatible = 1;
+    my $mismatch_count = 0;
+    
+    for my $pos_offset (0 .. $length - 1) {
+      my $target_base = substr($target->{region}, $pos_offset, 1);
+      my $primer_base = substr($optimized_primer, $pos_offset, 1);
+      
+      if (!isIUPACCompatible($target_base, $primer_base)) {
+        # Vérifier si on est dans la zone 3' critique
+        if ($pos_offset >= $three_prime_start_idx && $pos_offset <= $three_prime_end_idx) {
+          # Mismatch en 3' : REJET IMMÉDIAT
+          $is_fully_compatible = 0;
+          last;
+        } else {
+          # Mismatch hors zone 3' : Toléré jusqu'à max_tolerated_mismatch
+          $mismatch_count++;
+          if ($mismatch_count > $max_tolerated_mismatch) {
+            $is_fully_compatible = 0;
+            last;
+          }
+        }
+      }
+    }
+    
+    if ($is_fully_compatible) {
+      push @final_compatible_sequences, $target->{seq_idx};
+    }
+  }
+  
+  my $final_coverage_percent = (scalar(@final_compatible_sequences) / $total_regions) * 100;
+
+  if ($final_coverage_percent < $min_primer_coverage) {
+    return ("", $final_coverage_percent, 0, []);
+  }
+  
+  return ($optimized_primer, $final_coverage_percent, $has_modifications, \@final_compatible_sequences);
+}
+
+
+#=============================================================================
+# SIGNATURE VALIDATION LOGIC
+#=============================================================================
+
+# Fonction pour valider que tous les primers d'une signature respectent l'espacement minimum
+# et ne se chevauchent pas
+sub validateCompleteSignatureSpacing
+{
+  my ($forwardPrimers_r, $reversePrimers_r, $minSpacing) = @_;
+  
+  # print "\n🔍 VALIDATION COMPLÈTE D'ESPACEMENT ACTIVÉE\n";
+  
+  # Créer une liste ordonnée de tous les primers avec leurs positions
+  my @allPrimers = ();
+  
+  # Ajouter les primers forward (F3, F2, F1, FSTEM)
+  foreach my $primer (@{$forwardPrimers_r}) {
+    next if (!defined $primer);
+    my $location = $primer->getLocation();
+    my $length = $primer->getLength();
+    my $strand = $primer->getTag("strand");
+    
+    my ($start, $end);
+    # Calculer positions selon le strand réel
+    if($strand eq "plus") {
+      # Forward primer sur strand plus : location = position 5'
+      $start = $location;
+      $end = $location + $length - 1;
+    } else {
+      # Forward primer sur strand minus : location = position 3'
+      $start = $location - $length + 1;
+      $end = $location;
+    }
+    
+    push @allPrimers, {
+      'name' => $primer->{name} || 'Forward',
+      'start' => $start,
+      'end' => $end,
+      'length' => $length,
+      'strand' => $strand
+    };
+  }
+  
+  # Ajouter les primers reverse (BSTEM, B1, B2, B3)
+  foreach my $primer (@{$reversePrimers_r}) {
+    next if (!defined $primer);
+    my $location = $primer->getLocation();
+    my $length = $primer->getLength();
+    my $strand = $primer->getTag("strand");
+    
+    my ($start, $end);
+    # Calculer positions selon le strand réel
+    if($strand eq "minus") {
+      # Reverse primer sur strand minus : location = position 3'
+      $start = $location - $length + 1;
+      $end = $location;
+    } else {
+      # Reverse primer sur strand plus : location = position 5'
+      $start = $location;
+      $end = $location + $length - 1;
+    }
+    
+    push @allPrimers, {
+      'name' => $primer->{name} || 'Reverse',
+      'start' => $start,
+      'end' => $end,
+      'length' => $length,
+      'strand' => $strand
+    };
+  }
+  
+  # Trier par position de début
+  @allPrimers = sort { $a->{start} <=> $b->{start} } @allPrimers;
+  
+  # Vérifier l'espacement entre primers consécutifs
+  for (my $i = 0; $i < @allPrimers - 1; $i++) {
+    my $current = $allPrimers[$i];
+    my $next = $allPrimers[$i + 1];
+    
+    # Calculer l'espacement
+    my $spacing = $next->{start} - $current->{end} - 1;
+    
+    # Vérifier s'il y a chevauchement (espacement négatif)
+    if ($spacing < 0) {
+      # print "  ❌ REJETÉ: CHEVAUCHEMENT détecté ($spacing nt)\n";
+      return 0; # Échec de validation
+    }
+    
+  }
+  
+  return 1; # Validation réussie
+}
+
+1;

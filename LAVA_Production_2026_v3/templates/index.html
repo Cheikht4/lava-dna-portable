@@ -1,0 +1,620 @@
+{% extends "base.html" %}
+
+{% block title %}LAVA-DNA Interface - {{ 'home'|t }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Panel gauche - Configuration -->
+    <div class="col-lg-8">
+        <!-- En-tête -->
+        <div class="card card-hover mb-4">
+            <div class="card-body text-center bg-gradient-custom text-white">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div></div>
+                    <div class="text-center flex-grow-1">
+                        <h1 class="card-title mb-3">
+                            <i class="fas fa-dna me-2"></i>{{ 'title'|t }}
+                        </h1>
+                        <p class="card-text">
+                            {{ 'subtitle'|t }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload de fichier -->
+        <div class="card card-hover mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-upload me-2"></i>{{ 'upload_title'|t }}</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="fasta_file" class="form-label">{{ 'upload_label'|t }}</label>
+                        <input type="file" class="form-control" id="fasta_file" name="fasta_file"
+                            accept=".fas,.fasta,.fa,.txt" required>
+                        <div class="form-text">{{ 'upload_formats'|t }}</div>
+                    </div>
+
+                    {% if session.uploaded_file %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        {{ 'upload_current'|t }} <strong>{{ session.uploaded_filename }}</strong>
+                    </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>{{ 'upload_button'|t }}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Configuration des paramètres -->
+        <div class="card card-hover mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>{{ 'config_title'|t }}</h5>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('update_params') }}" method="post">
+
+                    <!-- Type de script -->
+                    <div class="param-section">
+                        <h6><i class="fas fa-dna me-2"></i>{{ 'primer_type'|t }}</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="script_type" value="STEM"
+                                        {{ 'checked' if params.script_type=='STEM' }}>
+                                    <label class="form-check-label">
+                                        <i class="fas fa-star me-1"></i>{{ 'stem_primers'|t }}
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="script_type" value="LOOP"
+                                        {{ 'checked' if params.script_type=='LOOP' }}>
+                                    <label class="form-check-label">
+                                        <i class="fas fa-link me-1"></i>{{ 'loop_primers'|t }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mode LAMP -->
+                    <div class="param-section">
+                        <h6><i class="fas fa-layer-group me-2"></i>{{ 'lamp_mode'|t }}</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="lamp_mode" value="classic"
+                                        {{ 'checked' if params.lamp_mode=='classic' }}>
+                                    <label class="form-check-label">
+                                        <i class="fas fa-dna me-1"></i>{{ 'lamp_classic'|t }}
+                                    </label>
+                                    <div class="form-text">{{ 'lamp_classic_desc'|t }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="lamp_mode" value="enriched"
+                                        {{ 'checked' if params.lamp_mode=='enriched' }}>
+                                    <label class="form-check-label">
+                                        <i class="fas fa-plus me-1"></i>{{ 'lamp_enriched'|t }}
+                                    </label>
+                                    <div class="form-text">
+                                        <span class="stem-text">{{ 'lamp_enriched_stem'|t }}</span>
+                                        <span class="loop-text">{{ 'lamp_enriched_loop'|t }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paramètres généraux -->
+                    <div class="param-section">
+                        <h6><i class="fas fa-sliders-h me-2"></i>{{ 'general_params'|t }}</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="signature_max_length" class="form-label">{{ 'max_signature_length'|t
+                                    }}</label>
+                                <input type="number" class="form-control" name="signature_max_length"
+                                    value="{{ params.signature_max_length }}" min="200" max="600">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="max_primer_gen" class="form-label">{{ 'max_primers_generated'|t }}</label>
+                                <input type="number" class="form-control" name="max_primer_gen"
+                                    value="{{ params.max_primer_gen }}" min="100" max="20000">
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <label for="primer_min_match_percent" class="form-label">{{ 'match_minimum'|t }}</label>
+                                <input type="number" class="form-control" name="primer_min_match_percent"
+                                    value="{{ params.primer_min_match_percent }}" min="50" max="100">
+                                <div class="form-text">{{ 'match_minimum_desc'|t }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="primer_iupac_min_percent" class="form-label">{{ 'match_after_iupac'|t
+                                    }}</label>
+                                <input type="number" class="form-control" name="primer_iupac_min_percent"
+                                    value="{{ params.primer_iupac_min_percent }}" min="50" max="100">
+                                <div class="form-text">{{ 'match_after_iupac_desc'|t }}</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="min_primer_coverage" class="form-label">{{ 'primer_elimination'|t }}</label>
+                                <input type="number" class="form-control" name="min_primer_coverage"
+                                    value="{{ params.min_primer_coverage }}" min="50" max="100">
+                                <div class="form-text">{{ 'primer_elimination_desc'|t }}</div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <label for="min_base_frequency" class="form-label">{{ 'min_noise_freq'|t }}</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.01" class="form-control" name="min_base_frequency"
+                                        value="{{ params.min_base_frequency }}" min="0.01" max="0.50">
+                                    <span class="input-group-text"><i class="fas fa-filter"></i></span>
+                                </div>
+                                <div class="form-text">{{ 'min_noise_freq_desc'|t }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Outer primers -->
+                    <div class="param-section">
+                        <h6><i class="fas fa-circle me-2"></i>{{ 'outer_primers'|t }}</h6>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">{{ 'target_length'|t }}</label>
+                                <input type="number" class="form-control" name="outer_primer_target_length"
+                                    value="{{ params.outer_primer_target_length }}" min="15" max="30">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ 'min_length'|t }}</label>
+                                <input type="number" class="form-control" name="outer_primer_min_length"
+                                    value="{{ params.outer_primer_min_length }}" min="15" max="25">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ 'max_length'|t }}</label>
+                                <input type="number" class="form-control" name="outer_primer_max_length"
+                                    value="{{ params.outer_primer_max_length }}" min="18" max="35">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ 'target_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="outer_primer_target_tm"
+                                    value="{{ params.outer_primer_target_tm }}" min="50" max="70">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Middle primers -->
+                    <div class="param-section">
+                        <h6><i class="fas fa-dot-circle me-2"></i>{{ 'middle_primers'|t }}</h6>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">{{ 'target_length'|t }}</label>
+                                <input type="number" class="form-control" name="middle_primer_target_length"
+                                    value="{{ params.middle_primer_target_length }}" min="15" max="30">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ 'min_length'|t }}</label>
+                                <input type="number" class="form-control" name="middle_primer_min_length"
+                                    value="{{ params.middle_primer_min_length }}" min="15" max="25">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ 'max_length'|t }}</label>
+                                <input type="number" class="form-control" name="middle_primer_max_length"
+                                    value="{{ params.middle_primer_max_length }}" min="18" max="35">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ 'target_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="middle_primer_target_tm"
+                                    value="{{ params.middle_primer_target_tm }}" min="50" max="70">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inner primers -->
+                    <div class="param-section">
+                        <h6><i class="fas fa-bullseye me-2"></i>{{ 'inner_primers'|t }}</h6>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label class="form-label">{{ 'target_length'|t }}</label>
+                                <input type="number" class="form-control" name="inner_primer_target_length"
+                                    value="{{ params.inner_primer_target_length }}" min="15" max="30">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ 'min_length'|t }}</label>
+                                <input type="number" class="form-control" name="inner_primer_min_length"
+                                    value="{{ params.inner_primer_min_length }}" min="15" max="25">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ 'max_length'|t }}</label>
+                                <input type="number" class="form-control" name="inner_primer_max_length"
+                                    value="{{ params.inner_primer_max_length }}" min="18" max="35">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ 'target_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="inner_primer_target_tm"
+                                    value="{{ params.inner_primer_target_tm }}" min="50" max="70">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paramètres LOOP avancés (uniquement si LOOP et mode enrichi) -->
+                    <div class="param-section" id="loop-advanced-params" style="display: none;">
+                        <h6><i class="fas fa-link me-2"></i>{{ 'loop_advanced_params'|t }}</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">{{ 'loop_target_length'|t }}</label>
+                                <input type="number" class="form-control" name="loop_primer_target_length"
+                                    value="{{ params.loop_primer_target_length }}" min="15" max="30">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">{{ 'loop_min_gap'|t }}</label>
+                                <input type="number" class="form-control" name="loop_min_gap"
+                                    value="{{ params.loop_min_gap }}" min="15" max="50">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION PARAMÈTRES AVANCÉS (ACCORDÉON) -->
+                    <div class="accordion mb-3" id="accordionAdvanced">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAdvanced">
+                                <button class="accordion-button collapsed bg-light" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#collapseAdvanced" aria-expanded="false"
+                                    aria-controls="collapseAdvanced">
+                                    <i class="fas fa-flask me-2"></i><strong>{{ 'advanced_params'|t }}</strong>
+                                </button>
+                            </h2>
+                            <div id="collapseAdvanced" class="accordion-collapse collapse"
+                                aria-labelledby="headingAdvanced" data-bs-parent="#accordionAdvanced">
+                                <div class="accordion-body">
+
+                                    <!-- 1. Thermodynamique & Conditions -->
+                                    <h6 class="text-primary mt-2"><i class="fas fa-thermometer-half me-2"></i>{{
+                                        'thermo_conditions'|t }}</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-3">
+                                            <label class="form-label small">{{ 'max_tm_diff'|t }}</label>
+                                            <input type="number" step="0.1" class="form-control form-control-sm"
+                                                name="max_tm_diff" value="{{ params.max_tm_diff }}">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small">{{ 'dna_conc'|t }}</label>
+                                            <input type="number" class="form-control form-control-sm" name="dna_conc"
+                                                value="{{ params.dna_conc }}">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small">{{ 'dntp_conc'|t }}</label>
+                                            <input type="number" step="0.1" class="form-control form-control-sm"
+                                                name="dntp_conc" value="{{ params.dntp_conc }}">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small">{{ 'salt_mono'|t }}</label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                name="salt_monovalent" value="{{ params.salt_monovalent }}">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label small">{{ 'salt_div'|t }}</label>
+                                            <input type="number" step="0.1" class="form-control form-control-sm"
+                                                name="salt_divalent" value="{{ params.salt_divalent }}">
+                                        </div>
+                                    </div>
+                                    <hr>
+
+                                    <!-- 2. Architecture & Géométrie -->
+                                    <h6 class="text-success mt-2"><i class="fas fa-ruler-combined me-2"></i>{{
+                                        'architecture_geometry'|t }}</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label small">{{ 'max_dist_outer_middle'|t }}</label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                name="max_dist_outer_middle" value="{{ params.max_dist_outer_middle }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small">{{ 'max_dist_middle_inner'|t }}</label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                name="max_dist_middle_inner" value="{{ params.max_dist_middle_inner }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small">{{ 'max_overlap'|t }} (% max)</label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                name="max_overlap_percent" value="{{ params.max_overlap_percent }}">
+                                        </div>
+                                        <div class="col-md-12 mt-2">
+                                            <label class="form-label small">{{ 'resolve_overlap_label'|t }}</label>
+                                            <select class="form-select form-select-sm" name="resolve_overlap_by">
+                                                <option value="penalty" {% if params.resolve_overlap_by == 'penalty' or not params.resolve_overlap_by %}selected{% endif %}>{{ 'resolve_overlap_penalty'|t }}</option>
+                                                <option value="coverage" {% if params.resolve_overlap_by == 'coverage' %}selected{% endif %}>{{ 'resolve_overlap_coverage'|t }}</option>
+                                            </select>
+                                            <div class="form-text x-small">{{ 'resolve_overlap_desc'|t }}</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small">{{ 'penalty_plateau'|t }}</label>
+                                            <input type="number" step="0.01" min="0" max="1"
+                                                class="form-control form-control-sm" name="penalty_plateau"
+                                                value="{{ params.penalty_plateau }}">
+                                            <div class="form-text x-small">{{ 'penalty_plateau_desc'|t }}</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small">{{ 'penalty_slope'|t }}</label>
+                                            <input type="number" step="0.01" min="0" max="1"
+                                                class="form-control form-control-sm" name="penalty_slope"
+                                                value="{{ params.penalty_slope }}">
+                                            <div class="form-text x-small">{{ 'penalty_slope_desc'|t }}</div>
+                                        </div>
+                                    </div>
+                                    <hr>
+
+                                    <!-- 3. Diversité & Mismatches -->
+                                    <h6 class="text-warning mt-2"><i class="fas fa-virus me-2"></i>{{
+                                        'diversity_mismatches'|t }}</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label small">{{ 'entropy_threshold'|t }}</label>
+                                            <input type="number" step="0.1" class="form-control form-control-sm"
+                                                name="entropy_threshold" value="{{ params.entropy_threshold }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small">{{ 'max_poly_bases'|t }}</label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                name="max_poly_bases" value="{{ params.max_poly_bases }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small">{{ 'max_total_degenerate_bases'|t }}</label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                name="max_total_degenerate_bases" value="{{ params.max_total_degenerate_bases }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small">{{ 'max_consecutive_degenerate_bases'|t }}</label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                name="max_consecutive_degenerate_bases"
+                                                value="{{ params.max_consecutive_degenerate_bases }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small">{{ 'max_3prime_degenerate_bases'|t }}</label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                name="max_3prime_degenerate_bases" value="{{ params.max_3prime_degenerate_bases }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small">{{ 'max_tolerated_mismatches'|t }}</label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                name="max_tolerated_mismatches" value="{{ params.max_tolerated_mismatches }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small">{{ 'three_prime_zone'|t }}</label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                name="three_prime_zone_size" value="{{ params.three_prime_zone_size }}">
+                                        </div>
+                                    </div>
+                                    <hr>
+
+                                    <!-- 4. Execution Config -->
+                                    <h6 class="text-secondary mt-2"><i class="fas fa-cogs me-2"></i>{{
+                                        'execution_config'|t }}</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small">{{ 'min_signatures'|t }}</label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                name="min_signatures_for_success"
+                                                value="{{ params.min_signatures_for_success }}" min="1" max="100">
+                                            <div class="form-text x-small">{{ 'min_signatures_desc'|t }}</div>
+                                        </div>
+                                    </div>
+                                    <hr>
+
+                                    <!-- 5. Spatial reduction -->
+                                    <h6 class="text-secondary mt-2"><i class="fas fa-filter me-2"></i>{{ 'spatial_reduction_title'|t }}</h6>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small">{{ 'window_size_label'|t }}</label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                name="window_size"
+                                                value="{{ params.window_size }}" min="0" max="50">
+                                            <div class="form-text x-small">{{ 'window_size_desc'|t }}</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small">{{ 'max_per_window_label'|t }}</label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                name="max_per_window"
+                                                value="{{ params.max_per_window }}" min="0" max="20">
+                                            <div class="form-text x-small">{{ 'max_per_window_desc'|t }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-info mt-2 py-1 px-2 small">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        <strong>{{ 'spatial_reduction_title'|t }} :</strong> {{ 'spatial_reduction_info'|t }}
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-2"></i>{{ 'save_params'|t }}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Exécution -->
+        <div class="card card-hover">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-rocket me-2"></i>{{ 'execution_title'|t }}</h5>
+            </div>
+            <div class="card-body">
+                {% if session.uploaded_file %}
+                <form action="{{ url_for('execute_lava') }}" method="post">
+                    <!-- Champ caché pour transmettre le script_type -->
+                    <input type="hidden" name="script_type" value="{{ params.script_type }}">
+                    <!-- Champ caché pour transmettre le mode LAMP (classic/enriched) -->
+                    <input type="hidden" name="lamp_mode" value="{{ params.lamp_mode }}">
+
+                    <div class="mb-3">
+                        <label for="output_name" class="form-label">{{ 'output_name'|t }} :</label>
+                        <input type="text" class="form-control" name="output_name"
+                            value="lava_result_{{ params.script_type.lower() }}"
+                            placeholder="{{ 'name_no_extension'|t }}" required>
+                        <div class="form-text">{{ 'files_will_be_named'|t }}</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning btn-lg">
+                        <i class="fas fa-rocket me-2"></i>{{ 'execute_button'|t }}
+                    </button>
+                </form>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    {{ 'upload_first_message'|t }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel droit - Informations -->
+    <div class="col-lg-4">
+        <!-- Statut -->
+        <div class="card card-hover mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>{{ 'status'|t }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>{{ 'primer_type'|t }} :</strong>
+                    <span class="badge bg-{{ 'primary' if params.script_type == 'STEM' else 'secondary' }} ms-2">
+                        {{ params.script_type }}
+                    </span>
+                </div>
+
+                <div class="mb-3">
+                    <strong>{{ 'fasta_file'|t }} :</strong>
+                    {% if session.uploaded_file %}
+                    <span class="text-success"><i class="fas fa-check me-1"></i>{{ session.uploaded_filename }}</span>
+                    {% else %}
+                    <span class="text-danger"><i class="fas fa-times me-1"></i>{{ 'no_file'|t }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <strong>{{ 'running_executions'|t }} :</strong>
+                    <span class="badge bg-warning">{{ running_count }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aide -->
+        <div class="card card-hover">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>{{ 'help'|t }}</h5>
+            </div>
+            <div class="card-body">
+                <h6><i class="fas fa-star me-2"></i>{{ 'stem_vs_loop'|t }}</h6>
+                <ul class="list-unstyled">
+                    <li><strong>STEM :</strong> {{ 'stem_desc'|t }}</li>
+                    <li><strong>LOOP :</strong> {{ 'loop_desc'|t }}</li>
+                </ul>
+
+                <h6 class="mt-3"><i class="fas fa-file me-2"></i>{{ 'accepted_formats'|t }}</h6>
+                <ul class="list-unstyled">
+                    <li>.fas, .fasta, .fa, .txt</li>
+                    <li>{{ 'file_size_max'|t }}</li>
+                </ul>
+
+                <h6 class="mt-3"><i class="fas fa-cogs me-2"></i>{{ 'parameters'|t }}</h6>
+                <ul class="list-unstyled">
+                    <li>{{ 'adjust_needs'|t }}</li>
+                    <li>{{ 'default_values'|t }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+    /* CSS pour masquer initialement les paramètres */
+    .stem-param,
+    .loop-param {
+        display: none;
+    }
+</style>
+
+<script>
+    console.log('🚀 Interface LAVA nouvelle version chargée');
+
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('📄 DOM chargé');
+
+        // Récupérer les éléments
+        const scriptTypeInputs = document.querySelectorAll('input[name="script_type"]');
+        const lampModeInputs = document.querySelectorAll('input[name="lamp_mode"]');
+        const stemTexts = document.querySelectorAll('.stem-text');
+        const loopTexts = document.querySelectorAll('.loop-text');
+        const loopAdvancedParams = document.getElementById('loop-advanced-params');
+
+        function updateInterface() {
+            const selectedType = document.querySelector('input[name="script_type"]:checked')?.value || 'STEM';
+            const selectedMode = document.querySelector('input[name="lamp_mode"]:checked')?.value || 'classic';
+
+            console.log(`🔄 Type: ${selectedType}, Mode: ${selectedMode}`);
+
+            // Mettre à jour les textes dans le mode LAMP
+            if (selectedType === 'STEM') {
+                stemTexts.forEach(text => text.style.display = 'inline');
+                loopTexts.forEach(text => text.style.display = 'none');
+            } else {
+                stemTexts.forEach(text => text.style.display = 'none');
+                loopTexts.forEach(text => text.style.display = 'inline');
+            }
+
+            // Afficher les paramètres LOOP avancés si LOOP + enrichi
+            if (selectedType === 'LOOP' && selectedMode === 'enriched') {
+                if (loopAdvancedParams) loopAdvancedParams.style.display = 'block';
+            } else {
+                if (loopAdvancedParams) loopAdvancedParams.style.display = 'none';
+            }
+
+            // Mettre à jour le champ caché script_type pour l'exécution
+            const hiddenScriptType = document.querySelector('input[type="hidden"][name="script_type"]');
+            if (hiddenScriptType) {
+                hiddenScriptType.value = selectedType;
+            }
+
+            // Mettre à jour le nom de fichier de sortie
+            const outputNameInput = document.querySelector('input[name="output_name"]');
+            if (outputNameInput) {
+                const modeText = selectedMode === 'enriched' ? '8primers' : '6primers';
+                outputNameInput.value = `lava_${selectedType.toLowerCase()}_${modeText}`;
+            }
+
+            // Mettre à jour le texte du bouton d'exécution
+            const executeButton = document.querySelector('button[type="submit"].btn-warning');
+            if (executeButton) {
+                const modeText = selectedMode === 'enriched' ? '8 primers' : '6 primers';
+                executeButton.innerHTML = `<i class="fas fa-rocket me-2"></i>{{ 'execute_button'|t }}`;
+            }
+        }
+
+        // Événements de changement
+        scriptTypeInputs.forEach(input => {
+            input.addEventListener('change', updateInterface);
+        });
+        lampModeInputs.forEach(input => {
+            input.addEventListener('change', updateInterface);
+        });
+
+        // Initialiser au chargement
+        updateInterface();
+        console.log('🎯 Interface nouvelle version initialisée');
+    });
+</script>
+{% endblock %}

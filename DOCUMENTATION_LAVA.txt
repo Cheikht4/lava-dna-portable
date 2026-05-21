@@ -1,0 +1,361 @@
+================================================================================
+                      DOCUMENTATION LAVA - LAMP PRIMER DESIGNER
+                           Version Flask Interface 2026 (SÉCURISÉE)
+================================================================================
+
+TABLE DES MATIÈRES
+==================
+1. INTRODUCTION
+2. INSTALLATION ET CONFIGURATION
+3. INTERFACE WEB FLASK
+4. PARAMÈTRES LAVA
+5. TYPES DE PRIMERS (STEM vs LOOP)
+6. UTILISATION DE L'INTERFACE
+7. SCRIPTS DE LANCEMENT
+8. FICHIERS DE SORTIE
+9. DÉPANNAGE
+10. CORRECTIONS APPORTÉES
+11. ARCHITECTURE DU SYSTÈME
+
+================================================================================
+1. INTRODUCTION
+================================================================================
+
+LAVA (LAMP Assay Versatile Analysis) est un outil bioinformatique développé par
+le Lawrence Livermore National Laboratory (LLNL) pour la conception automatisée
+d'amorces LAMP (Loop-mediated isothermal AMPlification).
+
+Cette version comprend :
+- Scripts Perl originaux LAVA corrigés et optimisés
+- Interface web Flask moderne et intuitive
+- Support des primers STEM et LOOP
+- Monitoring en temps réel des exécutions
+- Gestion automatique des chevauchements de primers
+
+================================================================================
+2. INSTALLATION ET CONFIGURATION
+================================================================================
+
+PRÉREQUIS SYSTÈME
+-----------------
+- Linux (testé sur Ubuntu 24.04 LTS / WSL2)
+- Python 3.8+
+- Perl 5.x
+- Primer3 2.6.1+
+- BioPerl
+
+INSTALLATION DES DÉPENDANCES
+----------------------------
+
+2.1 Primer3
+-----------
+sudo apt update
+sudo apt install primer3
+
+2.2 BioPerl
+-----------
+sudo apt install bioperl libbioperl-perl
+cpanm Bio::Tools::Run::Primer3
+
+2.3 Python et environnement virtuel
+-----------------------------------
+# Créer l'environnement virtuel
+python3 -m venv lava_env
+
+# Activer l'environnement
+source lava_env/bin/activate
+
+# Installer les dépendances Flask
+pip install -r requirements_flask.txt
+
+2.4 Configuration PERL5LIB
+---------------------------
+export PERL5LIB=/chemin/vers/lava-dna-master/lib:$PERL5LIB
+
+================================================================================
+3. INTERFACE WEB FLASK
+================================================================================
+
+LANCEMENT DE L'INTERFACE
+-------------------------
+
+Option 1 - Lancement automatique (recommandé) :
+python launch_lava_wsl.py
+
+Option 2 - Lancement manuel :
+source lava_env/bin/activate
+python lava_flask_app.py
+
+ACCÈS À L'INTERFACE
+-------------------
+URL : http://localhost:5001
+L'interface s'ouvre automatiquement dans le navigateur. Le port 5001 est fixé par défaut pour contourner (notamment macOS AirPlay Receiver).
+
+FONCTIONNALITÉS DE L'INTERFACE
+-------------------------------
+✅ Upload de fichiers FASTA
+✅ Configuration interactive des paramètres
+✅ Sélection dynamique STEM/LOOP
+✅ Exécution avec monitoring temps réel
+✅ Téléchargement des résultats
+✅ Historique des exécutions
+
+================================================================================
+4. PARAMÈTRES LAVA
+================================================================================
+
+4.1 PARAMÈTRES GÉNÉRAUX
+-----------------------
+signature_max_length        : Longueur maximale de la signature (défaut: 400)
+max_primer_gen              : Nombre maximum de primers générés (défaut: 5000)
+primer_min_match_percent    : % match minimum avant IUPAC (défaut: 80)
+primer_iupac_min_percent    : % match minimum après IUPAC (défaut: 90)
+
+4.2 OUTER PRIMERS (F3/B3)
+-------------------------
+outer_primer_target_length  : Longueur cible (défaut: 22)
+outer_primer_min_length     : Longueur minimum (défaut: 18)
+outer_primer_max_length     : Longueur maximum (défaut: 28)
+outer_primer_target_tm      : Température de fusion cible (défaut: 60°C)
+
+4.3 MIDDLE PRIMERS (F2/B2)
+--------------------------
+middle_primer_target_length : Longueur cible (défaut: 20)
+middle_primer_min_length    : Longueur minimum (défaut: 16)
+middle_primer_max_length    : Longueur maximum (défaut: 26)
+middle_primer_target_tm     : Température de fusion cible (défaut: 65°C)
+
+4.4 INNER PRIMERS (F1/B1)
+-------------------------
+inner_primer_target_length  : Longueur cible (défaut: 18)
+inner_primer_min_length     : Longueur minimum (défaut: 14)
+inner_primer_max_length     : Longueur maximum (défaut: 24)
+inner_primer_target_tm      : Température de fusion cible (défaut: 65°C)
+
+================================================================================
+5. TYPES DE PRIMERS (STEM vs LOOP)
+================================================================================
+
+5.1 STEM PRIMERS
+----------------
+Description : Primers additionnels qui forment des structures en tige
+Espacement  : Minimum 1 nucléotide entre primers consécutifs
+Calcul      : LAVA calcule automatiquement l'espacement optimal
+Configuration : Seule la checkbox d'inclusion est nécessaire
+
+Paramètres dans l'interface :
+- include_stem_primers : Inclure ou non les STEM primers
+
+5.2 LOOP PRIMERS
+----------------
+Description : Primers qui forment des boucles pour accélération LAMP
+Espacement  : Minimum 25 nucléotides entre F2 et F1
+Configuration : Paramètres de longueur et gap configurables
+
+Paramètres dans l'interface :
+- loop_primer_target_length : Longueur cible des LOOP primers
+- loop_min_gap             : Gap minimum entre primers LOOP
+- include_loop_primers     : Inclure ou non les LOOP primers
+
+================================================================================
+6. UTILISATION DE L'INTERFACE
+================================================================================
+
+6.1 ÉTAPES D'UTILISATION
+------------------------
+
+Étape 1 : Upload du fichier FASTA
+- Cliquer sur "Choisir un fichier"
+- Sélectionner un fichier .fas, .fasta, .fa ou .txt
+- Cliquer "Uploader"
+
+Étape 2 : Configuration des paramètres
+- Sélectionner le type de primers (STEM ou LOOP)
+- Ajuster les paramètres selon vos besoins
+- Cliquer "Sauvegarder les paramètres"
+
+Étape 3 : Exécution
+- Saisir un nom pour le fichier de sortie
+- Cliquer "Lancer l'exécution"
+- Suivre le monitoring en temps réel
+
+Étape 4 : Récupération des résultats
+- Télécharger les fichiers .primers, .all_signatures, .dash
+- Consulter l'historique des exécutions
+
+6.2 MONITORING EN TEMPS RÉEL
+----------------------------
+L'interface affiche :
+- Statut de l'exécution (starting, running, completed, error)
+- Logs détaillés en temps réel
+- Nombre de lignes de logs
+- Durée d'exécution
+- Informations de débogage
+
+================================================================================
+7. SCRIPTS DE LANCEMENT
+================================================================================
+
+7.1 launch_lava_wsl.py (RECOMMANDÉ)
+-----------------------------------
+Script optimisé pour WSL2 qui :
+✅ Active automatiquement l'environnement virtuel
+✅ Lance Flask en arrière-plan
+✅ Ouvre le navigateur Windows automatiquement
+✅ Gère proprement l'arrêt avec Ctrl+C
+✅ Nettoie les processus à la fermeture
+
+Usage : python launch_lava_wsl.py
+
+7.2 launch_flask.py
+-------------------
+Script basique pour environnements Linux standard
+
+7.3 lava_flask_app.py
+---------------------
+Application Flask principale - peut être lancée directement
+
+================================================================================
+8. FICHIERS DE SORTIE
+================================================================================
+
+8.1 FICHIERS GÉNÉRÉS
+--------------------
+nom.primers        : Séquences des primers optimaux
+nom.all_signatures : Toutes les signatures candidates
+nom.dash          : Fichier de configuration pour visualisation
+
+8.2 FORMAT DES FICHIERS .primers
+--------------------------------
+Exemple de contenu :
+>Signature 1 (locations: (15-32, 195-214)(43-62, 172-190)(77-99, 150-169))
+F3: ATCGATCGATCGATCG
+B3: CGATCGATCGATCGAT
+F2: GCTAGCTAGCTAGCTA
+B2: TAGCTAGCTAGCTAGC
+F1: ACGTACGTACGTACGT
+B1: TGCATGCATGCATGCA
+
+Format des positions :
+- (F3_start-F3_end, B3_start-B3_end) : Outer primers
+- (F2_start-F2_end, B2_start-B2_end) : Middle primers  
+- (F1_start-F1_end, B1_start-B1_end) : Inner primers
+
+================================================================================
+9. DÉPANNAGE
+================================================================================
+
+9.1 PROBLÈMES COURANTS
+----------------------
+
+Erreur : "Can't locate LLNL/LAVA/Constants.pm"
+Solution : Vérifier la variable PERL5LIB
+export PERL5LIB=/chemin/vers/lava-dna-master/lib:$PERL5LIB
+
+Erreur : "Parameter PRIMER_SALT_DIVALENT is not valid"
+Solution : Avertissement normal - incompatibilité Primer3 versions modernes
+
+Erreur : "Module Flask non trouvé"
+Solution : Activer l'environnement virtuel
+source lava_env/bin/activate
+
+Interface ne s'ouvre pas automatiquement
+Solution : Ouvrir manuellement http://localhost:5001
+
+9.2 COMMANDES DE DEBUG
+----------------------
+# Vérifier les processus LAVA
+ps aux | grep lava
+
+# Arrêter tous les processus Flask
+pkill -f flask && pkill -f lava_flask_app
+
+# Tester Primer3
+primer3_core --help
+
+# Vérifier BioPerl
+perl -MBio::Tools::Run::Primer3 -e "print 'OK\n'"
+
+================================================================================
+10. CORRECTIONS APPORTÉES
+================================================================================
+
+10.1 CORRECTIONS DU CODE PERL
+-----------------------------
+✅ Correction logique IUPAC : C,T → Y (au lieu de N)
+✅ Correction setSequence → sequence (appel de méthode)
+✅ Restauration déclarations variables ($dntpConc, $saltMonovalent, etc.)
+✅ Ajout validation chevauchements primers STEM
+✅ Suppression messages debug français
+✅ Activation rejet primers avec bases N
+✅ Correction boucle infinie quand 0 signatures trouvées
+✅ Correction typo "Faled" → "Failed"
+
+10.2 AMÉLIORATIONS INTERFACE
+----------------------------
+✅ Migration Streamlit → Flask (plus stable)
+✅ Suppression auto-refresh perturbateur
+✅ Implémentation changement dynamique STEM/LOOP
+✅ Ajout champ caché script_type pour formulaire exécution
+✅ Simplification section STEM (paramètres automatiques)
+✅ Ajout paramètre primer_iupac_min_percent manquant
+✅ Monitoring temps réel sans boucles infinies
+✅ Gestion robuste des processus et sessions
+
+10.3 PROBLÈMES RÉSOLUS
+----------------------
+❌ Boucles infinites Streamlit → ✅ Interface Flask stable
+❌ Script_type non transmis → ✅ Synchronisation formulaires
+❌ Primers STEM chevauchants → ✅ Validation correcte espacement
+❌ Paramètres STEM inutiles → ✅ Interface simplifiée
+❌ Messages erreur français → ✅ Interface propre
+❌ Auto-refresh perturbateur → ✅ JavaScript pur
+
+================================================================================
+11. ARCHITECTURE ET NOUVEAUTÉS LAVA 2026
+================================================================================
+
+11.1 STRUCTURE DU PROJET
+------------------------
+lava-dna-master/
+├── lib/LLNL/LAVA/           # Modules Perl LAVA (Inclut Core.pm - Pénalités Sigmoïdales)
+├── lava_stem_primer.pl      # Script STEM unifié avec système trace Thermodynamique
+├── lava_loop_primer.pl      # Script LOOP unifié avec système trace Thermodynamique
+├── lava_flask_app.py        # Application Flask (Mode Production Web Sécurisé)
+├── launch_lava_*.py         # Scripts de lancement
+├── uploads/                 # Répertoire tampon d'inputs FASTA
+└── results/                 # Fichiers de signatures
+
+11.2 MÉCANISMES D'ANALYSE (MISE À JOUR 2026)
+--------------------------------------------
+- TRACABILITÉ DÉTAILLÉE : Chaque signature offre désormais un "Penalty Breakdown".
+  Format : `Spc[I_M:1.0 M_O:0.1] Thm[I:1.0 M:2.4 O:0.0]`
+  Permet aux biologistes d'identifier si le rejet d'une signature est d'origine 
+  thermodynamique (Delta Tm Primer3) ou Spatiale (Distance d'espacement).
+- FONCTION SIGMOÏDE : L'algorithme a abandonné le calcul parabolique brutal
+  pour évaluer une erreur d'espacement de manière fluide (Sigmoïde permissive).
+
+11.3 SÉCURITÉ SERVEUR (INTERNET EXPOSURE)
+-----------------------------------------
+Afin de permettre une exposition via un domaine de l'Institut, des pare-feux logiciels
+ont été ajoutés dans Flask :
+- Anti-DDoS : Suivi UUID des visiteurs (Maximum 1 exécution par session).
+- RCE Mitigation : FLASK_DEBUG obligatoirement coupé en production.
+- Sécurisation Cryptographique : SECRET_KEY requise avec `os.urandom(24)`.
+- Anti-Path-Traversal : Filtre `secure_filename()` pour empêcher les injections.
+
+================================================================================
+AUTEURS ET SUPPORT
+================================================================================
+
+LAVA Original : Lawrence Livermore National Laboratory (LLNL)
+Interface Flask : Développement custom (2024)
+Amélioration Biomathématique, UX et Sécurisation Cyber : Deepmind Antigravity (2026)
+
+Versions:
+- Interface Flask Sécurisée : 2.0 (2026)
+- Noyau Algorithmique LAVA : Modifié (Sigmoïde Thermodynamique)
+
+================================================================================
+FIN DE LA DOCUMENTATION
+================================================================================

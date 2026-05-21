@@ -1,0 +1,110 @@
+# =============================================================================
+# .gitignore — LAVA-DNA Project
+# Code source uniquement / Source code only
+# =============================================================================
+
+# --------------- Environnements Python ---------------
+lava_env/
+venv/
+env/
+.venv/
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+*.egg
+.Python
+build/
+dist/
+.eggs/
+wheels/
+
+# --------------- Données FASTA (souvent grandes) -----
+# Exclure les FASTA de test mais garder les exemples
+# Décommentez si nécessaire :
+# *.fasta
+# *.fas
+# *.fa
+
+# Fichiers FASTA de travail (résultats, tests locaux)
+Dengue*.fasta
+Dengue*.fa
+kmer*.fasta
+test_loop_results_amplified.fasta
+*_aligne.fasta
+*_alignement.fasta
+*_merge_aligne.fasta
+
+# --------------- Résultats LAVA (générés) ------------
+*.primers
+*.all_signatures
+*.dash
+*.primers.primers
+test_loop_results
+test_loop_results*/
+*_signatures_individuelles/
+dengue_small*/
+
+# --------------- Logs d'exécution --------------------
+*.log
+*.out
+*.err
+lava_loop_logs_*.txt
+lava_stem_logs_*.txt
+
+# --------------- Fichiers temporaires ----------------
+uploads/
+results/
+temp/
+tmp/
+*.tmp
+*.bak
+*.backup
+*.save
+*.old
+*.orig
+
+# --------------- Fichiers système macOS/Windows ------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+
+# --------------- Métadonnées Windows (Zone.Identifier) ------
+# Ces fichiers utilisent U+F03A (＊) comme séparateur, pas un vrai ":"
+*Zone.Identifier
+*＊Zone.Identifier
+
+# --------------- Éditeurs ----------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# --------------- Fichiers de config secrets ----------
+.env
+.env.local
+config_local.py
+*.pid
+*.lock
+
+# --------------- Archives ----------------------------
+*.zip
+*.tar.gz
+*.7z
+
+# --------------- Documents personnels ----------------
+# (devis, factures, etc. — pas du code)
+devis pour didida/
+
+# --------------- Fichiers de débogage one-shot -------
+fix_degenerate.py
+fix_degenerate_exception.py
+fix_header_length.py
+translate_comments.py
+translate_lib.py
+update_output.py
