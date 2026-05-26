@@ -97,7 +97,7 @@ use LLNL::LAVA::PrimerSetInfo::PCRPair;
 use LLNL::LAVA::PrimerSet::LAMP;
 use LLNL::LAVA::Core qw(generateDistancePenalties calculate_proportional_geometry countDegenerateBases);
 use LLNL::LAVA::Validator qw(checkPrimerMismatchTolerance getPrimerTargetedSequences isIUPACCompatible rev_comp generateIUPACCode validateCompleteSignatureSpacing);
-use LLNL::LAVA::PipelineUtils qw(buildReversePrimers analyzeAll enumeratePairs buildMetricsArray reducePairInfosByPenalty reducePrimersByOverlap reduceSignaturesByOverlap flattenInfoData buildBigMerge calculateSignatureIntersection createPerSignatureFiles createAmplificationFiles analyzeSignatureCombinations generateCombinations calculateDynamicPairLengths);
+use LLNL::LAVA::PipelineUtils qw(buildReversePrimers buildNativeReversePool analyzeAll enumeratePairs buildMetricsArray reducePairInfosByPenalty reducePrimersByOverlap reduceSignaturesByOverlap flattenInfoData buildBigMerge calculateSignatureIntersection createPerSignatureFiles createAmplificationFiles analyzeSignatureCombinations generateCombinations calculateDynamicPairLengths);
 
 # Activer l'auto-flush de STDOUT pour les logs temps réel via Flask / Enable STDOUT auto-flush for real-time logs via Flask
 # Enable STDOUT autoflush for real-time log streaming via Flask
@@ -858,8 +858,15 @@ sub getOligosWithMismatchTolerance {
     "\" outer forward primers (avec tolérance mismatches)\n";
 
 
-  print "Building outer reverse primers from outer forward primers\n";
-  my @outerReversePrimers = buildReversePrimers(\@outerForwardPrimers);
+  # Option B : Generation NATIVE des Reverse Outer via Primer3 sur RC(MSA)
+  print "Enumerating outer NATIVE reverse primers (Option B)\n";
+  my @outerReversePrimers = buildNativeReversePool(
+    $outerEnumerator, $inputMSA,
+    $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
+    $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
+    \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp
+  );
+  print "  Generated \"" . scalar(@outerReversePrimers) . "\" outer native reverse primers\n";
 
 
   # Enumerate STEM primers, since the STEM primers extend in the opposite 
@@ -942,11 +949,15 @@ sub getOligosWithMismatchTolerance {
     scalar(@middleForwardPrimers) .
     "\" middle primers (avec tolérance mismatches)\n";
 
-  # Keeping minus strand primers in the same sorted order, which means
-  # they're sorted by the 3' end of the primers, although that's the
-  # 5' end of the primer span on the positive strand
-  print "Building middle reverse primers from middle forward primers\n";
-  my @middleReversePrimers = buildReversePrimers(\@middleForwardPrimers);
+  # Option B : Generation NATIVE des Reverse Middle via Primer3 sur RC(MSA)
+  print "Enumerating middle NATIVE reverse primers (Option B)\n";
+  my @middleReversePrimers = buildNativeReversePool(
+    $middleEnumerator, $inputMSA,
+    $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
+    $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
+    \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp
+  );
+  print "  Generated \"" . scalar(@middleReversePrimers) . "\" middle native reverse primers\n";
 
   # Enumerate inner primers 
   my $innerEnumerator = LLNL::LAVA::OligoEnumerator::Primer3Conserved->new(
@@ -979,11 +990,15 @@ sub getOligosWithMismatchTolerance {
     scalar(@innerForwardPrimers) .
     "\" inner primers (avec tolérance mismatches)\n";
 
-  # Keeping minus strand primers in the same sorted order, which means
-  # they're sorted by the 3' end of the primers, although that's the
-  # 5' end of the primer span on the positive strand
-  print "Building inner reverse primers from inner forward primers\n";
-  my @innerReversePrimers = buildReversePrimers(\@innerForwardPrimers);
+  # Option B : Generation NATIVE des Reverse Inner via Primer3 sur RC(MSA)
+  print "Enumerating inner NATIVE reverse primers (Option B)\n";
+  my @innerReversePrimers = buildNativeReversePool(
+    $innerEnumerator, $inputMSA,
+    $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
+    $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
+    \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp
+  );
+  print "  Generated \"" . scalar(@innerReversePrimers) . "\" inner native reverse primers\n";
 
   # TODO: want to flip any primer locations to reflect the standard
   # positive strand 5' location notation if they were generated

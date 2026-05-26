@@ -884,3 +884,43 @@ L'ordre des signatures dans le dossier `*_signatures_individuelles` ne correspon
 Après l'opération de tri (Coverage > Degeneracy > Penalty), la référence globale `$possibleSignatures_r` est désormais réassignée pour pointer vers le nouveau tableau trié. Les fonctions d'écriture en aval (`createPerSignatureFiles`, `createAmplificationFiles`) utiliseront donc la bonne liste ordonnée.
 **Impact attendu** :
 Cohérence totale des rapports de bout en bout. La `signature_01_...` dans le dossier individuel correspond exactement à la Signature 1 du fichier `.primers`.
+
+### [2026-05-26] Phase Option B : Génération Native des Amorces Reverse
+
+**Fichiers impactés** :
+- `lib/LLNL/LAVA/PipelineUtils.pm` : Ajout de `buildNativeReversePool`
+- `lava_loop_primer.pl` : Remplacement des 3 appels `buildReversePrimers` (Outer/Middle/Inner)
+- `lava_stem_primer.pl` : Remplacement des 3 appels `buildReversePrimers` (Outer/Middle/Inner)
+
+**Nature du changement** : [Architecture / Bug Fix Critique / Biologie]
+
+**Problème identifié** :
+L'ancienne architecture générait les amorces Reverse (B3, B2, B1c) en appliquant un Reverse Complement
+aveugle aux amorces Forward validées. Cette approche créait une incohérence critique : une base dégénérée
+(IUPAC) autorisée au 5' d'une Forward (zone permissive) devenait automatiquement le 3' de la Reverse
+correspondante (zone stricte). La protection 3' n'était donc pas garantie pour les amorces du brin moins.
+
+**Solution technique** :
+Implémentation de `buildNativeReversePool` dans `PipelineUtils.pm`. Cette fonction :
+1. Calcule le Reverse Complement complet de l'alignement MSA (toutes les séquences)
+2. Lance Primer3 directement sur RC(Séquence 1) — les candidats générés sont nativement
+   sur le brin moins (5'→3' du brin -)
+3. Valide chaque candidat contre les séquences RC de l'alignement en orientation SENS
+   (pas d'ANTISENSE auto-détection nécessaire, car tout est déjà normalisé)
+4. Applique la protection 3' standard (last N chars) qui correspond maintenant
+   au vrai 3' biologique de l'amorce Reverse
+5. Convertit les positions du RC (position p dans RC) en coordonnées génomiques
+   originales (location = alignmentLength - 1 - p)
+
+**Justification biologique** :
+La cinétique d'hybridation LAMP exige une extrémité 3' parfaite pour initier l'élongation
+par la Bst polymérase à 65°C. Une base dégénérée (même Y = C/T) à cette position réduit
+drastiquement l'efficacité d'amorçage. En générant les amorces Reverse nativement via
+Primer3 sur le brin complémentaire, LAVA garantit que la protection de l'intégrité
+thermodynamique 3' s'applique dans le référentiel correct pour TOUS les types d'amorces.
+
+**Impact attendu** :
+- Disparition des bases dégénérées indésirables au 3' des amorces B3, B2, B1c
+- Pool de candidats Reverse indépendant et plus riche (Primer3 optimise sur le bon brin)
+- Meilleures signatures LAMP car les 6 types d'amorces sont tous optimisés nativement
+- Couverture plus honnête et reproductible (la protection 3' est symétrique entre Forward et Reverse)

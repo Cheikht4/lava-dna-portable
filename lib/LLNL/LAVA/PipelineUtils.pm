@@ -36,6 +36,7 @@ our @EXPORT_OK = qw(
   generateCombinations
   calculateDynamicPairLengths
   reducePrimersByWindow
+  buildNativeReversePool
 );
 
 use LLNL::LAVA::Constants ":standard";
@@ -86,6 +87,137 @@ sub buildReversePrimers
   }
 
   return @reversePrimers;
+}
+
+#-------------------------------------------------------------------------------
+
+=head2 buildNativeReversePool
+
+  Option B - Generation native des amorces Reverse.
+  Genere les amorces du brin moins directement via Primer3 sur le RC de l alignement,
+  puis les valide contre les sequences RC. Cela garantit que la zone 3 des amorces
+  Reverse est correctement protegee (pas de base degeneree au 3 prime).
+
+  Native Reverse primer generation (Option B).
+  Generates minus-strand primers directly via Primer3 on the RC of the alignment,
+  then validates them against RC sequences. This ensures the 3-prime zone of
+  Reverse primers is correctly protected (no degenerate base at 3-prime).
+
+  Parametres / Parameters:
+    enumerator        - Objet Primer3Conserved configure
+    alignment         - MSA BioPerl (Bio::SimpleAlign)
+    min_match_percent - Seuil de concordance stricte
+    min_iupac_percent - Seuil de couverture IUPAC
+    min_primer_coverage - Couverture minimale par amorce
+    maxTotalDegen, maxConsecDegen, max3PrimeDegen - Contraintes de degenerescence
+    maxToleratedMismatches - Mismatches toleres hors zone 3prime
+    threePrimeZoneSize - Taille de la zone 3prime stricte
+    minBaseFrequency  - Frequence minimale pour inclure une base
+
+=cut
+
+sub buildNativeReversePool {
+  my ($enumerator, $alignment,
+      $min_match_percent, $min_iupac_percent, $min_primer_coverage,
+      $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen,
+      $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
+      $checkPrimerMismatchTolerance_ref, $isIUPACCompatible_ref, $rev_comp_ref) = @_;
+
+  # --- 1. Construire le RC de l alignement complet ---
+  # Build the RC of the full alignment
+  my $alignmentLength = $alignment->length();
+  print "  [NativeReverse] Longueur alignement / Alignment length: $alignmentLength nt\n";
+
+  # Creer un nouvel alignement avec les sequences RC / Create new alignment with RC sequences
+  my $rcAlignment = Bio::SimpleAlign->new();
+  my $seqIndex = 0;
+  foreach my $seq ($alignment->each_seq()) {
+    my $seqStr = $seq->seq();
+    $seqStr = uc($seqStr);
+    # Complement des bases (avec gaps preserves pour l entropie) / Complement bases (gaps preserved for entropy)
+    (my $comp = $seqStr) =~ tr/ATCGatcgRYMKSWHBVDNrymkswhbvdn-/TAGCtagcYRKMSWDVBHNyrkmswdvbhn-/;
+    my $rcStr = reverse($comp);
+    my $rcSeq = Bio::LocatableSeq->new(
+      -id  => $seq->id() . "_RC",
+      -seq => $rcStr,
+    );
+    $rcAlignment->add_seq($rcSeq);
+    $seqIndex++;
+  }
+  print "  [NativeReverse] RC MSA construit avec $seqIndex sequences / RC MSA built with $seqIndex sequences\n";
+
+  # --- 2. Preparer les sequences RC pour la validation ---
+  # Prepare RC sequences for validation (gaps/N remplace par N)
+  my @rcSequences = ();
+  foreach my $seq ($rcAlignment->each_seq()) {
+    my $s = $seq->seq();
+    $s = uc($s);
+    $s =~ s/[^ATCG]/N/g;
+    push @rcSequences, $s;
+  }
+
+  # --- 3. Lancer Primer3 sur le RC de l alignement ---
+  # Run Primer3 on the RC alignment (generates native minus-strand primers)
+  my @candidatePrimers = $enumerator->getOligos($rcAlignment);
+  print "  [NativeReverse] Primer3 a genere / generated " . scalar(@candidatePrimers) . " candidats sur RC MSA\n";
+
+  # --- 4. Valider chaque candidat contre les sequences RC ---
+  # Validate each candidate against RC sequences (SENSE orientation vs RC targets)
+  my @validatedPrimers = ();
+  my $strict_count   = 0;
+  my $degen_count    = 0;
+  my $rejected_count = 0;
+
+  foreach my $primer (@candidatePrimers) {
+    my $posInRC  = $primer->location();  # Position 0-indexee dans RC(Seq1)
+    my $length   = $primer->length();
+    my $origSeq  = $primer->sequence();
+
+    # Validation contre les sequences RC (orientation SENS sur le brin -)
+    my ($finalSeq, $coveragePct, $isDegenerate, $compatibleIds) =
+      $checkPrimerMismatchTolerance_ref->(
+        \@rcSequences, $posInRC, $length, $origSeq,
+        $min_match_percent, $min_iupac_percent, $min_primer_coverage,
+        $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen,
+        $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency
+      );
+
+    next if $coveragePct < $min_primer_coverage;
+
+    # --- 5. Convertir la position RC -> position genome original ---
+    # RC position p -> original genome position: alignmentLength - 1 - p (5' du brin -)
+    # Convert RC position to original genome position
+    my $genomicLocation = $alignmentLength - 1 - $posInRC;
+
+    # Creer l objet Oligo natif en orientation minus / Create native Oligo object in minus orientation
+    my $validatedPrimer = $primer->clone();
+    $validatedPrimer->sequence($finalSeq);
+    $validatedPrimer->location($genomicLocation);   # 5' du brin -, coordonnee originale
+    $validatedPrimer->setTag("strand", "minus");    # Brin moins natif
+
+    if ($isDegenerate) {
+      $validatedPrimer->setTag("is_degenerate", 1);
+      $validatedPrimer->setTag("original_sequence", $origSeq);
+      $validatedPrimer->setTag("iupac_coverage", sprintf("%.1f", $coveragePct));
+      $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
+      $degen_count++;
+    } else {
+      $validatedPrimer->setTag("is_degenerate", 0);
+      $validatedPrimer->setTag("iupac_coverage", "100.0");
+      $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
+      $strict_count++;
+    }
+
+    push @validatedPrimers, $validatedPrimer;
+  }
+
+  print "  [NativeReverse] Resultats / Results:\n";
+  print "    - Strictes / Strict: $strict_count\n";
+  print "    - Degenerees / Degenerate: $degen_count\n";
+  print "    - Rejetees / Rejected: $rejected_count\n";
+  print "    - Total valide / Total validated: " . scalar(@validatedPrimers) . "/" . scalar(@candidatePrimers) . "\n\n";
+
+  return @validatedPrimers;
 }
 
 #-------------------------------------------------------------------------------
