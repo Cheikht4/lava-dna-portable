@@ -168,12 +168,20 @@ sub buildNativeReversePool {
   my $degen_count    = 0;
   my $rejected_count = 0;
 
+  print "INFO: [NativeReverse] Analyse de " . scalar(@candidatePrimers) . " amorces candidates Reverse avec tolerance aux mismatches...\n";
+  print "  - Seuil de concordance stricte / Strict match threshold: ${min_match_percent}%\n";
+  print "  - Seuil de couverture IUPAC / IUPAC coverage threshold: ${min_iupac_percent}%\n";
+  print "  - Couverture minimale / Minimum coverage: ${min_primer_coverage}%\n";
+  print "  - Max bases degenerees total / Max total degen: $maxTotalDegen\n";
+  print "  - Max bases degenerees 3prime / Max 3prime degen: $max3PrimeDegen\n";
+
   foreach my $primer (@candidatePrimers) {
     my $posInRC  = $primer->location();  # Position 0-indexee dans RC(Seq1)
     my $length   = $primer->length();
     my $origSeq  = $primer->sequence();
 
-    # Validation contre les sequences RC (orientation SENS sur le brin -)
+    # Validation contre les sequences RC avec tous les parametres identiques aux Forward
+    # Validation against RC sequences with identical parameters as Forward primers
     my ($finalSeq, $coveragePct, $isDegenerate, $compatibleIds) =
       $checkPrimerMismatchTolerance_ref->(
         \@rcSequences, $posInRC, $length, $origSeq,
@@ -182,33 +190,41 @@ sub buildNativeReversePool {
         $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency
       );
 
-    next if $coveragePct < $min_primer_coverage;
-
     # --- 5. Convertir la position RC -> position genome original ---
     # RC position p -> original genome position: alignmentLength - 1 - p (5' du brin -)
-    # Convert RC position to original genome position
     my $genomicLocation = $alignmentLength - 1 - $posInRC;
 
-    # Creer l objet Oligo natif en orientation minus / Create native Oligo object in minus orientation
-    my $validatedPrimer = $primer->clone();
-    $validatedPrimer->sequence($finalSeq);
-    $validatedPrimer->location($genomicLocation);   # 5' du brin -, coordonnee originale
-    $validatedPrimer->setTag("strand", "minus");    # Brin moins natif
+    # Meme logique de rejet/acceptation que getOligosWithMismatchTolerance
+    # Same rejection/acceptance logic as getOligosWithMismatchTolerance
+    if ($coveragePct >= $min_primer_coverage) {
+      # Creer l objet Oligo natif en orientation minus / Create native Oligo in minus orientation
+      my $validatedPrimer = $primer->clone();
+      $validatedPrimer->sequence($finalSeq);
+      $validatedPrimer->location($genomicLocation);   # 5' du brin -, coordonnee originale
+      $validatedPrimer->setTag("strand", "minus");    # Brin moins natif
 
-    if ($isDegenerate) {
-      $validatedPrimer->setTag("is_degenerate", 1);
-      $validatedPrimer->setTag("original_sequence", $origSeq);
-      $validatedPrimer->setTag("iupac_coverage", sprintf("%.1f", $coveragePct));
-      $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
-      $degen_count++;
+      if ($isDegenerate) {
+        $validatedPrimer->setTag("is_degenerate", 1);
+        $validatedPrimer->setTag("original_sequence", $origSeq);
+        $validatedPrimer->setTag("iupac_coverage", sprintf("%.1f", $coveragePct));
+        $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
+        $degen_count++;
+        print "REVERSE DEGENERATE acceptee - PosRC: $posInRC -> GenomPos: $genomicLocation, Couv: " .
+              sprintf("%.1f", $coveragePct) . "%, Seq: $finalSeq\n";
+      } else {
+        $validatedPrimer->setTag("is_degenerate", 0);
+        $validatedPrimer->setTag("iupac_coverage", "100.0");
+        $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
+        $strict_count++;
+        print "REVERSE STRICT acceptee   - PosRC: $posInRC -> GenomPos: $genomicLocation, Couv: 100.0%, Seq: $finalSeq\n";
+      }
+
+      push @validatedPrimers, $validatedPrimer;
     } else {
-      $validatedPrimer->setTag("is_degenerate", 0);
-      $validatedPrimer->setTag("iupac_coverage", "100.0");
-      $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
-      $strict_count++;
+      $rejected_count++;
+      print "REVERSE REJECTED           - PosRC: $posInRC -> GenomPos: $genomicLocation, Couv: " .
+            sprintf("%.1f", $coveragePct) . "% < ${min_primer_coverage}%\n";
     }
-
-    push @validatedPrimers, $validatedPrimer;
   }
 
   print "  [NativeReverse] Resultats / Results:\n";
