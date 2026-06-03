@@ -1361,14 +1361,26 @@ sub getOligosWithMismatchTolerance {
   }
 
   my $innerForwardCount = scalar(@{$masterInnerF_r});
-  my $fwd_progress_step = int($innerForwardCount / 10) || 1; # Mise a jour tous les 10%
-  
+  # Barre de progression pour la recherche combinatoire Forward / Progress bar for Forward combinatorial search
+  my $_sig_fwd_t0   = time();
+  my $_sig_fwd_done = 0;
+  my $_sig_fwd_hits = 0;  # Nombre de signatures Forward trouvees / Forward signatures found
+  print STDERR "  Recherche combinatoire Forward: $innerForwardCount amorces F1c...\n";
+
   for(my $innerIndex = 0; $innerIndex < $innerForwardCount; $innerIndex++)
   {
-      # Afficher la progression tous les 10% / Print progress every 10%
-      if ($innerIndex % $fwd_progress_step == 0 || $innerIndex == $innerForwardCount - 1) {
-        my $pct = int(($innerIndex + 1) / $innerForwardCount * 100);
-        print "  [Forward] $pct% ($innerIndex/$innerForwardCount amorces internes traitees)\n";
+      # Barre de progression toutes les 50 iterations ou a 100%
+      # Progress bar every 50 iterations or at 100%
+      $_sig_fwd_done = $innerIndex + 1;
+      if ($_sig_fwd_done % 50 == 0 || $_sig_fwd_done == $innerForwardCount) {
+        my $pct    = int($_sig_fwd_done / $innerForwardCount * 100);
+        my $bar    = "#" x int($pct/5) . "-" x (20 - int($pct/5));
+        my $elapsed = time() - $_sig_fwd_t0 + 0.001;
+        my $eta    = ($_sig_fwd_done < $innerForwardCount)
+                     ? sprintf(" ETA:%ds", int(($innerForwardCount - $_sig_fwd_done) / ($_sig_fwd_done / $elapsed)))
+                     : " Done!";
+        printf(STDERR "\r  [Fwd Sig][%s] %d/%d (%d%%) | Sig trouv: %d%s  ",
+               $bar, $_sig_fwd_done, $innerForwardCount, $pct, $_sig_fwd_hits, $eta);
       }
       my $innerInfo = $masterInnerF_r->[$innerIndex];
       my ($innerLocation, $innerLength, $innerPenalty, $innerTm) = @{$masterInnerF_data_r->[$innerIndex]};
@@ -1530,17 +1542,22 @@ sub getOligosWithMismatchTolerance {
                       $bestForwardInfos[$innerIndex] = [$loopInfo, $middleInfo, $outerInfo];
                       $bestSetPenalty = $currentSetPenalty;
                       $bestForwardPenalties[$innerIndex] = [$spacingPenalty, $primer3Penalty, $detailStr];
-                      $forwardSetCount++; # Just to mark we found something
+                      $forwardSetCount++;
+                      $_sig_fwd_hits++;  # Compteur de signatures Forward / Forward signature counter
                   }
               } # End Outer
           } # End Middle
       } # End Loop
   } # End Inner
   
+  # Finaliser la barre Forward / Finalize Forward bar
+  print STDERR "\n";
+  print "  [Forward] $forwardSetCount combinaisons Forward trouvees sur $innerForwardCount amorces F1c.\n";
+
   # Check if anything found
   if($forwardSetCount == 0) {
       print "No valid forward primer combinations found.\n";
-      exit 0; # Or handle gracefully
+      exit 0;
   }
 
   #-----------------------------------------------------------------------------
@@ -1574,14 +1591,26 @@ sub getOligosWithMismatchTolerance {
   my $reverseSetCount = 0;
   
   my $innerReverseCount = scalar(@{$masterInnerR_r});
-  my $rev_progress_step = int($innerReverseCount / 10) || 1; # Mise a jour tous les 10%
+  # Barre de progression pour la recherche combinatoire Reverse / Progress bar for Reverse combinatorial search
+  my $_sig_rev_t0   = time();
+  my $_sig_rev_done = 0;
+  my $_sig_rev_hits = 0;  # Nombre de signatures Reverse trouvees / Reverse signatures found
+  print STDERR "  Recherche combinatoire Reverse: $innerReverseCount amorces B1c...\n";
 
   for(my $innerIndex = 0; $innerIndex < $innerReverseCount; $innerIndex++)
   {
-      # Afficher la progression tous les 10% / Print progress every 10%
-      if ($innerIndex % $rev_progress_step == 0 || $innerIndex == $innerReverseCount - 1) {
-        my $pct = int(($innerIndex + 1) / $innerReverseCount * 100);
-        print "  [Reverse] $pct% ($innerIndex/$innerReverseCount amorces internes traitees)\n";
+      # Barre de progression toutes les 50 iterations ou a 100%
+      # Progress bar every 50 iterations or at 100%
+      $_sig_rev_done = $innerIndex + 1;
+      if ($_sig_rev_done % 50 == 0 || $_sig_rev_done == $innerReverseCount) {
+        my $pct    = int($_sig_rev_done / $innerReverseCount * 100);
+        my $bar    = "#" x int($pct/5) . "-" x (20 - int($pct/5));
+        my $elapsed = time() - $_sig_rev_t0 + 0.001;
+        my $eta    = ($_sig_rev_done < $innerReverseCount)
+                     ? sprintf(" ETA:%ds", int(($innerReverseCount - $_sig_rev_done) / ($_sig_rev_done / $elapsed)))
+                     : " Done!";
+        printf(STDERR "\r  [Rev Sig][%s] %d/%d (%d%%) | Sig trouv: %d%s  ",
+               $bar, $_sig_rev_done, $innerReverseCount, $pct, $_sig_rev_hits, $eta);
       }
       my $innerInfo = $masterInnerR_r->[$innerIndex];
       my ($innerLocation, $innerLength, $innerPenalty, $innerTm) = @{$masterInnerR_data_r->[$innerIndex]};
@@ -1742,11 +1771,16 @@ sub getOligosWithMismatchTolerance {
                       $bestSetPenalty = $currentSetPenalty;
                       $bestReversePenalties[$innerIndex] = [$spacingPenalty, $primer3Penalty, $detailStr];
                       $reverseSetCount++;
+                      $_sig_rev_hits++;  # Compteur de signatures Reverse / Reverse signature counter
                   }
               } # End Outer
           } # End Middle
       } # End Loop
   } # End Inner
+
+  # Finaliser la barre Reverse / Finalize Reverse bar
+  print STDERR "\n";
+  print "  [Reverse] $reverseSetCount combinaisons Reverse trouvees sur $innerReverseCount amorces B1c.\n";
 
   if($reverseSetCount == 0) {
       print "No valid reverse primer combinations found.\n";
