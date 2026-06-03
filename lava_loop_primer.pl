@@ -62,6 +62,7 @@
 ################################################################################
 
 use strict;
+use Time::HiRes qw(time);
 use warnings;
 use Carp;
 use lib 'lib';
@@ -139,8 +140,25 @@ sub getOligosWithMismatchTolerance {
   my $degenerate_count = 0;
   my $rejected_count = 0;
   
-  print "INFO: Analyse de / Analysis of " . scalar(@candidatePrimers) . " amorces candidates avec tolérance aux mismatches... / candidate primers with mismatch tolerance...\n";
-  
+  my $nb_fwd_candidates = scalar(@candidatePrimers);
+  print "INFO: Analyse de $nb_fwd_candidates amorces candidates Forward avec tolerance aux mismatches...\n";
+
+  # Barre de progression / Progress bar (auto-detect Term::ProgressBar ou ASCII fallback)
+  my $_has_pb = eval { require Term::ProgressBar; 1 } || 0;
+  my $_pb_obj = undef;
+  my $_pb_t0  = time();
+  if ($_has_pb && -t STDOUT) {
+    $_pb_obj = Term::ProgressBar->new({
+      name   => "Forward Validation",
+      count  => $nb_fwd_candidates,
+      ETA    => 'linear',
+      remove => 0,
+      fh     => \*STDERR,
+    });
+    $_pb_obj->minor(0);
+  }
+  my $_pb_done = 0;
+
   foreach my $primer (@candidatePrimers) {
     my $location = $primer->location();
     my $length = $primer->length();
@@ -167,11 +185,32 @@ sub getOligosWithMismatchTolerance {
         
         print "DEGENERATE PRIMER acceptée - Pos: $location, Couv: " . 
               sprintf("%.1f", $coverage_percent) . "%, Seq: $final_sequence\n";
+        # Mise à jour barre / Update progress bar
+        $_pb_done++;
+        if ($_has_pb && $_pb_obj) { $_pb_obj->update($_pb_done); }
+        elsif ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
+          my $pct = int($_pb_done/$nb_fwd_candidates*100);
+          my $bar = "#" x int($pct/5) . "-" x (20-int($pct/5));
+          my $eta = ($_pb_done > 0 && $_pb_done < $nb_fwd_candidates)
+                    ? sprintf(" ETA:%ds", int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001))))
+                    : "";
+          printf(STDERR "\r  [%s] %d/%d (%d%%) | OK:%d DEG:%d REJ:%d%s  ",
+                 $bar,$_pb_done,$nb_fwd_candidates,$pct,$strict_count,$degenerate_count,$rejected_count,$eta);
+        }
       } else {
         $validatedPrimer->setTag("is_degenerate", 0);
         $validatedPrimer->setTag("iupac_coverage", "100.0");
         $validatedPrimer->setTag("compatible_sequence_ids", $compatible_seq_ids);
         $strict_count++;
+        # Mise à jour barre / Update progress bar
+        $_pb_done++;
+        if ($_has_pb && $_pb_obj) { $_pb_obj->update($_pb_done); }
+        elsif ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
+          my $pct = int($_pb_done/$nb_fwd_candidates*100);
+          my $bar = "#" x int($pct/5) . "-" x (20-int($pct/5));
+          printf(STDERR "\r  [%s] %d/%d (%d%%) | OK:%d DEG:%d REJ:%d  ",
+                 $bar,$_pb_done,$nb_fwd_candidates,$pct,$strict_count,$degenerate_count,$rejected_count);
+        }
       }
       
       push @validatedPrimers, $validatedPrimer;
@@ -179,9 +218,21 @@ sub getOligosWithMismatchTolerance {
       $rejected_count++;
       print "REJECTED PRIMER - Pos: $location, Couv: " . 
             sprintf("%.1f", $coverage_percent) . "% < ${min_primer_acceptance}%\n";
+      # Mise à jour barre / Update progress bar
+      $_pb_done++;
+      if ($_has_pb && $_pb_obj) { $_pb_obj->update($_pb_done); }
+      elsif ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
+        my $pct = int($_pb_done/$nb_fwd_candidates*100);
+        my $bar = "#" x int($pct/5) . "-" x (20-int($pct/5));
+        printf(STDERR "\r  [%s] %d/%d (%d%%) | OK:%d DEG:%d REJ:%d  ",
+               $bar,$_pb_done,$nb_fwd_candidates,$pct,$strict_count,$degenerate_count,$rejected_count);
+      }
     }
   }
   
+  # Finaliser la barre / Finalize progress bar
+  if ($_has_pb && $_pb_obj) { $_pb_obj->update($nb_fwd_candidates); }
+  else { print STDERR "\n"; }
   print "RÉSULTATS tolérance mismatches:\n";
   print "  - Amorces strictes acceptées / accepted: $strict_count\n";
   print "  - Amorces dégénérées acceptées / accepted: $degenerate_count\n";

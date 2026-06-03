@@ -43,6 +43,105 @@ use LLNL::LAVA::Constants ":standard";
 use LLNL::LAVA::Options ":standard";
 use LLNL::LAVA::PrimerSet::PCRPair;
 use Bio::SeqIO;
+use POSIX qw(floor);
+use Time::HiRes qw(time);
+
+# Auto-detection de Term::ProgressBar (equivalent tqdm) / Auto-detect Term::ProgressBar (tqdm equivalent)
+# Si le module n'est pas installe, on utilise une barre ASCII maison sans dependance externe.
+# If the module is not installed, a built-in ASCII bar is used with no external dependency.
+our $HAS_TERM_PROGRESSBAR = eval { require Term::ProgressBar; Term::ProgressBar->import(); 1 } || 0;
+
+#-------------------------------------------------------------------------------
+# _make_progress_bar($total, $label)
+# Cree une barre de progression Term::ProgressBar ou un objet fallback ASCII.
+# Creates a Term::ProgressBar or a fallback ASCII progress bar object.
+#-------------------------------------------------------------------------------
+sub _make_progress_bar {
+  my ($total, $label) = @_;
+  $label //= "Traitement";
+
+  if ($HAS_TERM_PROGRESSBAR && -t STDOUT) {
+    # Mode riche : Term::ProgressBar avec ETA / Rich mode: Term::ProgressBar with ETA
+    my $bar = Term::ProgressBar->new({
+      name   => $label,
+      count  => $total,
+      ETA    => 'linear',
+      remove => 0,
+      fh     => \*STDERR,
+    });
+    $bar->minor(0);
+    return { type => 'term', bar => $bar, total => $total, done => 0 };
+  } else {
+    # Mode fallback : barre ASCII maison / Fallback mode: built-in ASCII bar
+    my $t0 = time();
+    return {
+      type   => 'ascii',
+      total  => $total,
+      done   => 0,
+      label  => $label,
+      t0     => $t0,
+      last_print => 0,
+    };
+  }
+}
+
+#-------------------------------------------------------------------------------
+# _update_progress($bar_r, $done, $extra_info)
+# Met a jour la barre. Appeler a chaque iteration (freq limitee internalement).
+# Updates the bar. Call at every iteration (frequency limited internally).
+# $extra_info = hashref optionnel : { strict=>N, degen=>N, rejected=>N }
+#-------------------------------------------------------------------------------
+sub _update_progress {
+  my ($bar_r, $done, $extra_r) = @_;
+  $bar_r->{done} = $done;
+  my $total = $bar_r->{total};
+
+  if ($bar_r->{type} eq 'term') {
+    $bar_r->{bar}->update($done);
+    return;
+  }
+
+  # Fallback ASCII : afficher toutes les 200 iterations ou a 100%
+  # Fallback ASCII: print every 200 iterations or at 100%
+  return if ($done % 200 != 0 && $done != $total);
+
+  my $now     = time();
+  my $elapsed = $now - $bar_r->{t0};
+  my $pct     = $total > 0 ? int($done / $total * 100) : 0;
+  my $filled  = int($pct / 5);   # 20 segments
+  my $empty   = 20 - $filled;
+  my $bar_str = "#" x $filled . "-" x $empty;
+
+  my $eta_str = "";
+  if ($done > 0 && $done < $total) {
+    my $rate    = $done / $elapsed;
+    my $remain  = ($total - $done) / $rate;
+    $eta_str = sprintf(" ETA:%ds", int($remain));
+  }
+
+  my $extra_str = "";
+  if ($extra_r) {
+    my @parts;
+    push @parts, "OK:"   . ($extra_r->{strict}   // 0) if exists $extra_r->{strict};
+    push @parts, "DEG:"  . ($extra_r->{degen}    // 0) if exists $extra_r->{degen};
+    push @parts, "REJ:"  . ($extra_r->{rejected} // 0) if exists $extra_r->{rejected};
+    $extra_str = " | " . join(" ", @parts) if @parts;
+  }
+
+  printf(STDERR "\r  [%s] %d/%d (%d%%)%s%s  ",
+         $bar_str, $done, $total, $pct, $extra_str, $eta_str);
+}
+
+sub _finish_progress {
+  my ($bar_r) = @_;
+  if ($bar_r->{type} eq 'term') {
+    $bar_r->{bar}->update($bar_r->{total});
+  } else {
+    # Finaliser la ligne / Finalize the line
+    _update_progress($bar_r, $bar_r->{total});
+    print STDERR "\n";
+  }
+}
 
 
 ################################################################################
@@ -168,12 +267,13 @@ sub buildNativeReversePool {
   my $degen_count    = 0;
   my $rejected_count = 0;
 
-  print "INFO: [NativeReverse] Analyse de " . scalar(@candidatePrimers) . " amorces candidates Reverse avec tolerance aux mismatches...\n";
-  print "  - Seuil de concordance stricte / Strict match threshold: ${min_match_percent}%\n";
-  print "  - Seuil de couverture IUPAC / IUPAC coverage threshold: ${min_iupac_percent}%\n";
-  print "  - Couverture minimale / Minimum coverage: ${min_primer_coverage}%\n";
-  print "  - Max bases degenerees total / Max total degen: $maxTotalDegen\n";
-  print "  - Max bases degenerees 3prime / Max 3prime degen: $max3PrimeDegen\n";
+  my $nb_rev_candidates = scalar(@candidatePrimers);
+  print "INFO: [NativeReverse] Analyse de $nb_rev_candidates amorces candidates Reverse...\n";
+  print "  - Strict match: ${min_match_percent}% | IUPAC: ${min_iupac_percent}% | Coverage: ${min_primer_coverage}%\n";
+  print "  - MaxDegen: $maxTotalDegen total / $max3PrimeDegen au 3prime\n";
+
+  # Barre de progression / Progress bar (Term::ProgressBar ou fallback ASCII)
+  my $rev_progress = _make_progress_bar($nb_rev_candidates, "Reverse Validation");
 
   foreach my $primer (@candidatePrimers) {
     my $posInRC  = $primer->location();  # Position 0-indexee dans RC(Seq1)
@@ -211,12 +311,16 @@ sub buildNativeReversePool {
         $degen_count++;
         print "REVERSE DEGENERATE acceptee - PosRC: $posInRC -> GenomPos: $genomicLocation, Couv: " .
               sprintf("%.1f", $coveragePct) . "%, Seq: $finalSeq\n";
+        _update_progress($rev_progress, $strict_count+$degen_count+$rejected_count,
+          { strict=>$strict_count, degen=>$degen_count, rejected=>$rejected_count });
       } else {
         $validatedPrimer->setTag("is_degenerate", 0);
         $validatedPrimer->setTag("iupac_coverage", "100.0");
         $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
         $strict_count++;
         print "REVERSE STRICT acceptee   - PosRC: $posInRC -> GenomPos: $genomicLocation, Couv: 100.0%, Seq: $finalSeq\n";
+        _update_progress($rev_progress, $strict_count+$degen_count+$rejected_count,
+          { strict=>$strict_count, degen=>$degen_count, rejected=>$rejected_count });
       }
 
       push @validatedPrimers, $validatedPrimer;
@@ -224,9 +328,12 @@ sub buildNativeReversePool {
       $rejected_count++;
       print "REVERSE REJECTED           - PosRC: $posInRC -> GenomPos: $genomicLocation, Couv: " .
             sprintf("%.1f", $coveragePct) . "% < ${min_primer_coverage}%\n";
+      _update_progress($rev_progress, $strict_count+$degen_count+$rejected_count,
+        { strict=>$strict_count, degen=>$degen_count, rejected=>$rejected_count });
     }
   }
 
+  _finish_progress($rev_progress);
   print "  [NativeReverse] Resultats / Results:\n";
   print "    - Strictes / Strict: $strict_count\n";
   print "    - Degenerees / Degenerate: $degen_count\n";
