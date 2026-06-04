@@ -791,7 +791,31 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
         while True:
             line = process.stdout.readline()
             if line:
-                output_lines.append(line.strip())
+                stripped = line.strip()
+                
+                # ── Détection des lignes de progression LAVA-PROGRESS ─────────────
+                # Format Perl : [LAVA-PROGRESS] label|done|total|extra|rate|eta
+                # Detect LAVA-PROGRESS lines emitted by Perl scripts
+                if stripped.startswith('[LAVA-PROGRESS]'):
+                    try:
+                        parts = stripped[len('[LAVA-PROGRESS]'):].strip().split('|')
+                        if len(parts) >= 3:
+                            running_executions[execution_id]['progress'] = {
+                                'label': parts[0].strip(),
+                                'done':  int(parts[1]),
+                                'total': int(parts[2]),
+                                'extra': parts[3].strip() if len(parts) > 3 else '',
+                                'rate':  parts[4].strip() if len(parts) > 4 else '',
+                                'eta':   int(parts[5]) if len(parts) > 5 and parts[5].strip().isdigit() else 0,
+                                'pct':   round(int(parts[1]) / max(int(parts[2]), 1) * 100, 1),
+                            }
+                    except Exception:
+                        pass  # Ligne malformée ignorée silencieusement
+                    # NE PAS ajouter ces lignes aux logs affichés
+                    continue
+                # ─────────────────────────────────────────────────────────────────
+                
+                output_lines.append(stripped)
                 # Pour l'affichage temps réel, garder un mix : début + fin récente
                 if len(output_lines) > buffer_size:
                     # Garder les 100 premières + les 400 dernières lignes pour l'affichage
@@ -1015,6 +1039,9 @@ def api_status(execution_id):
         'status': execution['status'],
         'total_lines': execution.get('total_lines', 0),
         'logs': logs_to_send,
+        # Données de progression LAVA-PROGRESS (None si aucune en cours)
+        # LAVA-PROGRESS data (None if none currently active)
+        'progress': execution.get('progress', None),
     }
     
     if 'start_time' in execution:

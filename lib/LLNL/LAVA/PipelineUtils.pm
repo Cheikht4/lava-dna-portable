@@ -110,7 +110,7 @@ sub _update_progress {
   return if ($done % 200 != 0 && $done != $total);
 
   my $now     = time();
-  my $elapsed = $now - $bar_r->{t0};
+  my $elapsed = $now - $bar_r->{t0} + 0.001;
   my $pct     = $total > 0 ? int($done / $total * 100) : 0;
   my $filled  = int($pct / 5);   # 20 segments
   my $empty   = 20 - $filled;
@@ -132,11 +132,14 @@ sub _update_progress {
     $extra_str = " | " . join(" ", @parts) if @parts;
   }
 
-  # \r = barre unique en place si TTY, impression classique sinon / \r = in-place if TTY, classic print otherwise
-  if ($_LAVA_IS_TTY) {
-    printf(STDERR "\r  [%s] %d/%d (%d%%)%s%s  ",
-           $bar_str, $done, $total, $pct, $extra_str, $eta_str);
-  }
+  # Emission vers STDOUT pour Flask (toujours, pas seulement en TTY)
+  # Emit to STDOUT for Flask (always, not only in TTY)
+  my $rate_str = ($done > 0 && $elapsed > 0) ? sprintf('%.0f it/s', $done / $elapsed) : '? it/s';
+  my $eta_val  = ($done > 0 && $done < $total && $elapsed > 0)
+                 ? int(($total - $done) / ($done / $elapsed)) : 0;
+  printf("[LAVA-PROGRESS] %s|%d|%d|%s|%s|%d\n",
+         $bar_r->{label} // 'Reverse Validation', $done, $total,
+         $extra_str, $rate_str, $eta_val);
 }
 
 sub _finish_progress {
@@ -146,8 +149,7 @@ sub _finish_progress {
   } else {
     # Finaliser la ligne / Finalize the line
     _update_progress($bar_r, $bar_r->{total});
-    # Effacer la barre et passer a la ligne proprement / Clear bar and move to next line cleanly
-    printf(STDERR "\r%-80s\n", "") if $_LAVA_IS_TTY;
+    # Progression finale envoyee via LAVA-PROGRESS stdout / Final progress sent via LAVA-PROGRESS stdout
   }
 }
 

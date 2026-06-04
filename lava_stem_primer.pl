@@ -213,16 +213,15 @@ sub getOligosWithMismatchTolerance {
         $_pb_done++;
         if ($_has_pb && $_pb_obj) { $_pb_obj->update($_pb_done); }
         elsif ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
-          if ($_LAVA_IS_TTY) {
+          # Ligne de progression structuree pour Flask / Structured progress line for Flask
+          if ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
             my $pct = int($_pb_done/$nb_fwd_candidates*100);
-            my $bar = "#" x int($pct/5) . "-" x (20-int($pct/5));
             my $eta = ($_pb_done > 0 && $_pb_done < $nb_fwd_candidates)
-                      ? sprintf(" ETA:%ds", int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001))))
-                      : " Done!";
-            # \r : retour debut de ligne sans newline = barre unique qui evolue (comme tqdm)
-            # \r : carriage return without newline = single evolving bar (like tqdm)
-            printf(STDERR "\r  [Fwd][%s] %d/%d (%d%%) | OK:%d DEG:%d REJ:%d%s  ",
-                   $bar,$_pb_done,$nb_fwd_candidates,$pct,$strict_count,$degenerate_count,$rejected_count,$eta);
+                      ? int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001)))
+                      : 0;
+            my $rate = $_pb_done / (time()-$_pb_t0+0.001);
+            printf("[LAVA-PROGRESS] Validation Forward|%d|%d|OK:%d DEG:%d REJ:%d|%.0f it/s|%d\n",
+                   $_pb_done,$nb_fwd_candidates,$strict_count,$degenerate_count,$rejected_count,$rate,$eta);
           }
         }
       } else {
@@ -235,14 +234,15 @@ sub getOligosWithMismatchTolerance {
         $_pb_done++;
         if ($_has_pb && $_pb_obj) { $_pb_obj->update($_pb_done); }
         elsif ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
-          if ($_LAVA_IS_TTY) {
+          # Ligne de progression structuree pour Flask / Structured progress line for Flask
+          if ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
             my $pct = int($_pb_done/$nb_fwd_candidates*100);
-            my $bar = "#" x int($pct/5) . "-" x (20-int($pct/5));
-            my $eta = ($_pb_done < $nb_fwd_candidates)
-                      ? sprintf(" ETA:%ds", int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001))))
-                      : " Done!";
-            printf(STDERR "\r  [Fwd][%s] %d/%d (%d%%) | OK:%d DEG:%d REJ:%d%s  ",
-                   $bar,$_pb_done,$nb_fwd_candidates,$pct,$strict_count,$degenerate_count,$rejected_count,$eta);
+            my $eta = ($_pb_done > 0 && $_pb_done < $nb_fwd_candidates)
+                      ? int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001)))
+                      : 0;
+            my $rate = $_pb_done / (time()-$_pb_t0+0.001);
+            printf("[LAVA-PROGRESS] Validation Forward|%d|%d|OK:%d DEG:%d REJ:%d|%.0f it/s|%d\n",
+                   $_pb_done,$nb_fwd_candidates,$strict_count,$degenerate_count,$rejected_count,$rate,$eta);
           }
         }
       }
@@ -257,14 +257,15 @@ sub getOligosWithMismatchTolerance {
       $_pb_done++;
       if ($_has_pb && $_pb_obj) { $_pb_obj->update($_pb_done); }
       elsif ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
-        if ($_LAVA_IS_TTY) {
+        # Ligne de progression structuree pour Flask / Structured progress line for Flask
+        if ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
           my $pct = int($_pb_done/$nb_fwd_candidates*100);
-          my $bar = "#" x int($pct/5) . "-" x (20-int($pct/5));
-          my $eta = ($_pb_done < $nb_fwd_candidates)
-                    ? sprintf(" ETA:%ds", int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001))))
-                    : " Done!";
-          printf(STDERR "\r  [Fwd][%s] %d/%d (%d%%) | OK:%d DEG:%d REJ:%d%s  ",
-                 $bar,$_pb_done,$nb_fwd_candidates,$pct,$strict_count,$degenerate_count,$rejected_count,$eta);
+          my $eta = ($_pb_done > 0 && $_pb_done < $nb_fwd_candidates)
+                    ? int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001)))
+                    : 0;
+          my $rate = $_pb_done / (time()-$_pb_t0+0.001);
+          printf("[LAVA-PROGRESS] Validation Forward|%d|%d|OK:%d DEG:%d REJ:%d|%.0f it/s|%d\n",
+                 $_pb_done,$nb_fwd_candidates,$strict_count,$degenerate_count,$rejected_count,$rate,$eta);
         }
       }
     }

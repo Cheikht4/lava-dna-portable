@@ -197,16 +197,15 @@ sub getOligosWithMismatchTolerance {
         $_pb_done++;
         if ($_has_pb && $_pb_obj) { $_pb_obj->update($_pb_done); }
         elsif ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
-          if ($_LAVA_IS_TTY) {
+          # Ligne de progression structuree pour Flask / Structured progress line for Flask
+          if ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
             my $pct = int($_pb_done/$nb_fwd_candidates*100);
-            my $bar = "#" x int($pct/5) . "-" x (20-int($pct/5));
             my $eta = ($_pb_done > 0 && $_pb_done < $nb_fwd_candidates)
-                      ? sprintf(" ETA:%ds", int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001))))
-                      : " Done!";
-            # \r : retour debut de ligne sans newline = barre unique qui evolue (comme tqdm)
-            # \r : carriage return without newline = single evolving bar (like tqdm)
-            printf(STDERR "\r  [Fwd][%s] %d/%d (%d%%) | OK:%d DEG:%d REJ:%d%s  ",
-                   $bar,$_pb_done,$nb_fwd_candidates,$pct,$strict_count,$degenerate_count,$rejected_count,$eta);
+                      ? int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001)))
+                      : 0;
+            my $rate = $_pb_done / (time()-$_pb_t0+0.001);
+            printf("[LAVA-PROGRESS] Validation Forward|%d|%d|OK:%d DEG:%d REJ:%d|%.0f it/s|%d\n",
+                   $_pb_done,$nb_fwd_candidates,$strict_count,$degenerate_count,$rejected_count,$rate,$eta);
           }
         }
       } else {
@@ -218,14 +217,15 @@ sub getOligosWithMismatchTolerance {
         $_pb_done++;
         if ($_has_pb && $_pb_obj) { $_pb_obj->update($_pb_done); }
         elsif ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
-          if ($_LAVA_IS_TTY) {
+          # Ligne de progression structuree pour Flask / Structured progress line for Flask
+          if ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
             my $pct = int($_pb_done/$nb_fwd_candidates*100);
-            my $bar = "#" x int($pct/5) . "-" x (20-int($pct/5));
-            my $eta = ($_pb_done < $nb_fwd_candidates)
-                      ? sprintf(" ETA:%ds", int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001))))
-                      : " Done!";
-            printf(STDERR "\r  [Fwd][%s] %d/%d (%d%%) | OK:%d DEG:%d REJ:%d%s  ",
-                   $bar,$_pb_done,$nb_fwd_candidates,$pct,$strict_count,$degenerate_count,$rejected_count,$eta);
+            my $eta = ($_pb_done > 0 && $_pb_done < $nb_fwd_candidates)
+                      ? int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001)))
+                      : 0;
+            my $rate = $_pb_done / (time()-$_pb_t0+0.001);
+            printf("[LAVA-PROGRESS] Validation Forward|%d|%d|OK:%d DEG:%d REJ:%d|%.0f it/s|%d\n",
+                   $_pb_done,$nb_fwd_candidates,$strict_count,$degenerate_count,$rejected_count,$rate,$eta);
           }
         }
       }
@@ -239,14 +239,15 @@ sub getOligosWithMismatchTolerance {
       $_pb_done++;
       if ($_has_pb && $_pb_obj) { $_pb_obj->update($_pb_done); }
       elsif ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
-        if ($_LAVA_IS_TTY) {
+        # Ligne de progression structuree pour Flask / Structured progress line for Flask
+        if ($_pb_done % 200 == 0 || $_pb_done == $nb_fwd_candidates) {
           my $pct = int($_pb_done/$nb_fwd_candidates*100);
-          my $bar = "#" x int($pct/5) . "-" x (20-int($pct/5));
-          my $eta = ($_pb_done < $nb_fwd_candidates)
-                    ? sprintf(" ETA:%ds", int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001))))
-                    : " Done!";
-          printf(STDERR "\r  [Fwd][%s] %d/%d (%d%%) | OK:%d DEG:%d REJ:%d%s  ",
-                 $bar,$_pb_done,$nb_fwd_candidates,$pct,$strict_count,$degenerate_count,$rejected_count,$eta);
+          my $eta = ($_pb_done > 0 && $_pb_done < $nb_fwd_candidates)
+                    ? int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001)))
+                    : 0;
+          my $rate = $_pb_done / (time()-$_pb_t0+0.001);
+          printf("[LAVA-PROGRESS] Validation Forward|%d|%d|OK:%d DEG:%d REJ:%d|%.0f it/s|%d\n",
+                 $_pb_done,$nb_fwd_candidates,$strict_count,$degenerate_count,$rejected_count,$rate,$eta);
         }
       }
     }
@@ -1398,16 +1399,15 @@ sub getOligosWithMismatchTolerance {
       # Progress bar every 50 iterations or at 100%
       $_sig_fwd_done = $innerIndex + 1;
       if ($_sig_fwd_done % 50 == 0 || $_sig_fwd_done == $innerForwardCount) {
-        if ($_LAVA_IS_TTY) {
-          my $pct    = int($_sig_fwd_done / $innerForwardCount * 100);
-          my $bar    = "#" x int($pct/5) . "-" x (20 - int($pct/5));
+        # Emission progression Flask / Flask progress emission
+        if ($_LAVA_IS_TTY || 1) {  # Toujours emettre pour Flask / Always emit for Flask
           my $elapsed = time() - $_sig_fwd_t0 + 0.001;
-          my $eta    = ($_sig_fwd_done < $innerForwardCount)
-                       ? sprintf(" ETA:%ds", int(($innerForwardCount - $_sig_fwd_done) / ($_sig_fwd_done / $elapsed)))
-                       : " Done!";
-          # \r = barre unique qui evolue en place / \r = single bar evolving in place
-          printf(STDERR "\r  [Sig F][%s] %d/%d (%d%%) | Sig: %d%s  ",
-                 $bar, $_sig_fwd_done, $innerForwardCount, $pct, $_sig_fwd_hits, $eta);
+          my $eta = ($_sig_fwd_done < $innerForwardCount)
+                    ? int(($innerForwardCount - $_sig_fwd_done) / ($_sig_fwd_done / $elapsed))
+                    : 0;
+          my $rate = $_sig_fwd_done / $elapsed;
+          printf("[LAVA-PROGRESS] Signatures Forward|%d|%d|Sig: %d|%.1f it/s|%d\n",
+                 $_sig_fwd_done, $innerForwardCount, $_sig_fwd_hits, $rate, $eta);
         }
       }
       my $innerInfo = $masterInnerF_r->[$innerIndex];
@@ -1579,7 +1579,6 @@ sub getOligosWithMismatchTolerance {
   } # End Inner
   
   # Finaliser la barre Forward / Finalize Forward bar
-  printf(STDERR "\r%-80s\n", "") if $_LAVA_IS_TTY;  # Effacer et newline / Clear and newline
   print "  [Forward] $forwardSetCount combinaisons Forward trouvees sur $innerForwardCount amorces F1c.\n";
 
   # Check if anything found
@@ -1631,16 +1630,15 @@ sub getOligosWithMismatchTolerance {
       # Progress bar every 50 iterations or at 100%
       $_sig_rev_done = $innerIndex + 1;
       if ($_sig_rev_done % 50 == 0 || $_sig_rev_done == $innerReverseCount) {
-        if ($_LAVA_IS_TTY) {
-          my $pct    = int($_sig_rev_done / $innerReverseCount * 100);
-          my $bar    = "#" x int($pct/5) . "-" x (20 - int($pct/5));
+        # Emission progression Flask / Flask progress emission
+        if ($_LAVA_IS_TTY || 1) {  # Toujours emettre pour Flask / Always emit for Flask
           my $elapsed = time() - $_sig_rev_t0 + 0.001;
-          my $eta    = ($_sig_rev_done < $innerReverseCount)
-                       ? sprintf(" ETA:%ds", int(($innerReverseCount - $_sig_rev_done) / ($_sig_rev_done / $elapsed)))
-                       : " Done!";
-          # \r = barre unique qui evolue en place / \r = single bar evolving in place
-          printf(STDERR "\r  [Sig R][%s] %d/%d (%d%%) | Sig: %d%s  ",
-                 $bar, $_sig_rev_done, $innerReverseCount, $pct, $_sig_rev_hits, $eta);
+          my $eta = ($_sig_rev_done < $innerReverseCount)
+                    ? int(($innerReverseCount - $_sig_rev_done) / ($_sig_rev_done / $elapsed))
+                    : 0;
+          my $rate = $_sig_rev_done / $elapsed;
+          printf("[LAVA-PROGRESS] Signatures Reverse|%d|%d|Sig: %d|%.1f it/s|%d\n",
+                 $_sig_rev_done, $innerReverseCount, $_sig_rev_hits, $rate, $eta);
         }
       }
       my $innerInfo = $masterInnerR_r->[$innerIndex];
@@ -1810,7 +1808,6 @@ sub getOligosWithMismatchTolerance {
   } # End Inner
 
   # Finaliser la barre Reverse / Finalize Reverse bar
-  printf(STDERR "\r%-80s\n", "") if $_LAVA_IS_TTY;  # Effacer et newline / Clear and newline
   print "  [Reverse] $reverseSetCount combinaisons Reverse trouvees sur $innerReverseCount amorces B1c.\n";
 
   if($reverseSetCount == 0) {
