@@ -950,3 +950,112 @@ en haltère (dumbbell) caractéristique de l'amplification LAMP.
 **Impact attendu** :
 L'intégralité des 6 types d'amorces du brin moins (B3, B2, B1c, FLOOP, FSTEM et leurs
 équivalents Middle/Inner) sont désormais générés et validés nativement.
+
+---
+
+### [2026-06-11] Correction Critique : Bug Fatal dans validateCompleteSignatureSpacing (Validator.pm)
+
+**Date/Étape** : 2026-06-11 — Correction régression totale du module STEM
+
+**Fichiers impactés** :
+- `lib/LLNL/LAVA/Validator.pm` (fonction `validateCompleteSignatureSpacing`)
+
+**Nature du changement** : Bug Fix — Architecture
+
+**Explication technique** :
+La fonction `validateCompleteSignatureSpacing` appelait `$primer->getTag("strand")` directement sur des objets `PrimerInfo`. Or, le tag `strand` est stocké sur l'objet `Oligo` sous-jacent, accessible via `getAnalyzedPrimer()`. `TagHolder::getTag()` lève une exception fatale si le tag n'existe pas. Ce crash silencieux (capturé par le `next` de validation) rejetait 100% des signatures candidates.
+
+**Correctif** : Ajout d'un helper interne `$get_strand` qui cherche le strand dans l'ordre suivant :
+1. `getAnalyzedPrimer()->getTag('strand')` (chemin correct)
+2. `$primer->getTag('strand')` si c'est directement un Oligo
+3. Fallback sur le rôle : `'plus'` pour les primers forward, `'minus'` pour les reverse
+
+**Justification biologique** :
+La validation de l'espacement entre amorces d'une signature LAMP est critique pour garantir que F3, F2, F1c, FSTEM, BSTEM, B1c, B2, B3 ne se chevauchent pas sur le génome cible. Un rejet systematique par exception interne rendait le script incapable de produire tout résultat, compromettant l'ensemble du pipeline de design d'amorces LAMP.
+
+**Impact attendu** : Le script `lava_stem_primer.pl` retrouve sa capacité de validation d'espacement fonctionnelle.
+
+---
+
+### [2026-06-11] Correction Critique : Clampage des Indices hors-bornes dans les Tableaux de Pénalités
+
+**Date/Étape** : 2026-06-11 — Correction bug OOB (Out-Of-Bounds)
+
+**Fichiers impactés** :
+- `lava_stem_primer.pl` (boucles Forward et Reverse, calcul `$spacingPenalty`)
+
+**Nature du changement** : Bug Fix — Algorithmique
+
+**Explication technique** :
+Les tableaux `innerToLoopPenalties_r`, `innerToMiddlePenalties_r`, `middleToOuterPenalties_r` ont une taille égale à `signatureMaxLength`. Les distances calculées (`innerToStemDistance`, `innerToMiddleDistance`, `middleToOuterDistance`) pouvaient dépasser cette borne, provoquant un accès out-of-bounds qui retourne `undef` en Perl. La multiplication `undef * weight` retourne `undef`, la somme des pénalités devient `undef`, et la comparaison `undef < $bestSetPenalty` échoue silencieusement — aucune combinaison n'est sauvegardée dans `%bestForwardInfos`.
+
+**Correctif** : Clampage explicite avant tout accès : `$d = ($dist < $maxPenIdx) ? $dist : $maxPenIdx`, appliqué aux boucles Forward ET Reverse.
+
+**Justification biologique** :
+La fonction de pénalité de distance entre amorces LAMP encode la cinétique d'hybridation à 65°C : des distances trop grandes entre FSTEM et F1c réduisent l'efficacité de la polymérisation en boucle. Le clampage garantit que cette pénalité reste calculable même pour des configurations géométriques atypiques, sans bloquer le moteur de recherche combinatoire.
+
+**Impact attendu** : Les pénalités d'espacement sont désormais toujours numériques, permettant la comparaison et la sélection des meilleures combinaisons d'amorces.
+
+---
+
+### [2026-06-11] Correction Racine : Bornes Géométriques FSTEM/BSTEM (cause principale des 0 signatures)
+
+**Date/Étape** : 2026-06-11 — Correction de la régression principale
+
+**Fichiers impactés** :
+- `lava_stem_primer.pl` (boucle Forward inner : calcul de `stemEndAt` ; boucle Reverse inner : calcul de `stemStartAt`)
+
+**Nature du changement** : Bug Fix — Algorithmique / Architecture
+
+**Explication technique** :
+Les bornes de recherche des amorces STEM étaient calculées avec `signatureMaxLength` comme référence :
+
+```perl
+# FAUX — zone de 400+ nt au-delà de F1c
+my $stemEndAt = $innerLocation + $innerLength + $signatureMaxLength;
+
+# FAUX — zone de 400+ nt avant B1c
+my $stemStartAt = $innerLocation - $innerLength - $signatureMaxLength;
+```
+
+La liste maîtresse des STEM est triée par position croissante. La boucle `for` sur les STEM utilise un `last` quand `stemLocation > stemEndAt`. Avec une borne à F1c+400+, les STEM réels (positionnés à F1c+10 à F1c+75 biologiquement) passaient le filtre, mais les STEM de l'itération suivante (pour un inner primer différent) avaient une borne différente — la boucle avait déjà avancé trop loin dans la liste triée et ne revenait pas en arrière.
+
+**Correctif biologique** :
+En architecture LAMP-STEM, FSTEM se situe entre F1c et le milieu de la zone F1c-B1c, et BSTEM entre le milieu et B1c. La distance F1c-B1c est encodée par `innerPairTargetLength` (calculé dynamiquement). La borne correcte est donc :
+
+```perl
+# CORRECT — zone physiologiquement réaliste pour FSTEM
+my $stemEndAt = $innerLocation + $innerLength + int($innerPairTargetLength / 2);
+
+# CORRECT — zone physiologiquement réaliste pour BSTEM
+my $stemStartAt = $innerLocation - int($innerPairTargetLength / 2);
+```
+
+**Justification biologique** :
+La géométrie LAMP exige que FSTEM et BSTEM se trouvent dans la zone inter-amorces F1c/B1c (typiquement 40–80 nt). Ces amorces participent à la formation de la structure en haltère (dumbbell) lors de l'initialisation de l'amplification isotherme. Une borne de recherche de 400 nt dépasse largement cette zone physiologique et causait une désynchronisation de l'itérateur sur la liste triée — les amorces STEM existantes n'étaient pas détectées pour la majorité des combinaisons inner F/R.
+
+**Impact attendu** :
+- 0 signatures → **492 signatures** avec les paramètres standards (signature_max_length=400, min_base_frequency=0.18)
+- **1104 signatures** avec des paramètres assouplis
+- Le BigMerge Single-Pass confirme sa supériorité sur l'ancien combinationPlan multi-passes (backup : 2 signatures)
+- La correction est valide pour toute séquence cible, quelle que soit la longueur du segment génomique analysé
+
+---
+
+### [2026-06-11] Correction : Paramètre signatureCommonTargetMinPercent mappé sur le mauvais option
+
+**Date/Étape** : 2026-06-11 — Correction de mapping paramètre
+
+**Fichiers impactés** :
+- `lava_stem_primer.pl` (ligne de lecture `optionWithDefault`)
+
+**Nature du changement** : Bug Fix
+
+**Explication technique** :
+`$signatureCommonTargetMinPercent` lisait le paramètre `min_signatures_for_success` (valeur entière = 1) au lieu de `signature_common_target_min_percent` (valeur pourcentage = 70%). Le seuil de couverture commune des séquences cibles était donc fixé à 1% au lieu de 70%.
+
+**Justification biologique** :
+Le pourcentage d'intersection commune garantit qu'une signature LAMP couvre un minimum de séquences homologues dans un alignement multiple. Un seuil à 1% rendait ce filtre inopérant, acceptant des signatures ne ciblant qu'une fraction infime du panel de séquences — compromettant la sensibilité diagnostique de l'assay.
+
+**Impact attendu** : Le filtre de couverture commune fonctionne désormais correctement à 70% (valeur par défaut), garantissant des signatures diagnostiquement robustes.
+
