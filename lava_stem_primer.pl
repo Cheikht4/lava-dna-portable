@@ -2014,8 +2014,6 @@ sub getOligosWithMismatchTolerance {
       my $forwardStart = $fouterInfo->getLocation();
       my $forwardEnd = $finnerInfo->getLocation() + $finnerInfo->getLength() - 1;
 
-      #print "\nInner $forwardStart -> $forwardEnd";
-
       # Used to bound the upper end of the inner iteration search
       my $maxReverseLocation = $forwardStart + $signatureMaxLength - 1;
     
@@ -2036,6 +2034,7 @@ sub getOligosWithMismatchTolerance {
 
         my $reverseEnd = $bouterInfo->getLocation();
         my $reverseStart = $binnerInfo->getLocation() - $binnerInfo->getLength() + 1;
+        
         #print "\n  Outer $reverseStart -> $reverseEnd";
 
         # Advance to the next compatible reverse primer by skipping all the
