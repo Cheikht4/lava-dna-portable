@@ -340,7 +340,6 @@ sub getOligosWithMismatchTolerance {
       "inner_pair_target_length=i" => \$options{"inner_pair_target_length"},
 
       "include_stem_primers=i" => \$options{"include_stem_primers"},
-      "stem_min_gap=i" => \$options{"stem_min_gap"},
       "min_signatures_for_success=i" => \$options{"min_signatures_for_success"},
       "min_primer_spacing=i" => \$options{"min_primer_spacing"},
       "min_inner_pair_spacing=i" => \$options{"min_inner_pair_spacing"},
@@ -407,8 +406,7 @@ sub getOligosWithMismatchTolerance {
       "inner_primer_target_tm" => "62.0",
       "max_poly_bases" => 2,
       "include_stem_primers" => 1,
-      "stem_min_gap" => 1,
-      "min_signatures_for_success" => 1, # Should probably never go lower
+      "min_signatures_for_success" => 1, # Should probably never go lower / Ne devrait probablement jamais descendre plus bas
       "min_primer_spacing" => 1,
       "min_inner_pair_spacing" => 1,
       # --- NOUVEAUX PARAMÈTRES D'ARCHITECTURE (valeurs par défaut) / NEW ARCHITECTURE PARAMETERS (default values) ---
@@ -532,10 +530,6 @@ sub getOligosWithMismatchTolerance {
     ">]\n" .
       "    [--include_stem_primers <length, default=" .
         $optionDefaults{"include_stem_primers"} .
-	">]\n" .
-      # STEM gap is the distance between inner forward and inner reverse primers
-      "    [--stem_min_gap <length, default=" .
-        $optionDefaults{"stem_min_gap"} .
 	">]\n" .
       "    [--min_signatures_for_success <length, default=" .
         $optionDefaults{"min_signatures_for_success"} .
@@ -770,13 +764,12 @@ sub getOligosWithMismatchTolerance {
 
   my $maxDeltaTm = 
     optionWithDefault($options_r, "max_tm_diff", 5.0);
-  my $stemMinGap = 
-    optionWithDefault($options_r, "stem_min_gap", 
-      $optionDefaults{"stem_min_gap"});
   my $signatureCommonTargetMinPercent =
     optionWithDefault($options_r, "signature_common_target_min_percent",
-      $optionDefaults{"signature_common_target_min_percent"});  # Correction: bon parametre (70% par defaut)
-      # Fix: correct parameter (70% by default)
+      optionWithDefault($options_r, "min_signatures_for_success",
+        $optionDefaults{"signature_common_target_min_percent"}));
+  # Lit signature_common_target_min_percent si fourni, sinon se replie sur min_signatures_for_success envoyé par l'IHM Flask
+  # Reads signature_common_target_min_percent if provided, otherwise falls back to min_signatures_for_success sent by the Flask GUI
   my $maxSigOverlapPercent = 
     optionWithDefault($options_r, "max_overlap_percent",
       $optionDefaults{"max_overlap_percent"});
@@ -805,7 +798,6 @@ sub getOligosWithMismatchTolerance {
   my $minInnerPairSpacing =
     optionWithDefault($options_r, "min_inner_pair_spacing", 
       $optionDefaults{"min_inner_pair_spacing"});
-  #print "STEM min gap: $stemMinGap\n";
   #print "Max poly: $maxPolyBases\n";
 
   my $outerPairTargetLength = 

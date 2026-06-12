@@ -168,25 +168,35 @@
                     <div class="param-section">
                         <h6><i class="fas fa-circle me-2"></i>{{ 'outer_primers'|t }}</h6>
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">{{ 'target_length'|t }}</label>
                                 <input type="number" class="form-control" name="outer_primer_target_length"
                                     value="{{ params.outer_primer_target_length }}" min="15" max="30">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">{{ 'min_length'|t }}</label>
                                 <input type="number" class="form-control" name="outer_primer_min_length"
                                     value="{{ params.outer_primer_min_length }}" min="15" max="25">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">{{ 'max_length'|t }}</label>
                                 <input type="number" class="form-control" name="outer_primer_max_length"
                                     value="{{ params.outer_primer_max_length }}" min="18" max="35">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">{{ 'target_tm'|t }}</label>
                                 <input type="number" step="0.5" class="form-control" name="outer_primer_target_tm"
                                     value="{{ params.outer_primer_target_tm }}" min="50" max="70">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">{{ 'min_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="outer_primer_min_tm"
+                                    value="{{ params.outer_primer_min_tm }}" min="50" max="70">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">{{ 'max_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="outer_primer_max_tm"
+                                    value="{{ params.outer_primer_max_tm }}" min="50" max="70">
                             </div>
                         </div>
                     </div>
@@ -195,25 +205,35 @@
                     <div class="param-section">
                         <h6><i class="fas fa-dot-circle me-2"></i>{{ 'middle_primers'|t }}</h6>
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">{{ 'target_length'|t }}</label>
                                 <input type="number" class="form-control" name="middle_primer_target_length"
                                     value="{{ params.middle_primer_target_length }}" min="15" max="30">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">{{ 'min_length'|t }}</label>
                                 <input type="number" class="form-control" name="middle_primer_min_length"
                                     value="{{ params.middle_primer_min_length }}" min="15" max="25">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">{{ 'max_length'|t }}</label>
                                 <input type="number" class="form-control" name="middle_primer_max_length"
                                     value="{{ params.middle_primer_max_length }}" min="18" max="35">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">{{ 'target_tm'|t }}</label>
                                 <input type="number" step="0.5" class="form-control" name="middle_primer_target_tm"
                                     value="{{ params.middle_primer_target_tm }}" min="50" max="70">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">{{ 'min_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="middle_primer_min_tm"
+                                    value="{{ params.middle_primer_min_tm }}" min="50" max="70">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">{{ 'max_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="middle_primer_max_tm"
+                                    value="{{ params.middle_primer_max_tm }}" min="50" max="70">
                             </div>
                         </div>
                     </div>
@@ -222,25 +242,35 @@
                     <div class="param-section">
                         <h6><i class="fas fa-bullseye me-2"></i>{{ 'inner_primers'|t }}</h6>
                         <div class="row">
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">{{ 'target_length'|t }}</label>
                                 <input type="number" class="form-control" name="inner_primer_target_length"
                                     value="{{ params.inner_primer_target_length }}" min="15" max="30">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">{{ 'min_length'|t }}</label>
                                 <input type="number" class="form-control" name="inner_primer_min_length"
                                     value="{{ params.inner_primer_min_length }}" min="15" max="25">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">{{ 'max_length'|t }}</label>
                                 <input type="number" class="form-control" name="inner_primer_max_length"
                                     value="{{ params.inner_primer_max_length }}" min="18" max="35">
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">{{ 'target_tm'|t }}</label>
                                 <input type="number" step="0.5" class="form-control" name="inner_primer_target_tm"
                                     value="{{ params.inner_primer_target_tm }}" min="50" max="70">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">{{ 'min_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="inner_primer_min_tm"
+                                    value="{{ params.inner_primer_min_tm }}" min="50" max="70">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">{{ 'max_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="inner_primer_max_tm"
+                                    value="{{ params.inner_primer_max_tm }}" min="50" max="70">
                             </div>
                         </div>
                     </div>
@@ -248,16 +278,82 @@
                     <!-- Paramètres LOOP avancés (uniquement si LOOP et mode enrichi) -->
                     <div class="param-section" id="loop-advanced-params" style="display: none;">
                         <h6><i class="fas fa-link me-2"></i>{{ 'loop_advanced_params'|t }}</h6>
-                        <div class="row">
-                            <div class="col-md-6">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
                                 <label class="form-label">{{ 'loop_target_length'|t }}</label>
                                 <input type="number" class="form-control" name="loop_primer_target_length"
                                     value="{{ params.loop_primer_target_length }}" min="15" max="30">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-3">
+                                <label class="form-label">{{ 'loop_min_length'|t }}</label>
+                                <input type="number" class="form-control" name="loop_primer_min_length"
+                                    value="{{ params.loop_primer_min_length }}" min="15" max="25">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">{{ 'loop_max_length'|t }}</label>
+                                <input type="number" class="form-control" name="loop_primer_max_length"
+                                    value="{{ params.loop_primer_max_length }}" min="18" max="35">
+                            </div>
+                            <div class="col-md-3">
                                 <label class="form-label">{{ 'loop_min_gap'|t }}</label>
                                 <input type="number" class="form-control" name="loop_min_gap"
                                     value="{{ params.loop_min_gap }}" min="15" max="50">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">{{ 'loop_target_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="loop_primer_target_tm"
+                                    value="{{ params.loop_primer_target_tm }}" min="50" max="70">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">{{ 'loop_min_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="loop_primer_min_tm"
+                                    value="{{ params.loop_primer_min_tm }}" min="50" max="70">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">{{ 'loop_max_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="loop_primer_max_tm"
+                                    value="{{ params.loop_primer_max_tm }}" min="50" max="70">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paramètres STEM avancés (uniquement si STEM et mode enrichi) -->
+                    <div class="param-section" id="stem-advanced-params" style="display: none;">
+                        <h6><i class="fas fa-star me-2"></i>{{ 'stem_advanced_params'|t }}</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">{{ 'stem_target_length'|t }}</label>
+                                <input type="number" class="form-control" name="stem_primer_target_length"
+                                    value="{{ params.stem_primer_target_length }}" min="15" max="30">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">{{ 'stem_min_length'|t }}</label>
+                                <input type="number" class="form-control" name="stem_primer_min_length"
+                                    value="{{ params.stem_primer_min_length }}" min="15" max="25">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">{{ 'stem_max_length'|t }}</label>
+                                <input type="number" class="form-control" name="stem_primer_max_length"
+                                    value="{{ params.stem_primer_max_length }}" min="18" max="35">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">{{ 'stem_target_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="stem_primer_target_tm"
+                                    value="{{ params.stem_primer_target_tm }}" min="50" max="70">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">{{ 'stem_min_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="stem_primer_min_tm"
+                                    value="{{ params.stem_primer_min_tm }}" min="50" max="70">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">{{ 'stem_max_tm'|t }}</label>
+                                <input type="number" step="0.5" class="form-control" name="stem_primer_max_tm"
+                                    value="{{ params.stem_primer_max_tm }}" min="50" max="70">
                             </div>
                         </div>
                     </div>
@@ -560,6 +656,7 @@
         const stemTexts = document.querySelectorAll('.stem-text');
         const loopTexts = document.querySelectorAll('.loop-text');
         const loopAdvancedParams = document.getElementById('loop-advanced-params');
+        const stemAdvancedParams = document.getElementById('stem-advanced-params');
 
         function updateInterface() {
             const selectedType = document.querySelector('input[name="script_type"]:checked')?.value || 'STEM';
@@ -581,6 +678,13 @@
                 if (loopAdvancedParams) loopAdvancedParams.style.display = 'block';
             } else {
                 if (loopAdvancedParams) loopAdvancedParams.style.display = 'none';
+            }
+
+            // Afficher les paramètres STEM avancés si STEM + enrichi
+            if (selectedType === 'STEM' && selectedMode === 'enriched') {
+                if (stemAdvancedParams) stemAdvancedParams.style.display = 'block';
+            } else {
+                if (stemAdvancedParams) stemAdvancedParams.style.display = 'none';
             }
 
             // Mettre à jour le champ caché script_type pour l'exécution

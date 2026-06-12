@@ -1059,3 +1059,96 @@ Le pourcentage d'intersection commune garantit qu'une signature LAMP couvre un m
 
 **Impact attendu** : Le filtre de couverture commune fonctionne désormais correctement à 70% (valeur par défaut), garantissant des signatures diagnostiquement robustes.
 
+---
+
+### [2026-06-11] Suppression du Paramètre Mort stem_min_gap
+
+**Date/Étape** : 2026-06-11 — Nettoyage de l'architecture des paramètres de distance
+
+**Fichiers impactés** :
+- [lava_stem_primer.pl](file:///Users/cheikhtalibouya/Documents/lava/Nouveau%20dossier%20lava/lava-dna-master/lava_stem_primer.pl)
+- [lava_flask_app.py](file:///Users/cheikhtalibouya/Documents/lava/Nouveau%20dossier%20lava/lava-dna-master/lava_flask_app.py)
+
+**Nature du changement** : [Architecture / Nettoyage]
+
+**Explication technique** :
+La variable `$stemMinGap` (définie dans le script Perl via `--stem_min_gap`) était lue depuis les options du terminal mais n'était jamais exploitée dans la boucle combinatoire de recherche des amorces FSTEM/BSTEM ni dans les calculs d'espacement géométrique. Le calcul d'espacement réel entre amorces est entièrement pris en charge par le validateur global de signatures `validateCompleteSignatureSpacing` dans `Validator.pm`. Nous avons donc supprimé la variable `$stemMinGap` et l'option de ligne de commande `--stem_min_gap` dans `lava_stem_primer.pl`. En parallèle, le paramètre a été retiré des configurations par défaut et de la liste `stem_only_params` dans `lava_flask_app.py` pour éviter tout envoi de paramètre non reconnu au moteur Perl.
+
+**Justification biologique** :
+La contrainte physique et stérique d'adjacence entre les amorces LAMP (distance minimale d'espacement $\ge 0$ nt entre toutes les amorces ordonnées sur le brin) est déjà appliquée par le validateur de signature de LAVA pour éviter la formation de dimères d'amorces ou les interférences d'élongation de la polymérase. Un paramètre de gap minimal dédié aux STEM, en plus d'être inactif dans le code original, est conceptuellement superflu car l'espacement global protège déjà les interfaces d'hybridation F1c, FSTEM, BSTEM et B1c.
+
+**Impact attendu** :
+L'interface utilisateur et le script Perl sont simplifiés et débarrassés d'un paramètre redondant et inactif, sans altérer la qualité thermodynamique ou géométrique des signatures LAMP-STEM générées.
+
+---
+
+### [2026-06-11] Correction du Mapping du Seuil de Couverture dans lava_stem_primer.pl
+
+**Date/Étape** : 2026-06-11 — Résolution du problème de seuil de couverture "bloqué" à 70%
+
+**Fichiers impactés** :
+- [lava_stem_primer.pl](file:///Users/cheikhtalibouya/Documents/lava/Nouveau%20dossier%20lava/lava-dna-master/lava_stem_primer.pl)
+
+**Nature du changement** : [Bug Fix / Algorithmique]
+
+**Explication technique** :
+Une modification antérieure dans `lava_stem_primer.pl` avait changé le mapping de la variable `$signatureCommonTargetMinPercent` (seuil de couverture minimal pour valider une signature LAMP) pour qu'elle lise exclusivement l'option `--signature_common_target_min_percent`. Cependant, l'interface graphique de LAVA (IHM Flask) transmet toujours ce seuil via l'option `--min_signatures_for_success` (qui est le champ historique utilisé pour spécifier la couverture universelle ciblée). En conséquence, l'option `--min_signatures_for_success` transmise par l'IHM était ignorée par le script Perl, et ce dernier retombait systématiquement sur sa valeur par défaut de 70%. Nous avons mis en place une lecture adaptative avec repli : la variable tente de lire `--signature_common_target_min_percent`, et si elle est absente, elle lit `--min_signatures_for_success` avant d'appliquer le fallback par défaut à 70%.
+
+**Justification biologique** :
+Dans le design d'amorces LAMP multi-séquences ou sur des isolats viraux, le seuil de couverture détermine la fraction de génomes cibles homologues que la signature combinée (les 6 à 8 amorces) doit couvrir pour être déclarée valide. Permettre à l'utilisateur de baisser ce seuil (par exemple à 1% ou à une seule séquence) ou de l'ajuster finement est crucial pour concevoir des amorces adaptées à des panels de virus hautement divergents ou pour des validations spécifiques sur séquence unique sans subir le rejet systématique d'une contrainte trop stricte à 70%.
+
+**Impact attendu** :
+Le seuil de validation affiché à l'exécution et appliqué par le validateur correspond désormais exactement à la valeur configurée par l'utilisateur dans l'interface Flask (ex: 1% pour une seule séquence cible), éliminant l'effet de valeur bloquée ou "hardcodée" à 70%.
+
+---
+
+### [2026-06-11] Intégration IHM pour taille STEM et Tm STEM/LOOP
+
+**Date/Étape** : 2026-06-11 — Exposition des paramètres de taille STEM et de Tm STEM/LOOP dans l'interface graphique
+
+**Fichiers impactés** :
+- [lava_flask_app.py](file:///Users/cheikhtalibouya/Documents/lava/Nouveau%20dossier%20lava/lava-dna-master/lava_flask_app.py)
+- [templates/index.html](file:///Users/cheikhtalibouya/Documents/lava/Nouveau%20dossier%20lava/lava-dna-master/templates/index.html)
+
+**Nature du changement** : [Architecture / Interface Graphique]
+
+**Explication technique** :
+1. **Ajout de clés de localisation** dans les dictionnaires bilingues `TRANSLATIONS` de `lava_flask_app.py` pour gérer l'affichage bilingue (Français/Anglais) des paramètres de taille (cible, minimale, maximale) et de température de fusion Tm (cible, minimale, maximale) pour les amorces STEM et LOOP.
+2. **Restructuration de la section `loop-advanced-params`** dans le template `templates/index.html` pour inclure 5 nouveaux contrôles numériques de configuration : la longueur minimale (`loop_primer_min_length`), la longueur maximale (`loop_primer_max_length`), ainsi que les températures de fusion cible (`loop_primer_target_tm`), minimale (`loop_primer_min_tm`), et maximale (`loop_primer_max_tm`).
+3. **Création d'une nouvelle section `stem-advanced-params`** contenant 6 contrôles pour les longueurs de STEM (cible, min, max) et les températures de fusion de STEM (cible, min, max).
+4. **Mise à jour du script JavaScript dynamique** dans l'IHM pour écouter les modifications des sélecteurs `script_type` et `lamp_mode` et afficher conditionnellement la section `stem-advanced-params` (lorsque `script_type === 'STEM'` et `lamp_mode === 'enriched'`) ou `loop-advanced-params` (lorsque `script_type === 'LOOP'` et `lamp_mode === 'enriched'`).
+
+**Justification biologique** :
+La température de fusion ($T_m$) et la longueur des amorces sont des déterminants critiques de la thermodynamique de l'amplification LAMP (cinétique d'hybridation et stabilité thermique à la température isotherme standard de 65°C). 
+- Permettre à l'utilisateur de configurer les plages de $T_m$ et de taille des amorces d'enrichissement (LOOP et STEM) évite des contraintes trop rigides sur les régions génomiques polymorphes et hautement variables (ex: virus comme la Dengue).
+- Le contrôle de la taille des amorces STEM évite la formation de repliements secondaires indésirables ou de structures "stem" instables. 
+- L'ajustement thermodynamique des amorces LOOP assure qu'elles s'hybrident à la cinétique voulue sans perturber le cycle d'initiation et d'élongation globale géré par la BST polymérase.
+
+**Impact attendu** :
+L'utilisateur final dispose désormais d'un contrôle total sur la géométrie et la thermodynamique des amorces d'enrichissement (STEM et LOOP) directement depuis l'interface web, facilitant le design d'assays robustes pour des panels de virus hautement variables.
+
+---
+
+### [2026-06-11] Extension IHM : Contrôle des plages de Tm (min/max) pour Outer, Middle et Inner Primers
+
+**Date/Étape** : 2026-06-11 — Exposition des températures de fusion minimale et maximale pour Outer, Middle, et Inner Primers
+
+**Fichiers impactés** :
+- [lava_flask_app.py](file:///Users/cheikhtalibouya/Documents/lava/Nouveau%20dossier%20lava/lava-dna-master/lava_flask_app.py)
+- [templates/index.html](file:///Users/cheikhtalibouya/Documents/lava/Nouveau%20dossier%20lava/lava-dna-master/templates/index.html)
+
+**Nature du changement** : [Architecture / Interface Graphique]
+
+**Explication technique** :
+1. **Ajout de clés de traduction génériques** (`min_tm` et `max_tm`) dans `TRANSLATIONS` pour éviter la duplication inutile de clés de localisation en français et en anglais.
+2. **Restructuration de la grille Bootstrap** dans `templates/index.html` pour les trois sections fondamentales d'amorces (Outer, Middle, Inner). Passage d'une disposition à 4 colonnes (`col-md-3`) à une disposition à 6 colonnes (`col-md-2`) pour chaque type d'amorce, alignant horizontalement : la longueur (cible, min, max) et la température de fusion Tm (cible, min, max).
+3. **Exposition de 6 nouveaux contrôles de saisie** (Tm min/max pour Outer, Middle et Inner primers) mappés directement sur les variables existantes de la session Flask (`outer_primer_min_tm`, `outer_primer_max_tm`, `middle_primer_min_tm`, `middle_primer_max_tm`, `inner_primer_min_tm`, `inner_primer_max_tm`).
+
+**Justification biologique** :
+Dans une réaction LAMP isotherme, la stabilité thermodynamique des paires de primers est orchestrée par les amorces Inner (F1/B1) et Middle (F2/B2) qui initient la réplication et forment la structure de boucle, tandis que les Outer (F3/B3) déplacent le brin synthétisé.
+- Avoir un contrôle direct sur les plages de température de fusion ($T_m$) minimale et maximale pour l'ensemble des 6 amorces fondamentales de l'assay permet d'assurer une cinétique d'hybridation harmonieuse et d'éviter des différences de $T_m$ trop prononcées qui bloqueraient la réaction ou induiraient des hybridations non spécifiques à 65°C.
+- Cela améliore significativement la tolérance aux mésappariements sur les isolats cliniques présentant des dérives mutationnelles.
+
+**Impact attendu** :
+L'utilisateur a désormais le contrôle complet et granulaire de la fenêtre thermodynamique pour l'ensemble du set d'amorces (6 amorces standard ou 8 amorces enrichies) directement depuis le formulaire de configuration.
+
