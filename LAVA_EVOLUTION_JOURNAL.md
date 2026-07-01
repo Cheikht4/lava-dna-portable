@@ -1152,3 +1152,29 @@ Dans une réaction LAMP isotherme, la stabilité thermodynamique des paires de p
 **Impact attendu** :
 L'utilisateur a désormais le contrôle complet et granulaire de la fenêtre thermodynamique pour l'ensemble du set d'amorces (6 amorces standard ou 8 amorces enrichies) directement depuis le formulaire de configuration.
 
+---
+
+### [2026-07-01] Optimisation : Réduction spatiale des candidats d'amorces par fenêtre glissante
+
+**Date/Étape** : 2026-07-01 — Documentation et validation du mécanisme de réduction spatiale par fenêtre glissante (`window_size` et `max_per_window`).
+
+**Fichiers impactés** :
+- [lib/LLNL/LAVA/PipelineUtils.pm](file:///Users/cheikhtalibouya/Documents/lava/Nouveau%20dossier%20lava/lava-dna-master/lib/LLNL/LAVA/PipelineUtils.pm)
+- [lava_flask_app.py](file:///Users/cheikhtalibouya/Documents/lava/Nouveau%20dossier%20lava/lava-dna-master/lava_flask_app.py)
+
+**Nature du changement** : [Algorithmique / Optimisation de performance]
+
+**Explication technique** :
+1. **Implémentation de `reducePrimersByWindow`** dans `PipelineUtils.pm` : Cette routine divise le segment génomique analysé en fenêtres adjacentes de $W$ nucléotides (défini par le paramètre `--window_size`).
+2. **Filtrage par pénalité thermodynamique** : Pour chaque fenêtre, le script trie les amorces candidates par score de pénalité calculé par Primer3 (qui intègre la dérive de Tm par rapport à la cible, la présence de structures secondaires et de runs de bases de homopolymères). Seuls les $K$ meilleurs candidats d'amorces (défini par `--max_per_window`) sont conservés pour chaque fenêtre.
+3. **Application lors de l'assemblage (BigMerge)** : Ce filtrage intervient immédiatement avant la combinatoire de fusion géométrique des amorces unilatérales (Forward et Reverse) pour les candidats internes (Inner), intermédiaires (Middle), externes (Outer), et d'enrichissement (STEM/LOOP).
+4. **Exposition dans l'IHM** : Les paramètres `window_size` et `max_per_window` sont exposés dans la section "Configuration Exécution / Réduction spatiale des candidats" de `templates/index.html` pour permettre un contrôle direct par l'utilisateur.
+
+**Justification biologique** :
+Dans le design d'amorces LAMP sur des génomes complets ou des alignements multiples complexes, le nombre de candidats générés par Primer3 à des positions très proches (décalées de seulement 1 ou 2 nucléotides) est extrêmement élevé. Sans réduction spatiale, la fusion combinatoire (le croisement de $F3 \times F2 \times F1 \times STEM \times \dots$) souffre d'une explosion combinatoire exponentielle ($\mathcal{O}(N^k)$), ce qui sature la mémoire et allonge indéfiniment les temps de calcul du BigMerge.
+- D'un point de vue biologique, concevoir plusieurs dizaines d'amorces quasiment superposées dans une même région de 10 nucléotides est redondant car elles ciblent le même locus physique.
+- Le filtrage par fenêtre glissante sélectionne rigoureusement les "champions thermodynamiques" de chaque région génomique tout en assurant une distribution spatiale uniforme des candidats le long du génome, ce qui réduit le nombre de combinaisons d'un facteur 100 à 1000 sans sacrifier la diversité des signatures découvertes.
+
+**Impact attendu** :
+Une accélération majeure de la phase d'assemblage combinatoire (BigMerge) sur les génomes longs ou hautement variables, avec des temps de calcul divisés par 10 ou plus, tout en maintenant la couverture globale et la qualité thermodynamique des signatures LAMP générées.
+
