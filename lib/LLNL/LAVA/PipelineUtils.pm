@@ -1063,30 +1063,60 @@ sub reducePrimersByWindow
 
   return $primers_r unless scalar(@{$primers_r}) > 0;
 
-  # Indexer chaque primer par sa fenetre genomique / Index each primer by its genomic window
-  my %windows = ();
-  foreach my $primerInfo (@{$primers_r}) {
+  # 1. Trier globalement les candidats d'amorces par pénalité croissante (les meilleures en premier)
+  # 1. Sort all primer candidates globally by ascending penalty (best thermodynamic candidates first)
+  my @sorted_by_penalty = sort {
+    $a->getPenalty() <=> $b->getPenalty()
+  } @{$primers_r};
+
+  my @selected = ();
+
+  # 2. Zones d'exclusion actives : tableau de structures {start => X, end => Y, count => C}
+  # 2. Active exclusion zones: array of structures {start => X, end => Y, count => C}
+  my @exclusion_zones = ();
+
+  foreach my $primerInfo (@sorted_by_penalty) {
     my $location = $primerInfo->getLocation();
-    my $window_id = int($location / $window_size);
-    push @{$windows{$window_id}}, $primerInfo;
+
+    # Vérifier si l'amorce candidate tombe dans une zone d'exclusion existante
+    # Check if the candidate primer falls into an existing exclusion zone
+    my $matched_zone_r = undef;
+    foreach my $zone_r (@exclusion_zones) {
+      if ($location >= $zone_r->{start} && $location <= $zone_r->{end}) {
+        $matched_zone_r = $zone_r;
+        last;
+      }
+    }
+
+    if (defined $matched_zone_r) {
+      # Si l'amorce est dans une zone d'exclusion, on ne la garde que si le quota max par zone n'est pas atteint
+      # If the primer is in an exclusion zone, only keep it if the maximum quota per zone is not reached
+      if ($matched_zone_r->{count} < $max_per_window) {
+        push @selected, $primerInfo;
+        $matched_zone_r->{count}++;
+      }
+    } else {
+      # Si elle est en dehors de toute zone, on l'accepte et on crée une nouvelle zone d'exclusion centrée sur elle
+      # If it's outside any zone, accept it and create a new exclusion zone centered around it
+      push @selected, $primerInfo;
+
+      my $half_window = int($window_size / 2);
+      my $start = $location - $half_window;
+      my $end   = $location + $half_window;
+
+      push @exclusion_zones, {
+        start => $start,
+        end   => $end,
+        count => 1
+      };
+    }
   }
 
-  # Dans chaque fenetre, garder les max_per_window meilleurs par penalite
-  # In each window, keep max_per_window best primers by penalty
-  my @reduced = ();
-  foreach my $window_id (sort { $a <=> $b } keys %windows) {
-    my @in_window = sort {
-      $a->getPenalty() <=> $b->getPenalty()
-    } @{$windows{$window_id}};
-
-    my $keep = $max_per_window < scalar(@in_window) ? $max_per_window : scalar(@in_window);
-    push @reduced, @in_window[0 .. $keep - 1];
-  }
-
-  # Re-trier par position pour les boucles de scan / Re-sort by location for scan loops
-  @reduced = sort {
+  # 3. Réordonner la liste finale par position génomique croissante pour préserver la cohérence des scans géométriques
+  # 3. Re-sort the final selected list by ascending genomic location to preserve consistency for geometric scans
+  my @reduced = sort {
     $a->getLocation() <=> $b->getLocation()
-  } @reduced;
+  } @selected;
 
   return \@reduced;
 }
