@@ -12,6 +12,7 @@ import tempfile
 import time
 import uuid
 import threading
+from jinja2 import pass_context
 from werkzeug.utils import secure_filename
 import json
 
@@ -405,9 +406,12 @@ def before_request():
         g.lang = 'fr'
 
 @app.template_filter('t')
-def translate_filter(key):
+@pass_context
+def translate_filter(context, key):
     """Filtre Jinja2 pour les traductions"""
-    lang = getattr(g, 'lang', 'fr')
+    lang = getattr(g, 'lang', None) or session.get('language', 'fr')
+    if lang not in TRANSLATIONS:
+        lang = 'fr'
     if key is None:
         return ""
     return TRANSLATIONS.get(lang, {}).get(key, key)
@@ -415,7 +419,9 @@ def translate_filter(key):
 @app.context_processor
 def inject_globals():
     """Injecter automatiquement la langue dans tous les templates"""
-    lang = getattr(g, 'lang', 'fr')
+    lang = getattr(g, 'lang', None) or session.get('language', 'fr')
+    if lang not in TRANSLATIONS:
+        lang = 'fr'
     return {
         'lang': lang
     }
