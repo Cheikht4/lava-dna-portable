@@ -592,12 +592,23 @@ def set_language(language):
     
     if language in TRANSLATIONS:
         session['language'] = language
+        session.modified = True
+        g.lang = language
         print(f"🌐 Langue changee vers: {language}")
     else:
         print(f"❌ Langue non supportee: {language}")
         
-    resp = make_response(redirect(next_url))
-    # Force browser not to cache this redirect
+    html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="refresh" content="0;url={next_url}">
+</head>
+<body>
+    <script>window.location.replace("{next_url}");</script>
+</body>
+</html>"""
+    resp = make_response(html_content, 200)
+    resp.headers['Content-Type'] = 'text/html; charset=utf-8'
     resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     resp.headers['Pragma'] = 'no-cache'
     resp.headers['Expires'] = '0'
