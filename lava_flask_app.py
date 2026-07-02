@@ -400,7 +400,7 @@ def before_request():
     """Definir la langue globale pour la requete et attribuer un user_id anonyme"""
     if 'user_id' not in session:
         session['user_id'] = str(uuid.uuid4())
-    g.lang = request.cookies.get('language', 'fr')
+    g.lang = session.get('language', 'fr')
     if g.lang not in TRANSLATIONS:
         g.lang = 'fr'
 
@@ -589,15 +589,14 @@ def index():
 def set_language(language):
     """Changer la langue de l'interface / Change the interface language"""
     next_url = request.args.get('next') or url_for('index')
-    resp = make_response(redirect(next_url))
     
     if language in TRANSLATIONS:
-        # Save language in a dedicated cookie for 1 year
-        resp.set_cookie('language', language, max_age=31536000, path='/', samesite='Lax')
-        print(f"🌐 Langue changée vers: {language}")
+        session['language'] = language
+        print(f"🌐 Langue changee vers: {language}")
     else:
-        print(f"❌ Langue non supportée: {language}")
+        print(f"❌ Langue non supportee: {language}")
         
+    resp = make_response(redirect(next_url))
     # Force browser not to cache this redirect
     resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
     resp.headers['Pragma'] = 'no-cache'
