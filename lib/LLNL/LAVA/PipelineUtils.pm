@@ -10,6 +10,12 @@
 #
 # Phase 34-36 code audit (2026).
 #
+# Copyright (c) 2026, Cheikh Talibouya <cheikhtalibouya.toure04@gmail.com | cheikhtalibouya.toure@pasteur.sn>. All rights reserved.
+# Redistribution and use in source and binary forms, with or without modification,
+# are permitted provided that the conditions of the BSD 3-Clause License are met.
+# See the LICENSE file at the root of this project for full terms.
+# Voir le fichier LICENSE à la racine du projet pour les termes complets.
+#
 ################################################################################
 
 package LLNL::LAVA::PipelineUtils;
@@ -176,15 +182,27 @@ is automatically applied to both pipelines.
 
 #-------------------------------------------------------------------------------
 
-=head2 buildReversePrimers
 
-  Construit les primers reverse-compléments à partir d'un tableau de primers.
-  Builds reverse-complement primers from an array of primers.
+=head2 buildReversePrimers (DEPRECATED)
+
+B<DEPRECATED> — Cette fonction est conservée pour compatibilité ascendante uniquement.
+Elle ne doit plus être appelée dans les nouveaux scripts.
+
+B<DEPRECATED> — This function is retained for backward compatibility only.
+It must not be called in new scripts.
+
+Utiliser buildNativeReversePool à la place, qui génère nativement les amorces
+reverse via Primer3 sur le reverse-complément du MSA, avec validation IUPAC complète.
+
+Use buildNativeReversePool instead, which natively generates reverse primers
+via Primer3 on the reverse-complement of the MSA, with full IUPAC validation.
 
 =cut
 
 sub buildReversePrimers
 {
+  # DEPRECATED: Remplacer par buildNativeReversePool / Replace with buildNativeReversePool
+  # Conservé pour compatibilité ascendante uniquement / Retained for backward compatibility only
   my ($primers_r) = @_;
 
   my @reversePrimers = ();

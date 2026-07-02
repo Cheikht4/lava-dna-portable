@@ -1,0 +1,8 @@
+# Dépendances Python pour l'interface web LAVA / Python dependencies for the LAVA web interface
+# Généré le 2026-07-02 à partir des imports réels de lava_flask_app.py
+# Generated on 2026-07-02 from real imports in lava_flask_app.py
+#
+# Toutes les autres dépendances (subprocess, os, threading, etc.) sont stdlib Python
+# All other dependencies (subprocess, os, threading, etc.) are Python stdlib
+flask==3.0.3
+werkzeug==3.0.3

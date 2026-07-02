@@ -108,3 +108,5 @@ fix_header_length.py
 translate_comments.py
 translate_lib.py
 update_output.py
+_internal/
+LAVA_Production_2026_v3/

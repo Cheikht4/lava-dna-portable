@@ -1,0 +1,5 @@
+# Dépendances minimales pour l'interface Flask LAVA / Minimal dependencies for the LAVA Flask interface
+# Fichier séparé mentionné dans le README pour l'installation de l'interface web uniquement
+# Separate file mentioned in README for web interface installation only
+flask==3.0.3
+werkzeug==3.0.3
