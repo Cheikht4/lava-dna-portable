@@ -176,6 +176,32 @@ TRANSLATIONS = {
         'status_stopped': 'Arrêté',
         'status_starting': 'Démarrage',
         'error_input_not_aligned': "Le fichier fourni ne semble pas être un alignement multiple : les séquences ont des longueurs différentes (ou une seule séquence fournie). Veuillez aligner vos séquences (par exemple avec MAFFT ou Clustal) avant de les soumettre.",
+        'msg_signatures_found': "✅ {count} signature(s) trouvée(s)",
+        'msg_completed_no_results': "Exécution terminée : aucune signature trouvée avec les paramètres actuels. Essayez d'assouplir les seuils (couverture, dégénérescence) ou de vérifier l'alignement d'entrée.",
+        'msg_completed_unknown': "ℹ️ Exécution terminée : le statut des signatures n'a pas pu être déterminé dans les logs.",
+        'msg_exec_error': "❌ Erreur d'exécution (code {code})",
+        'msg_error_detail': "\nDétail : {detail}",
+        'sugg_memory': "\n💡 Suggestion: Essayez avec un fichier plus petit ou des paramètres moins stricts",
+        'sugg_file': "\n💡 Suggestion: Vérifiez que le fichier FASTA existe et est accessible",
+        'sugg_perms': "\n💡 Suggestion: Problème de permissions, contactez l'administrateur",
+        'full_id': "ID complet",
+        'created': "Créé",
+        'started': "Démarré",
+        'ended': "Terminé",
+        'duration': "Durée",
+        'log_lines': "Lignes de logs",
+        'command': "Commande",
+        'stop_confirm': "Arrêter l'exécution ?",
+        'help_tip_1': "Vérifiez que votre fichier FASTA est correctement formaté",
+        'help_tip_2': "Essayez avec des paramètres plus permissifs",
+        'help_tip_3': "Contactez le support si le problème persiste",
+        'progress_init': "Initialisation...",
+        'progress_done': "Terminé",
+        'total_lines_gen': "lignes au total / {total} générées",
+        'lines_count': "lignes",
+        'view_btn': "Voir",
+        'stop_btn': "Stop",
+        'results_btn': "Résultats",
         'footer_text': 'Interface LAVA-DNA Flask - Interface stable pour le design d\'amorces LAMP'
     },
     'en': {
@@ -334,6 +360,32 @@ TRANSLATIONS = {
         'status_stopped': 'Stopped',
         'status_starting': 'Starting',
         'error_input_not_aligned': "The provided file does not appear to be a multiple sequence alignment: sequences have different lengths (or only one sequence provided). Please align your sequences (e.g., using MAFFT or Clustal) before submitting.",
+        'msg_signatures_found': "✅ {count} signature(s) found",
+        'msg_completed_no_results': "Execution completed: no signature found with current parameters. Try relaxing thresholds (coverage, degeneracy) or checking input alignment.",
+        'msg_completed_unknown': "ℹ️ Execution completed: signature status could not be determined from logs.",
+        'msg_exec_error': "❌ Execution error (code {code})",
+        'msg_error_detail': "\nDetail: {detail}",
+        'sugg_memory': "\n💡 Suggestion: Try with a smaller file or less strict parameters",
+        'sugg_file': "\n💡 Suggestion: Check that the FASTA file exists and is accessible",
+        'sugg_perms': "\n💡 Suggestion: Permission issue, contact administrator",
+        'full_id': "Full ID",
+        'created': "Created",
+        'started': "Started",
+        'ended': "Finished",
+        'duration': "Duration",
+        'log_lines': "Log lines",
+        'command': "Command",
+        'stop_confirm': "Stop execution?",
+        'help_tip_1': "Check that your FASTA file is correctly formatted",
+        'help_tip_2': "Try using more permissive parameters",
+        'help_tip_3': "Contact support if the issue persists",
+        'progress_init': "Initializing...",
+        'progress_done': "Completed",
+        'total_lines_gen': "total lines / {total} generated",
+        'lines_count': "lines",
+        'view_btn': "View",
+        'stop_btn': "Stop",
+        'results_btn': "Results",
         'footer_text': 'LAVA-DNA Flask Interface - Stable interface for LAMP primer design'
     }
 }
@@ -682,13 +734,21 @@ def update_params():
     flash(get_text('params_updated'), 'success')
     return redirect(url_for('index'))
 
-def translate_error_to_user_friendly(error_message):
+def translate_error_to_user_friendly(error_message, lang='fr'):
     """Traduit les erreurs techniques en messages compréhensibles pour l'utilisateur"""
     error_str = str(error_message).lower()
+    is_en = (lang == 'en')
     
     # Erreurs d'encodage
     if "utf-8" in error_str and "decode" in error_str:
         if "0xc3" in error_str or "continuation byte" in error_str:
+            if is_en:
+                return ("❌ FILE ENCODING PROBLEM\n\n"
+                       "The FASTA file contains unsupported special characters.\n\n"
+                       "SOLUTIONS:\n"
+                       "• Open your file in a text editor (Notepad++, VSCode)\n"
+                       "• Save it with 'UTF-8' encoding\n"
+                       "• Check that sequence names contain no accented characters")
             return ("❌ PROBLÈME D'ENCODAGE DU FICHIER\n\n"
                    "Le fichier FASTA contient des caractères spéciaux non compatibles.\n\n"
                    "SOLUTIONS :\n"
@@ -697,24 +757,44 @@ def translate_error_to_user_friendly(error_message):
                    "• Vérifiez qu'il n'y a pas de caractères accentués dans les noms de séquences\n"
                    "• Remplacez les caractères comme à, é, è, ç par a, e, e, c")
         else:
+            if is_en:
+                return ("❌ ENCODING ERROR\n\n"
+                       "The file cannot be read properly.\n"
+                       "Ensure it is saved as plain text (UTF-8).")
             return ("❌ ERREUR D'ENCODAGE\n\n"
                    "Le fichier ne peut pas être lu correctement.\n"
                    "Assurez-vous qu'il est en format texte simple (UTF-8).")
     
     # Erreurs de fichier non trouvé
     if "no such file" in error_str or "file not found" in error_str:
+        if is_en:
+            return ("❌ FILE NOT FOUND\n\n"
+                   "The FASTA file could not be located.\n"
+                   "Please upload it again.")
         return ("❌ FICHIER NON TROUVÉ\n\n"
                "Le fichier FASTA n'a pas pu être localisé.\n"
                "Veuillez le télécharger à nouveau.")
     
     # Erreurs de permissions
     if "permission denied" in error_str:
+        if is_en:
+            return ("❌ PERMISSION ERROR\n\n"
+                   "The system does not have permission to read the file.\n"
+                   "Contact administrator.")
         return ("❌ ERREUR DE PERMISSIONS\n\n"
                "Le système n'a pas les droits pour lire le fichier.\n"
                "Contactez l'administrateur.")
     
     # Erreurs de format FASTA
     if "fasta" in error_str and ("format" in error_str or "invalid" in error_str):
+        if is_en:
+            return ("❌ INVALID FASTA FORMAT\n\n"
+                   "The file does not respect standard FASTA format.\n\n"
+                   "EXPECTED FORMAT:\n"
+                   ">sequence_name1\n"
+                   "ATCGATCG...\n"
+                   ">sequence_name2\n"
+                   "GCTAGCTA...")
         return ("❌ FORMAT FASTA INVALIDE\n\n"
                "Le fichier ne respecte pas le format FASTA.\n\n"
                "FORMAT ATTENDU :\n"
@@ -725,18 +805,32 @@ def translate_error_to_user_friendly(error_message):
     
     # Erreurs de mémoire
     if "memory" in error_str or "memoryerror" in error_str:
+        if is_en:
+            return ("❌ INSUFFICIENT MEMORY\n\n"
+                   "The file is too large to process.\n"
+                   "Try again with a smaller file.")
         return ("❌ MÉMOIRE INSUFFISANTE\n\n"
                "Le fichier est trop volumineux pour être traité.\n"
                "Essayez avec un fichier plus petit.")
     
     # Erreurs Perl spécifiques
     if "can't locate" in error_str and ".pm" in error_str:
+        if is_en:
+            return ("❌ LAVA CONFIGURATION ERROR\n\n"
+                   "A required Perl module is missing.\n"
+                   "Contact administrator to reinstall LAVA.")
         return ("❌ ERREUR DE CONFIGURATION LAVA\n\n"
                "Un module Perl requis est manquant.\n"
                "Contactez l'administrateur pour réinstaller LAVA.")
     
     # Erreurs de paramètres LAVA
     if "primer" in error_str and ("length" in error_str or "target" in error_str):
+        if is_en:
+            return ("❌ INVALID PARAMETERS\n\n"
+                   "Primer lengths or target settings are incorrect.\n"
+                   "Verify that:\n"
+                   "• Min length < Max length\n"
+                   "• Values are positive integers")
         return ("❌ PARAMÈTRES INVALIDES\n\n"
                "Les longueurs de primers ou les cibles sont incorrectes.\n"
                "Vérifiez que :\n"
@@ -744,6 +838,13 @@ def translate_error_to_user_friendly(error_message):
                "• Les valeurs sont des nombres entiers positifs")
     
     # Si l'erreur n'est pas reconnue, retourner un message générique plus utile
+    if is_en:
+        return (f"❌ TECHNICAL ERROR\n\n"
+               f"Original error message:\n{error_message}\n\n"
+               f"RECOMMENDED ACTIONS:\n"
+               f"• Check your FASTA file format\n"
+               f"• Try with a smaller file\n"
+               f"• Contact support with this error message")
     return (f"❌ ERREUR TECHNIQUE\n\n"
            f"Message d'erreur original :\n{error_message}\n\n"
            f"ACTIONS RECOMMANDÉES :\n"
@@ -981,27 +1082,31 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
             # Format attendu : "After reduction: N final signatures"
             sig_matches = re.findall(r'after reduction:\s*(\d+)\s*final signatures', all_logs_text, re.IGNORECASE)
             
+            user_lang = running_executions[execution_id].get('lang', 'fr')
+            t_dict = TRANSLATIONS.get(user_lang, TRANSLATIONS['fr'])
+            
             if sig_matches:
                 sig_count = int(sig_matches[-1])
                 running_executions[execution_id]['signature_count'] = sig_count
                 if sig_count > 0:
                     running_executions[execution_id]['status'] = 'completed'
-                    running_executions[execution_id]['completion_message'] = f"✅ {sig_count} signature(s) trouvée(s)"
+                    running_executions[execution_id]['completion_message'] = t_dict.get('msg_signatures_found').format(count=sig_count)
                 else:
                     running_executions[execution_id]['status'] = 'completed_no_results'
-                    running_executions[execution_id]['completion_message'] = "Exécution terminée : aucune signature trouvée avec les paramètres actuels. Essayez d'assouplir les seuils (couverture, dégénérescence) ou de vérifier l'alignement d'entrée."
+                    running_executions[execution_id]['completion_message'] = t_dict.get('msg_completed_no_results')
             else:
                 running_executions[execution_id]['status'] = 'completed'
-                running_executions[execution_id]['completion_message'] = "ℹ️ Exécution terminée : le statut des signatures n'a pas pu être déterminé dans les logs."
+                running_executions[execution_id]['completion_message'] = t_dict.get('msg_completed_unknown')
             
             running_executions[execution_id]['result_files'] = result_files
         else:
             # Code de retour non-zéro = erreur
             user_lang = running_executions[execution_id].get('lang', 'fr')
+            t_dict = TRANSLATIONS.get(user_lang, TRANSLATIONS['fr'])
             if 'input_not_aligned' in all_logs_text:
-                error_msg = TRANSLATIONS.get(user_lang, TRANSLATIONS['fr']).get('error_input_not_aligned')
+                error_msg = t_dict.get('error_input_not_aligned')
             else:
-                error_msg = f"❌ Erreur d'exécution (code {return_code})"
+                error_msg = t_dict.get('msg_exec_error').format(code=return_code)
                 
                 # Remonter la dernière ligne significative d'erreur depuis les logs
                 significant_error_line = None
@@ -1016,22 +1121,23 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
                         break
                 
                 if significant_error_line:
-                    error_msg += f"\nDétail : {significant_error_line}"
+                    error_msg += t_dict.get('msg_error_detail').format(detail=significant_error_line)
                 
                 # Analyser les logs pour donner plus d'informations et suggestions
                 if 'out of memory' in all_logs_text or 'memory' in all_logs_text:
-                    error_msg += "\n💡 Suggestion: Essayez avec un fichier plus petit ou des paramètres moins stricts"
+                    error_msg += t_dict.get('sugg_memory')
                 elif 'no such file' in all_logs_text:
-                    error_msg += "\n💡 Suggestion: Vérifiez que le fichier FASTA existe et est accessible"
+                    error_msg += t_dict.get('sugg_file')
                 elif 'permission denied' in all_logs_text:
-                    error_msg += "\n💡 Suggestion: Problème de permissions, contactez l'administrateur"
+                    error_msg += t_dict.get('sugg_perms')
             
             running_executions[execution_id]['status'] = 'error'
             running_executions[execution_id]['error'] = error_msg
     
     except Exception as e:
+        user_lang = running_executions[execution_id].get('lang', 'fr')
         running_executions[execution_id]['status'] = 'error'
-        user_friendly_error = translate_error_to_user_friendly(e)
+        user_friendly_error = translate_error_to_user_friendly(e, user_lang)
         running_executions[execution_id]['error'] = user_friendly_error
         # Garder aussi l'erreur technique pour le debug
         running_executions[execution_id]['technical_error'] = str(e)

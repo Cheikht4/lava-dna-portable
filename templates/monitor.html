@@ -42,8 +42,8 @@
                     
                     {% if execution.status in ['running', 'starting'] %}
                     <form method="post" action="{{ url_for('stop_execution', execution_id=execution.id) }}" class="d-inline">
-                        <button type="submit" class="btn btn-danger" onclick="return confirm('Arrêter l\'exécution ?')">
-                            <i class="fas fa-stop me-2"></i>{{ 'stop'|t|default('Stop') }}
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('{{ 'stop_confirm'|t }}')">
+                            <i class="fas fa-stop me-2"></i>{{ 'stop_btn'|t }}
                         </button>
                     </form>
                     {% endif %}
@@ -69,23 +69,23 @@
                     <div class="col-md-6">
                         <table class="table table-sm">
                             <tr>
-                                <td><strong>ID complet :</strong></td>
+                                <td><strong>{{ 'full_id'|t }} :</strong></td>
                                 <td><code>{{ execution.id }}</code></td>
                             </tr>
                             <tr>
-                                <td><strong>Créé :</strong></td>
+                                <td><strong>{{ 'created'|t }} :</strong></td>
                                 <td>{{ execution.created_time.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                             </tr>
                             <tr id="start-time-row" style="display: none;">
-                                <td><strong>Démarré :</strong></td>
+                                <td><strong>{{ 'started'|t }} :</strong></td>
                                 <td id="start-time">-</td>
                             </tr>
                             <tr id="end-time-row" style="display: none;">
-                                <td><strong>Terminé :</strong></td>
+                                <td><strong>{{ 'ended'|t }} :</strong></td>
                                 <td id="end-time">-</td>
                             </tr>
                             <tr id="duration-row" style="display: none;">
-                                <td><strong>Durée :</strong></td>
+                                <td><strong>{{ 'duration'|t }} :</strong></td>
                                 <td id="duration">-</td>
                             </tr>
                         </table>
@@ -93,12 +93,12 @@
                     <div class="col-md-6">
                         <table class="table table-sm">
                             <tr>
-                                <td><strong>Lignes de logs :</strong></td>
+                                <td><strong>{{ 'log_lines'|t }} :</strong></td>
                                 <td id="total-lines">{{ execution.total_lines | default(0) }}</td>
                             </tr>
                             {% if execution.get('command') %}
                             <tr>
-                                <td><strong>Commande :</strong></td>
+                                <td><strong>{{ 'command'|t }} :</strong></td>
                                 <td><small><code>{{ execution.command[:50] }}...</code></small></td>
                             </tr>
                             {% endif %}
@@ -120,9 +120,9 @@
                     <div class="mt-3">
                         <strong>💡 {{ 'need_help'|t }}</strong>
                         <ul class="mt-2 mb-0">
-                            <li>Vérifiez que votre fichier FASTA est correctement formaté</li>
-                            <li>Essayez avec des paramètres plus permissifs</li>
-                            <li>Contactez le support si le problème persiste</li>
+                            <li>{{ 'help_tip_1'|t }}</li>
+                            <li>{{ 'help_tip_2'|t }}</li>
+                            <li>{{ 'help_tip_3'|t }}</li>
                         </ul>
                     </div>
                     <div class="mt-3">
@@ -267,7 +267,8 @@ const i18n = {
     status_completed_no_results: "{{ 'status_completed_no_results'|t }}",
     status_error: "{{ 'status_error'|t }}",
     status_stopped: "{{ 'status_stopped'|t }}",
-    status_starting: "{{ 'status_starting'|t }}"
+    status_starting: "{{ 'status_starting'|t }}",
+    progress_done: "{{ 'progress_done'|t }}"
 };
 
 // Fonction pour basculer l'affichage des logs (100 dernières vs tous)
@@ -402,9 +403,9 @@ function refreshStatus() {
                 // Mettre à jour le compteur
                 const logInfo = document.getElementById('log-count-info');
                 if (showAllLogs) {
-                    logInfo.textContent = `(${data.logs.length} lignes au total / ${data.total_lines} générées)`;
+                    logInfo.textContent = `(${data.logs.length} / ${data.total_lines} ${i18n.all_logs_display})`;
                 } else {
-                    logInfo.textContent = `(dernières 100 lignes / ${data.total_lines} total)`;
+                    logInfo.textContent = `(${i18n.last_100_lines} / ${data.total_lines})`;
                 }
             }
 
@@ -435,7 +436,7 @@ function refreshStatus() {
                 if (pct >= 100) {
                     bar.classList.remove('progress-bar-animated');
                     document.getElementById('progress-label').innerHTML =
-                        `<i class="fas fa-check-circle me-2 text-success"></i>${p.label} — Terminé`;
+                        `<i class="fas fa-check-circle me-2 text-success"></i>${p.label} - ${i18n.progress_done}`;
                 }
 
                 // Extra (OK/DEG/REJ) et ETA

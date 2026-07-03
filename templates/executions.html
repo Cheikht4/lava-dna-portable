@@ -68,36 +68,36 @@
                             </div>
                             
                             <div class="mb-2">
-                                <strong>Sortie :</strong>
+                                <strong>{{ 'output'|t }} :</strong>
                                 <small>{{ execution.output_name }}</small>
                             </div>
                             
                             <div class="mb-3">
-                                <strong>Créé :</strong>
+                                <strong>{{ 'created'|t }} :</strong>
                                 <small>{{ execution.created_time.strftime('%d/%m %H:%M') }}</small>
                             </div>
                             
                             {% if execution.get('start_time') %}
                             <div class="mb-2">
-                                <strong>Démarré :</strong>
+                                <strong>{{ 'started'|t }} :</strong>
                                 <small>{{ execution.start_time.strftime('%H:%M:%S') }}</small>
                             </div>
                             {% endif %}
                             
                             {% if execution.get('end_time') %}
                             <div class="mb-2">
-                                <strong>Terminé :</strong>
+                                <strong>{{ 'ended'|t }} :</strong>
                                 <small>{{ execution.end_time.strftime('%H:%M:%S') }}</small>
                                 <br>
-                                <strong>Durée :</strong>
+                                <strong>{{ 'duration'|t }} :</strong>
                                 <small>{{ (execution.end_time - execution.start_time) | string | truncate(8) }}</small>
                             </div>
                             {% endif %}
                             
                             {% if execution.get('total_lines') %}
                             <div class="mb-2">
-                                <strong>Logs :</strong>
-                                <small>{{ execution.total_lines }} lignes</small>
+                                <strong>{{ 'log_lines'|t }} :</strong>
+                                <small>{{ execution.total_lines }} {{ 'lines_count'|t }}</small>
                             </div>
                             {% endif %}
                         </div>
@@ -106,14 +106,14 @@
                             <div class="d-flex gap-1 flex-wrap">
                                 <a href="{{ url_for('monitor', execution_id=execution_id) }}" 
                                    class="btn btn-primary btn-sm">
-                                    <i class="fas fa-eye me-1"></i>Voir
+                                    <i class="fas fa-eye me-1"></i>{{ 'view_btn'|t }}
                                 </a>
                                 
                                 {% if execution.status in ['running', 'starting'] %}
                                 <form method="post" action="{{ url_for('stop_execution', execution_id=execution_id) }}" class="d-inline">
                                     <button type="submit" class="btn btn-danger btn-sm" 
-                                            onclick="return confirm('Arrêter l\'exécution ?')">
-                                        <i class="fas fa-stop me-1"></i>Stop
+                                            onclick="return confirm('{{ 'stop_confirm'|t }}')">
+                                        <i class="fas fa-stop me-1"></i>{{ 'stop_btn'|t }}
                                     </button>
                                 </form>
                                 {% endif %}
@@ -122,7 +122,7 @@
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-success btn-sm dropdown-toggle" 
                                             data-bs-toggle="dropdown">
-                                        <i class="fas fa-download me-1"></i>Résultats
+                                        <i class="fas fa-download me-1"></i>{{ 'results_btn'|t }}
                                     </button>
                                     <ul class="dropdown-menu">
                                         {% for result_file in execution.result_files %}
