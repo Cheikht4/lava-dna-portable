@@ -1273,3 +1273,27 @@ Lors du design d'amorces LAMP sur des alignements viraux très divergents ou ave
 
 **Impact attendu** :
 Une clarté accrue dans le suivi des exécutions Web. Fin des faux messages de succès lorsque 0 signature est produite, et affichage explicite de la cause d'échec directement dans l'interface sans nécessiter l'ouverture manuelle des fichiers de logs bruts.
+
+---
+
+### [2026-07-03] Validation Rigoureuse de l'Alignement FASTA et Détection d'Erreurs d'Entrée
+
+**Date/Étape** : 2026-07-03 - Validation de la géométrie de l'alignement FASTA en entrée et interception spécifique dans l'interface Web.
+
+**Fichiers impactés** :
+- `lava_loop_primer.pl`
+- `lava_stem_primer.pl`
+- `lava_flask_app.py`
+
+**Nature du changement** : [Algorithmique / Validation / Interface]
+
+**Explication technique** :
+1. **Validation BioPerl et vérification brute** : Ajout d'une double vérification stricte immédiatement après le chargement de l'alignement (`next_aln()`) dans `lava_loop_primer.pl` et `lava_stem_primer.pl`. Le moteur vérifie d'une part la présence d'au moins 2 séquences et l'état `is_flush()`, et d'autre part analyse les longueurs brutes des séquences dans le fichier FASTA d'origine afin de déjouer le padding automatique silencieux (ajout de tirets en fin de séquence) effectué par `Bio::AlignIO::fasta`.
+2. **Code d'erreur dédié et marqueur stable** : En cas de séquences de longueurs inégales ou d'alignement invalide, le moteur Perl interrompt immédiatement l'exécution avec le code de sortie dédié `2` et émet le marqueur explicite `ERROR: INPUT_NOT_ALIGNED` sur la sortie d'erreur.
+3. **Interception prioritaire côté Flask** : Dans `lava_flask_app.py`, lors du traitement d'une fin d'exécution en erreur (`return_code != 0`), la présence du marqueur `input_not_aligned` dans les logs est vérifiée en priorité. Si détectée, l'interface substitue au message d'erreur générique un message traduit explicite (`error_input_not_aligned`) invitant l'utilisateur à aligner ses séquences avec des outils standard (MAFFT, Clustal).
+
+**Justification biologique** :
+La conception d'amorces LAMP consensuelles repose sur le calcul de l'entropie de Shannon par colonne de position dans un alignement multiple de séquences (MSA). L'injection de séquences brutes non alignées (de longueurs différentes) fausse totalement le repère des coordonnées spatiales : des homologues fonctionnels ne se trouvent plus sur la même colonne d'alignement, ce qui génère des calculs d'entropie aberrants et conduit soit à des échecs silencieux, soit à des amorces inopérantes in vitro. Garantir que l'entrée est un véritable alignement multiple avant tout calcul combinatoire protège la validité scientifique des amorces produites.
+
+**Impact attendu** :
+Protection complète de l'utilisateur contre l'envoi accidentel de fichiers FASTA non alignés ou de séquences isolées. L'arrêt est instantané, explicite, et l'interface guide clairement l le chercheur vers l'étape de pré-traitement (alignement multiple) nécessaire.

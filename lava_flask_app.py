@@ -175,6 +175,7 @@ TRANSLATIONS = {
         'status_error': 'Erreur',
         'status_stopped': 'Arrêté',
         'status_starting': 'Démarrage',
+        'error_input_not_aligned': "Le fichier fourni ne semble pas être un alignement multiple : les séquences ont des longueurs différentes (ou une seule séquence fournie). Veuillez aligner vos séquences (par exemple avec MAFFT ou Clustal) avant de les soumettre.",
         'footer_text': 'Interface LAVA-DNA Flask - Interface stable pour le design d\'amorces LAMP'
     },
     'en': {
@@ -332,6 +333,7 @@ TRANSLATIONS = {
         'status_error': 'Error',
         'status_stopped': 'Stopped',
         'status_starting': 'Starting',
+        'error_input_not_aligned': "The provided file does not appear to be a multiple sequence alignment: sequences have different lengths (or only one sequence provided). Please align your sequences (e.g., using MAFFT or Clustal) before submitting.",
         'footer_text': 'LAVA-DNA Flask Interface - Stable interface for LAMP primer design'
     }
 }
@@ -995,30 +997,34 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
             running_executions[execution_id]['result_files'] = result_files
         else:
             # Code de retour non-zéro = erreur
-            error_msg = f"❌ Erreur d'exécution (code {return_code})"
-            
-            # Remonter la dernière ligne significative d'erreur depuis les logs
-            significant_error_line = None
-            error_markers = ['error', 'erreur', 'died', "can't", 'at ', ' line ', 'undefined', 'confess', 'fatal', 'exception']
-            for line in reversed(output_lines):
-                line_clean = line.strip()
-                if not line_clean:
-                    continue
-                line_lower = line_clean.lower()
-                if any(marker in line_lower for marker in error_markers):
-                    significant_error_line = line_clean
-                    break
-            
-            if significant_error_line:
-                error_msg += f"\nDétail : {significant_error_line}"
-            
-            # Analyser les logs pour donner plus d'informations et suggestions
-            if 'out of memory' in all_logs_text or 'memory' in all_logs_text:
-                error_msg += "\n💡 Suggestion: Essayez avec un fichier plus petit ou des paramètres moins stricts"
-            elif 'no such file' in all_logs_text:
-                error_msg += "\n💡 Suggestion: Vérifiez que le fichier FASTA existe et est accessible"
-            elif 'permission denied' in all_logs_text:
-                error_msg += "\n💡 Suggestion: Problème de permissions, contactez l'administrateur"
+            user_lang = running_executions[execution_id].get('lang', 'fr')
+            if 'input_not_aligned' in all_logs_text:
+                error_msg = TRANSLATIONS.get(user_lang, TRANSLATIONS['fr']).get('error_input_not_aligned')
+            else:
+                error_msg = f"❌ Erreur d'exécution (code {return_code})"
+                
+                # Remonter la dernière ligne significative d'erreur depuis les logs
+                significant_error_line = None
+                error_markers = ['error', 'erreur', 'died', "can't", 'at ', ' line ', 'undefined', 'confess', 'fatal', 'exception']
+                for line in reversed(output_lines):
+                    line_clean = line.strip()
+                    if not line_clean:
+                        continue
+                    line_lower = line_clean.lower()
+                    if any(marker in line_lower for marker in error_markers):
+                        significant_error_line = line_clean
+                        break
+                
+                if significant_error_line:
+                    error_msg += f"\nDétail : {significant_error_line}"
+                
+                # Analyser les logs pour donner plus d'informations et suggestions
+                if 'out of memory' in all_logs_text or 'memory' in all_logs_text:
+                    error_msg += "\n💡 Suggestion: Essayez avec un fichier plus petit ou des paramètres moins stricts"
+                elif 'no such file' in all_logs_text:
+                    error_msg += "\n💡 Suggestion: Vérifiez que le fichier FASTA existe et est accessible"
+                elif 'permission denied' in all_logs_text:
+                    error_msg += "\n💡 Suggestion: Problème de permissions, contactez l'administrateur"
             
             running_executions[execution_id]['status'] = 'error'
             running_executions[execution_id]['error'] = error_msg
@@ -1104,6 +1110,7 @@ def execute_lava():
         'id': execution_id,
         'user_id': session.get('user_id'),
         'owner_id': session.get('user_id'),
+        'lang': getattr(g, 'lang', None) or session.get('language', 'fr'),
         'status': 'starting',
         'input_file': session['uploaded_file'],
         'output_name': output_name,
