@@ -1338,3 +1338,25 @@ Dans un contexte international de surveillance épidémiologique, la clarté et 
 
 **Impact attendu** :
 Une bascule instantanée et complète en anglais ou en français de la page de suivi en temps réel, des alertes de fin d'exécution et de la liste des analyses.
+
+---
+
+### [2026-07-03] Création du Dépôt Git Autonome de l'Interface Web (LAVA-Web)
+
+**Date/Étape** : 2026-07-03 - Structuration d'un dépôt propre dédié au déploiement de l'interface graphique et à la publication.
+
+**Fichiers impactés** :
+- `lava-interface-public/` (Nouveau dépôt autonome)
+- `README.md`
+- `.gitignore`
+
+**Nature du changement** : [Architecture / Publication]
+
+**Explication technique** :
+Création et initialisation d'un dépôt Git dédié (`lava-interface-public`) en miroir du dépôt moteur (`lava-dna-public` / `LAVA-Virus`). Ce nouveau dépôt regroupe exclusivement l'application web Flask (`lava_flask_app.py`), les templates bilingues (`templates/`), les scripts de production (`deployment/`), ainsi que le sous-ensemble minimal de modules scientifiques Perl requis pour son exécution en production. Tous les fichiers de log, caches Python, fichiers temporaires et archives de travail sont rigoureusement exclus via un `.gitignore` optimisé.
+
+**Justification biologique** :
+Séparer clairement le dépôt de l'interface web prête à l'emploi du dépôt moteur de recherche fondamentale permet de proposer à la communauté scientifique et aux laboratoires cliniques un package web immédiatement déployable sur serveur de diagnostic, sans alourdir le dépôt avec l'historique d'expérimentation ou les scripts de test algorithmique.
+
+**Impact attendu** :
+Disponibilité d'un package Git public prêt à être poussé sur GitHub (ex: `LAVA-Web`), simplifiant drastiquement l'installation et la maintenance de serveurs LAVA dans les instituts de recherche.
