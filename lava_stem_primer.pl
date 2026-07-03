@@ -876,43 +876,46 @@ sub getOligosWithMismatchTolerance {
   my $alignIN = Bio::AlignIO->new(-file => "< $alignmentFastaName", -format => $alignmentFormat);
   my $inputMSA = $alignIN->next_aln();
 
-  if (!$inputMSA || $inputMSA->num_sequences() < 2) {
-    print STDERR "ERROR: INPUT_NOT_ALIGNED - Le fichier doit contenir au moins 2 sequences alignees pour concevoir des amorces LAMP consensuelles.\n";
-    exit(2);
-  }
-  if (!$inputMSA->is_flush()) {
-    print STDERR "ERROR: INPUT_NOT_ALIGNED - Les sequences n'ont pas toutes la meme longueur. Le fichier doit etre un alignement multiple (MSA), pas des sequences brutes.\n";
+  if (!$inputMSA || $inputMSA->num_sequences() < 1) {
+    print STDERR "ERROR: INPUT_EMPTY - Le fichier ne contient aucune sequence valide.\n";
     exit(2);
   }
 
-  # Verification supplementaire : Bio::AlignIO (BioPerl) ajoute automatiquement des tirets (-) 
-  # a la fin des sequences plus courtes lors de la lecture, ce qui fait que is_flush() renvoie 1 
-  # meme sur un fichier FASTA non aligne. Nous verifions donc que les sequences brutes dans le fichier 
-  # ont bien la meme longueur avant padding.
-  if (open(my $fh_check, '<', $alignmentFastaName)) {
-    my %raw_lengths;
-    my $cur_len = 0;
-    my $cur_id = "";
-    while (my $line = <$fh_check>) {
-      chomp $line;
-      if ($line =~ /^>/) {
-        if ($cur_id ne "" && $cur_len > 0) {
-          $raw_lengths{$cur_len} = 1;
-        }
-        $cur_id = $line;
-        $cur_len = 0;
-      } else {
-        $line =~ s/\r//g;
-        $cur_len += length($line);
-      }
-    }
-    if ($cur_id ne "" && $cur_len > 0) {
-      $raw_lengths{$cur_len} = 1;
-    }
-    close($fh_check);
-    if (scalar(keys %raw_lengths) > 1) {
-      print STDERR "ERROR: INPUT_NOT_ALIGNED - Les sequences n'ont pas toutes la meme longueur (" . join(", ", keys %raw_lengths) . " bp). Le fichier doit etre un alignement multiple (MSA), pas des sequences brutes.\n";
+  if ($inputMSA->num_sequences() >= 2) {
+    if (!$inputMSA->is_flush()) {
+      print STDERR "ERROR: INPUT_NOT_ALIGNED - Les sequences n'ont pas toutes la meme longueur. Le fichier doit etre un alignement multiple (MSA), pas des sequences brutes.\n";
       exit(2);
+    }
+
+    # Verification supplementaire : Bio::AlignIO (BioPerl) ajoute automatiquement des tirets (-) 
+    # a la fin des sequences plus courtes lors de la lecture, ce qui fait que is_flush() renvoie 1 
+    # meme sur un fichier FASTA non aligne. Nous verifions donc que les sequences brutes dans le fichier 
+    # ont bien la meme longueur avant padding.
+    if (open(my $fh_check, '<', $alignmentFastaName)) {
+      my %raw_lengths;
+      my $cur_len = 0;
+      my $cur_id = "";
+      while (my $line = <$fh_check>) {
+        chomp $line;
+        if ($line =~ /^>/) {
+          if ($cur_id ne "" && $cur_len > 0) {
+            $raw_lengths{$cur_len} = 1;
+          }
+          $cur_id = $line;
+          $cur_len = 0;
+        } else {
+          $line =~ s/\r//g;
+          $cur_len += length($line);
+        }
+      }
+      if ($cur_id ne "" && $cur_len > 0) {
+        $raw_lengths{$cur_len} = 1;
+      }
+      close($fh_check);
+      if (scalar(keys %raw_lengths) > 1) {
+        print STDERR "ERROR: INPUT_NOT_ALIGNED - Les sequences n'ont pas toutes la meme longueur (" . join(", ", keys %raw_lengths) . " bp). Le fichier doit etre un alignement multiple (MSA), pas des sequences brutes.\n";
+        exit(2);
+      }
     }
   }
 

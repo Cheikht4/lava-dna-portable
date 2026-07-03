@@ -1295,5 +1295,25 @@ Une clarté accrue dans le suivi des exécutions Web. Fin des faux messages de s
 **Justification biologique** :
 La conception d'amorces LAMP consensuelles repose sur le calcul de l'entropie de Shannon par colonne de position dans un alignement multiple de séquences (MSA). L'injection de séquences brutes non alignées (de longueurs différentes) fausse totalement le repère des coordonnées spatiales : des homologues fonctionnels ne se trouvent plus sur la même colonne d'alignement, ce qui génère des calculs d'entropie aberrants et conduit soit à des échecs silencieux, soit à des amorces inopérantes in vitro. Garantir que l'entrée est un véritable alignement multiple avant tout calcul combinatoire protège la validité scientifique des amorces produites.
 
-**Impact attendu** :
 Protection complète de l'utilisateur contre l'envoi accidentel de fichiers FASTA non alignés ou de séquences isolées. L'arrêt est instantané, explicite, et l'interface guide clairement l le chercheur vers l'étape de pré-traitement (alignement multiple) nécessaire.
+
+---
+
+### [2026-07-03] Compatibilité avec les Fichiers FASTA à Séquence Unique
+
+**Date/Étape** : 2026-07-03 - Prise en charge des fichiers FASTA mono-séquence dans le contrôle d'alignement.
+
+**Fichiers impactés** :
+- `lava_loop_primer.pl`
+- `lava_stem_primer.pl`
+
+**Nature du changement** : [Algorithmique / Validation / Compatibilité]
+
+**Explication technique** :
+Ajustement de la condition de validation d'entrée. Si le fichier FASTA contient exactement 1 séquence (`num_sequences == 1`), la vérification d'alignement multiple (`is_flush()` et comparaison des longueurs) est naturellement ignorée car non applicable à une séquence isolée. Les contrôles géométriques de longueurs inégales ne s'appliquent qu'à partir de 2 séquences (`num_sequences >= 2`). Si 0 séquence est détectée, l'exécution s'arrête avec le marqueur `INPUT_EMPTY`.
+
+**Justification biologique** :
+Dans de nombreux protocoles de diagnostic moléculaire, le chercheur souhaite concevoir des amorces LAMP à partir d'une unique séquence génomique de référence (sans calcul de dégénérescence ni alignement muti-souches). Bloquer les fichiers mono-séquence constituait un contresens clinique ; cet ajustement préserve la sécurité du contrôle anti-décalage sur les alignements multiples tout en garantissant la fluidité du pipeline sur les références uniques.
+
+**Impact attendu** :
+Restauration immédiate de la capacité de LAVA à concevoir des amorces LAMP (classique ou enrichi) sur des séquences uniques, sans déclencher d'alerte de non-alignement.
