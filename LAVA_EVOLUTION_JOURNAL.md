@@ -1359,4 +1359,24 @@ Création et initialisation d'un dépôt Git dédié (`lava-interface-public`) e
 Séparer clairement le dépôt de l'interface web prête à l'emploi du dépôt moteur de recherche fondamentale permet de proposer à la communauté scientifique et aux laboratoires cliniques un package web immédiatement déployable sur serveur de diagnostic, sans alourdir le dépôt avec l'historique d'expérimentation ou les scripts de test algorithmique.
 
 **Impact attendu** :
-Disponibilité d'un package Git public prêt à être poussé sur GitHub (ex: `LAVA-Web`), simplifiant drastiquement l'installation et la maintenance de serveurs LAVA dans les instituts de recherche.
+Disponibilité et publication officielle du package Git public sur GitHub sous le nom `LAVA_Virus-Interface` (https://github.com/Cheikht4/LAVA_Virus-Interface.git), simplifiant drastiquement l'installation et la maintenance de serveurs LAVA dans les instituts de recherche.
+
+---
+
+### [2026-07-05] Publication Officielle du Dépôt LAVA_Virus-Interface
+
+**Date/Étape** : 2026-07-05 - Publication et synchronisation du dépôt autonome de l'interface graphique.
+
+**Fichiers impactés** :
+- `lava-interface-public/` (dépôt public distant)
+
+**Nature du changement** : [Publication / Git]
+
+**Explication technique** :
+Connexion du répertoire local `lava-interface-public` au remote officiel GitHub (`https://github.com/Cheikht4/LAVA_Virus-Interface.git`) via la commande `git remote add origin` et push de la branche `main`. Ce dépôt constitue désormais la référence officielle et autonome pour le déploiement web de LAVA-DNA.
+
+**Justification biologique** :
+Fournir un accès direct et universel au code source propre de l'interface web permet aux laboratoires de référence internationale d'auditer, cloner et déployer l'outil de diagnostic dans leurs propres infrastructures sécurisées.
+
+**Impact attendu** :
+Accessibilité publique immédiate de l'application web bilingue LAVA sur GitHub.
