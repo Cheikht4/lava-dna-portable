@@ -6,7 +6,7 @@
 [![Flask](https://img.shields.io/badge/Flask-3.0+-green.svg)](https://flask.palletsprojects.com)
 [![Perl](https://img.shields.io/badge/Perl-5.26+-orange.svg)](https://perl.org)
 [![Primer3](https://img.shields.io/badge/Primer3-2.6.1-purple.svg)](https://primer3.org)
-[![License](https://img.shields.io/badge/License-BSD--3--Clause-yellow.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-BSD--3--Clause_%2F_Proprietary-blue.svg)](LICENSE)
 
 ## 🎯 **Vue d'ensemble**
 
@@ -257,10 +257,11 @@ Vous pouvez ensuite installer un certificat HTTPS gratuit via `certbot`. La plat
 
 ## 📄 **Licence**
 
-Ce projet utilise une licence **double** :
+Ce projet utilise une structure de licence **mixte** :
 
-- Le **moteur LAVA hérité** (`lava_loop_primer.pl`, `lava_stem_primer.pl`, modules `lib/LLNL/LAVA/` hérités) est distribué sous licence **BSD 3-Clause** — Copyright (c) 2010, Lawrence Livermore National Security, LLC. (Clinton Torres).
-- Les **extensions et l'interface web** (`lib/LLNL/LAVA/Validator.pm`, `Core.pm`, `PipelineUtils.pm`, `lava_flask_app.py`) sont distribués sous licence **BSD 3-Clause** — Copyright (c) 2026, Cheikh Talibouya.
+- Le **moteur LAVA hérité** (`lava_loop_primer.pl`, `lava_stem_primer.pl`, modules `lib/LLNL/LAVA/` hérités) est distribué sous licence open-source **BSD 3-Clause** - Copyright (c) 2010, Lawrence Livermore National Security, LLC. (Clinton Torres).
+- Les **modules Perl étendus** (`lib/LLNL/LAVA/Validator.pm`, `Core.pm`, `PipelineUtils.pm`) sont distribués sous licence open-source **BSD 3-Clause** - Copyright (c) 2026, Cheikh Talibouya.
+- L'**interface graphique web et la suite de déploiement** (`lava_flask_app.py`, `templates/`, `static/`, `deployment/`) sont sous **Licence Propriétaire (Tous droits réservés)** - Copyright (c) 2026, Cheikh Talibouya. L'utilisation, modification ou distribution de l'interface graphique est strictement soumise à l'autorisation écrite préalable de l'auteur.
 
 Voir le fichier [`LICENSE`](LICENSE) pour les termes complets.
 

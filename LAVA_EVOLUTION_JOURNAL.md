@@ -1380,3 +1380,24 @@ Fournir un accès direct et universel au code source propre de l'interface web p
 
 **Impact attendu** :
 Accessibilité publique immédiate de l'application web bilingue LAVA sur GitHub.
+
+---
+
+### [2026-07-05] Passage de l'Interface Web sous Licence Propriétaire (Autorisation Requise)
+
+**Date/Étape** : 2026-07-05 - Restructuration juridique des droits d'utilisation de l'interface graphique.
+
+**Fichiers impactés** :
+- `LICENSE`
+- `README.md`
+
+**Nature du changement** : [Juridique / Architecture]
+
+**Explication technique** :
+Mise à jour du fichier `LICENSE` pour distinguer clairement 3 parties : (1) Le moteur Perl hérité de LLNL (BSD 3-Clause), (2) Les modules Perl étendus comme `Validator.pm`, `Core.pm`, `PipelineUtils.pm` (BSD 3-Clause), et (3) L'ensemble de l'interface graphique web (`lava_flask_app.py`, `templates/`, `static/`, `deployment/`) qui passe sous **Licence Propriétaire - Tous droits réservés (Cheikh Talibouya)**. Toute utilisation, copie, modification ou déploiement clinique/commercial de l'interface est désormais impérativement soumise à l'autorisation écrite préalable de l'auteur.
+
+**Justification biologique** :
+Alors que les algorithmes de recherche fondamentale en bioinformatique gagnent à rester en open-source pour permettre la vérification par les pairs et la reproductibilité scientifique, l'interface clinique de diagnostic, intégrant les sécurités anti-décalage et la surveillance d'exécution, requiert un contrôle de diffusion strict afin d'éviter l'émergence de clones non certifiés dans un cadre de santé publique.
+
+**Impact attendu** :
+Protection complète de la propriété intellectuelle de l'interface graphique LAVA-DNA, tout en préservant l'ouverture open-source du moteur de calcul bioinformatique sous-jacent.
