@@ -496,8 +496,9 @@ os.makedirs(RESULTS_FOLDER, exist_ok=True)
 os.makedirs('templates', exist_ok=True)
 os.makedirs('static', exist_ok=True)
 
-# Stockage des exécutions en cours
+# Stockage des exécutions en cours et verrou de synchronisation
 running_executions = {}
+executions_lock = threading.Lock()
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -1153,22 +1154,6 @@ def execute_lava():
         flash('Aucun fichier FASTA uploadé', 'error')
         return redirect(url_for('index'))
         
-    # Vérification des quotas de concurrence
-    max_global = int(os.environ.get('MAX_CONCURRENT_RUNS', 5))
-    max_user = int(os.environ.get('MAX_USER_CONCURRENT_RUNS', 2))
-    current_user_id = session.get('user_id')
-
-    running_global = sum(1 for e in running_executions.values() if e.get('status') in ['starting', 'running'])
-    running_user = sum(1 for e in running_executions.values() if (e.get('owner_id') == current_user_id or e.get('user_id') == current_user_id) and e.get('status') in ['starting', 'running'])
-
-    if running_user >= max_user:
-        flash(f"Vous avez déjà {running_user} calculs en cours. Veuillez attendre leur fin avant d'en lancer un nouveau.", "warning")
-        return redirect(url_for('list_executions'))
-
-    if running_global >= max_global:
-        flash("Le serveur est actuellement à pleine capacité. Veuillez réessayer dans quelques instants.", "warning")
-        return redirect(url_for('list_executions'))
-    
     # Récupérer les paramètres du formulaire actuel
     script_type = request.form.get('script_type', 'STEM').upper()
     
@@ -1177,7 +1162,7 @@ def execute_lava():
         flash('Type de script invalide (seuls STEM ou LOOP sont autorisés).', 'error')
         return redirect(url_for('index'))
         
-    output_name = request.form.get('output_name', 'lava_result')
+    output_name = secure_filename(request.form.get('output_name', 'lava_result'))
     if not output_name:
         output_name = 'lava_result'
         
@@ -1211,19 +1196,37 @@ def execute_lava():
 
     execution_id = str(uuid.uuid4())
     
-    running_executions[execution_id] = {
-        'id': execution_id,
-        'user_id': session.get('user_id'),
-        'owner_id': session.get('user_id'),
-        'lang': getattr(g, 'lang', None) or session.get('language', 'fr'),
-        'status': 'starting',
-        'input_file': session['uploaded_file'],
-        'output_name': output_name,
-        'script_type': script_type,
-        'logs': [],
-        'total_lines': 0,
-        'created_time': datetime.now()
-    }
+    # Vérification des quotas de concurrence et enregistrement initial sous verrou (atomique)
+    with executions_lock:
+        max_global = int(os.environ.get('MAX_CONCURRENT_RUNS', 5))
+        max_user = int(os.environ.get('MAX_USER_CONCURRENT_RUNS', 2))
+        current_user_id = session.get('user_id')
+
+        running_global = sum(1 for e in running_executions.values() if e.get('status') in ['starting', 'running'])
+        running_user = sum(1 for e in running_executions.values() if (e.get('owner_id') == current_user_id or e.get('user_id') == current_user_id) and e.get('status') in ['starting', 'running'])
+
+        if running_user >= max_user:
+            flash(f"Vous avez déjà {running_user} calculs en cours. Veuillez attendre leur fin avant d'en lancer un nouveau.", "warning")
+            return redirect(url_for('list_executions'))
+
+        if running_global >= max_global:
+            flash("Le serveur est actuellement à pleine capacité. Veuillez réessayer dans quelques instants.", "warning")
+            return redirect(url_for('list_executions'))
+
+        running_executions[execution_id] = {
+            'id': execution_id,
+            'user_id': session.get('user_id'),
+            'owner_id': session.get('user_id'),
+            'lang': getattr(g, 'lang', None) or session.get('language', 'fr'),
+            'status': 'starting',
+            'input_file': session['uploaded_file'],
+            'output_name': output_name,
+            'script_type': script_type,
+            'logs': [],
+            'total_lines': 0,
+            'created_time': datetime.now()
+        }
+
     
     # Lancer l'exécution en arrière-plan
     thread = threading.Thread(
