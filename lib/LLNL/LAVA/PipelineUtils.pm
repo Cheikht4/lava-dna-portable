@@ -248,7 +248,10 @@ sub buildNativeReversePool {
       $min_match_percent, $min_iupac_percent, $min_primer_coverage,
       $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen,
       $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
-      $checkPrimerMismatchTolerance_ref, $isIUPACCompatible_ref, $rev_comp_ref) = @_;
+      $checkPrimerMismatchTolerance_ref, $isIUPACCompatible_ref, $rev_comp_ref, $label) = @_;
+
+  $label //= "Reverse";
+  my $progress_label = "Validation $label";
 
   # --- 1. Construire le RC de l alignement complet ---
   # Build the RC of the full alignment
@@ -301,7 +304,7 @@ sub buildNativeReversePool {
   print "  - MaxDegen: $maxTotalDegen total / $max3PrimeDegen au 3prime\n";
 
   # Barre de progression / Progress bar (Term::ProgressBar ou fallback ASCII)
-  my $rev_progress = _make_progress_bar($nb_rev_candidates, "Reverse Validation");
+  my $rev_progress = _make_progress_bar($nb_rev_candidates, $progress_label);
 
   foreach my $primer (@candidatePrimers) {
     my $posInRC  = $primer->location();  # Position 0-indexee dans RC(Seq1)

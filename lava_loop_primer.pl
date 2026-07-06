@@ -123,7 +123,10 @@ Version améliorée de getOligos qui intègre la tolérance aux mismatches. / Im
 
 sub getOligosWithMismatchTolerance {
   my ($enumerator, $alignment, $min_match_percent, $min_iupac_percent, $min_primer_coverage,
-      $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency) = @_;
+      $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency, $label) = @_;
+  
+  $label //= "Forward";
+  my $progress_label = "Validation $label";
   
   my $sequenceCount = $alignment->num_sequences();
   if ($sequenceCount <= 0) {
@@ -157,7 +160,7 @@ sub getOligosWithMismatchTolerance {
   my $_pb_t0  = time();
   if ($_has_pb && -t STDOUT) {
     $_pb_obj = Term::ProgressBar->new({
-      name   => "Forward Validation",
+      name   => $progress_label,
       count  => $nb_fwd_candidates,
       ETA    => 'linear',
       remove => 0,
@@ -204,8 +207,8 @@ sub getOligosWithMismatchTolerance {
                       ? int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001)))
                       : 0;
             my $rate = $_pb_done / (time()-$_pb_t0+0.001);
-            printf("[LAVA-PROGRESS] Validation Forward|%d|%d|OK:%d DEG:%d REJ:%d|%.0f it/s|%d\n",
-                   $_pb_done,$nb_fwd_candidates,$strict_count,$degenerate_count,$rejected_count,$rate,$eta);
+            printf("[LAVA-PROGRESS] %s|%d|%d|OK:%d DEG:%d REJ:%d|%.0f it/s|%d\n",
+                   $progress_label,$_pb_done,$nb_fwd_candidates,$strict_count,$degenerate_count,$rejected_count,$rate,$eta);
           }
         }
       } else {
@@ -224,8 +227,8 @@ sub getOligosWithMismatchTolerance {
                       ? int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001)))
                       : 0;
             my $rate = $_pb_done / (time()-$_pb_t0+0.001);
-            printf("[LAVA-PROGRESS] Validation Forward|%d|%d|OK:%d DEG:%d REJ:%d|%.0f it/s|%d\n",
-                   $_pb_done,$nb_fwd_candidates,$strict_count,$degenerate_count,$rejected_count,$rate,$eta);
+            printf("[LAVA-PROGRESS] %s|%d|%d|OK:%d DEG:%d REJ:%d|%.0f it/s|%d\n",
+                   $progress_label,$_pb_done,$nb_fwd_candidates,$strict_count,$degenerate_count,$rejected_count,$rate,$eta);
           }
         }
       }
@@ -246,8 +249,8 @@ sub getOligosWithMismatchTolerance {
                     ? int(($nb_fwd_candidates-$_pb_done)/($_pb_done/(time()-$_pb_t0+0.001)))
                     : 0;
           my $rate = $_pb_done / (time()-$_pb_t0+0.001);
-          printf("[LAVA-PROGRESS] Validation Forward|%d|%d|OK:%d DEG:%d REJ:%d|%.0f it/s|%d\n",
-                 $_pb_done,$nb_fwd_candidates,$strict_count,$degenerate_count,$rejected_count,$rate,$eta);
+          printf("[LAVA-PROGRESS] %s|%d|%d|OK:%d DEG:%d REJ:%d|%.0f it/s|%d\n",
+                 $progress_label,$_pb_done,$nb_fwd_candidates,$strict_count,$degenerate_count,$rejected_count,$rate,$eta);
         }
       }
     }
@@ -952,7 +955,7 @@ sub getOligosWithMismatchTolerance {
   print "Enumerating outer forward primers\n";
   my @outerForwardPrimers = getOligosWithMismatchTolerance($outerEnumerator, $inputMSA,
                                                           $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
-                                                          $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency);
+                                                          $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency, "Outer Forward (F3)");
 
   print "  Generated \"" .
     scalar(@outerForwardPrimers) .
@@ -977,7 +980,7 @@ sub getOligosWithMismatchTolerance {
     $outerEnumerator, $inputMSA,
     $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
     $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
-    \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp
+    \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp, "Outer Reverse (B3)"
   );
   print "  Generated \"" . scalar(@outerReversePrimers) . "\" outer native reverse primers\n";
 
@@ -1021,7 +1024,7 @@ sub getOligosWithMismatchTolerance {
   print "Enumerating loop BACK (BLOOP) primers on plus strand\n";
     @loopBackPrimers = getOligosWithMismatchTolerance($loopEnumerator, $inputMSA,
                                                         $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
-                                                        $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency);
+                                                        $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency, "Loop Back (BLOOP)");
 
   print "  Generated \"" .
     scalar(@loopBackPrimers) .
@@ -1035,7 +1038,7 @@ sub getOligosWithMismatchTolerance {
       $loopEnumerator, $inputMSA,
       $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
       $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
-      \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp
+      \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp, "Loop Forward (FLOOP)"
     );
   print "  Generated \"" . scalar(@loopForwardPrimers) . "\" loop FORWARD (FLOOP) native primers\n";
   } else {
@@ -1067,7 +1070,7 @@ sub getOligosWithMismatchTolerance {
   print "Enumerating middle forward primers\n";
   my @middleForwardPrimers = getOligosWithMismatchTolerance($middleEnumerator, $inputMSA,
                                                            $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
-                                                           $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency);
+                                                           $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency, "Middle Forward (F2)");
 
   print "  Generated \"" .
     scalar(@middleForwardPrimers) .
@@ -1079,7 +1082,7 @@ sub getOligosWithMismatchTolerance {
     $middleEnumerator, $inputMSA,
     $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
     $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
-    \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp
+    \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp, "Middle Reverse (B2)"
   );
   print "  Generated \"" . scalar(@middleReversePrimers) . "\" middle native reverse primers\n";
 
@@ -1108,7 +1111,7 @@ sub getOligosWithMismatchTolerance {
   print "Enumerating inner forward primers\n";
   my @innerForwardPrimers = getOligosWithMismatchTolerance($innerEnumerator, $inputMSA,
                                                           $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
-                                                          $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency);
+                                                          $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency, "Inner Forward (F1c)");
 
   print "  Generated \"" .
     scalar(@innerForwardPrimers) .
@@ -1129,7 +1132,7 @@ sub getOligosWithMismatchTolerance {
     $innerEnumerator, $inputMSA,
     $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
     $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
-    \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp
+    \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp, "Inner Reverse (B1c)"
   );
   print "  Generated \"" . scalar(@innerReversePrimers) . "\" inner native reverse primers\n";
 

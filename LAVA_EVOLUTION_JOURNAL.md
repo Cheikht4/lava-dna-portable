@@ -1469,3 +1469,27 @@ L'outil LAVA étant désormais spécialisé dans le ciblage de génomes viraux h
 
 **Impact attendu** :
 Clarté immédiate pour les virologues quant à la vocation virale de l'outil et interface graphique épurée.
+
+---
+
+### [2026-07-06] Précision Granulaire du Suivi de Progression par Type d'Amorce LAMP
+
+**Date/Étape** : 2026-07-06 - Spécification détaillée des étapes de validation dans les messages de progression (Outer, Middle, Inner, Loop, Stem).
+
+**Fichiers impactés** :
+- `lib/LLNL/LAVA/PipelineUtils.pm`
+- `lava_stem_primer.pl`
+- `lava_loop_primer.pl`
+
+**Nature du changement** : [Architecture / Interface / Reporting]
+
+**Explication technique** :
+1. **Ajout d'un paramètre de label dynamique** : Modification des routines de validation `getOligosWithMismatchTolerance` (dans les scripts Perl) et `buildNativeReversePool` (dans `PipelineUtils.pm`) afin d'accepter un argument supplémentaire `$label` définissant le type d'amorce en cours de traitement.
+2. **Émission spécifique dans LAVA-PROGRESS** : Au lieu d'émettre des messages génériques en dur du type `[LAVA-PROGRESS] Validation Forward` ou `Reverse Validation`, le moteur Perl injecte désormais le nom précis et la nomenclature LAMP officielle dans le flux de progression STDOUT : `Outer Forward (F3)`, `Outer Reverse (B3)`, `Middle Forward (F2)`, `Middle Reverse (B2)`, `Inner Forward (F1c)`, `Inner Reverse (B1c)`, `Loop Back (BLOOP)`, `Loop Forward (FLOOP)`, `Stem Back (BSTEM)` et `Stem Forward (FSTEM)`.
+3. **Compatibilité transparente avec l'interface Web** : Le contrôleur Flask (`lava_flask_app.py`), qui intercepte le premier champ avant le séparateur `|` des lignes `[LAVA-PROGRESS]`, affiche automatiquement et en temps réel le libellé granulaire sur l'interface utilisateur de suivi.
+
+**Justification biologique** :
+Dans le design d'amorces LAMP enrichi ou classique sur des génomes viraux complexes, chaque catégorie d'amorce (F3/B3, F2/B2, F1c/B1c, Loops ou Stems) obéit à des contraintes thermodynamiques, des tailles et des localisations génomiques distinctes. Un échec de validation ou un temps de calcul prolongé sur une étape spécifique (par exemple les amorces Inner F1c/B1c, très longues et soumises à des structures secondaires) exige que le bioinformaticien sache instantanément quelle population d'oligonucléotides est en cours de criblage ou de rejet, sans se contenter d'une distinction binaire Forward/Reverse.
+
+**Impact attendu** :
+Une lisibilité et une transparence exceptionnelles du suivi en temps réel sur l'interface Web LAVA_Virus : le chercheur visualise précisément la progression de la validation étape par étape et par type d'amorce LAMP.
