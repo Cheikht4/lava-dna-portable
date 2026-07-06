@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-LAVA-DNA Interface Flask
+LAVA_Virus Interface Flask
 Interface web stable pour les scripts LAVA STEM et LOOP
 """
 
@@ -21,8 +21,8 @@ import re
 # Dictionnaire de traductions
 TRANSLATIONS = {
     'fr': {
-        'title': 'Interface LAVA-DNA',
-        'subtitle': 'Design de primers LAMP avec LAVA - Interface web stable',
+        'title': 'LAVA_Virus',
+        'subtitle': 'LAMP primer design',
         'upload_title': '1. Upload du fichier FASTA',
         'upload_label': 'Fichier de séquences FASTA :',
         'upload_formats': 'Formats acceptés : .fas, .fasta, .fa, .txt (1GB max)',
@@ -202,11 +202,11 @@ TRANSLATIONS = {
         'view_btn': "Voir",
         'stop_btn': "Stop",
         'results_btn': "Résultats",
-        'footer_text': 'Interface LAVA-DNA Flask - Interface stable pour le design d\'amorces LAMP'
+        'footer_text': 'LAVA_Virus Flask - LAMP primer design'
     },
     'en': {
-        'title': 'LAVA-DNA Interface',
-        'subtitle': 'LAMP primer design with LAVA - Stable web interface',
+        'title': 'LAVA_Virus',
+        'subtitle': 'LAMP primer design',
         'upload_title': '1. FASTA File Upload',
         'upload_label': 'FASTA sequence file:',
         'upload_formats': 'Accepted formats: .fas, .fasta, .fa, .txt (1GB max)',
@@ -386,7 +386,7 @@ TRANSLATIONS = {
         'view_btn': "View",
         'stop_btn': "Stop",
         'results_btn': "Results",
-        'footer_text': 'LAVA-DNA Flask Interface - Stable interface for LAMP primer design'
+        'footer_text': 'LAVA_Virus Flask - LAMP primer design'
     }
 }
 
@@ -1753,7 +1753,7 @@ def background_data_cleanup():
 threading.Thread(target=background_data_cleanup, daemon=True).start()
 
 if __name__ == '__main__':
-    print("🧬 LAVA-DNA Flask Interface")
+    print("🧬 LAVA_Virus Flask Interface")
     print("=" * 40)
     print("✅ Interface web stable pour LAVA")
     print("🔗 Accès: http://localhost:5001")

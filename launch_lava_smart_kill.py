@@ -246,7 +246,7 @@ def cleanup_and_exit():
     os._exit(0)
 
 def main():
-    print("🧬 LAVA-DNA Interface - Détection Intelligente")
+    print("🧬 LAVA_Virus Interface - Détection Intelligente")
     print("=============================================")
     print("🔒 Arrêt automatique SEULEMENT si:")
     print("   - Vraie fermeture du navigateur")

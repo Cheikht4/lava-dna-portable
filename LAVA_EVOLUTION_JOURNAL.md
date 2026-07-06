@@ -1443,3 +1443,29 @@ Dans un contexte de diagnostic hospitalier ou de veille épidémiologique en pro
 
 **Impact attendu** :
 Sécurité maximale des échanges API en environnement de production (aucune fuite technique) et stabilité mémoire garantie sur le long terme sans redémarrage de l'application web.
+
+---
+
+### [2026-07-06] Harmonisation de l'Identité Web : Renommage en LAVA_Virus et Simplification
+
+**Date/Étape** : 2026-07-06 - Mise à jour de l'identité visuelle et textuelle de l'interface graphique.
+
+**Fichiers impactés** :
+- `lava_flask_app.py`
+- `launch_lava_smart_kill.py`
+- `templates/index.html`
+- `templates/base.html`
+- `templates/login.html`
+- `templates/monitor.html`
+- `templates/executions.html`
+
+**Nature du changement** : [Architecture / Interface]
+
+**Explication technique** :
+Remplacement systématique de l'appellation "LAVA-DNA" par la marque officielle **LAVA_Virus** sur l'ensemble de l'application web (titres de pages HTML, barre de navigation, dictionnaire bilingue de traduction FR/EN et logs de démarrage). Parallèlement, le sous-titre verbeux "LAMP primer design with LAVA - Stable web interface" a été épuré pour devenir simplement **LAMP primer design**, offrant une interface web à la fois plus directe, moderne et centrée sur sa fonction algorithmique essentielle.
+
+**Justification biologique** :
+L'outil LAVA étant désormais spécialisé dans le ciblage de génomes viraux hautement variables (séquences consensus et alignements de variants), l'appellation LAVA_Virus reflète avec exactitude le domaine d'application clinique et épidémiologique de la plateforme, évitant toute confusion avec des outils généralistes de PCR sur ADN génomique hôte.
+
+**Impact attendu** :
+Clarté immédiate pour les virologues quant à la vocation virale de l'outil et interface graphique épurée.
