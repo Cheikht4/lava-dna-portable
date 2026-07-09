@@ -1516,3 +1516,26 @@ En recherche clinique et épidémiologique, la comparaison de performance des am
 
 **Impact attendu** :
 Un gain de temps considérable pour l'utilisateur qui peut désormais répliquer ou ajuster des conditions d'expérience complexes en un seul clic via l'import de ses fichiers de paramètres antérieurs.
+
+---
+
+### [2026-07-09] Audit et Durcissement de Sécurité de la Route d'Importation de Paramètres
+
+**Date/Étape** : 2026-07-09 - Audit et durcissement complet de `/upload_params_file`.
+
+**Fichiers impactés** :
+- `lava_flask_app.py`
+
+**Nature du changement** : [Architecture / Bug Fix / Sécurité]
+
+**Explication technique** :
+1. **Validation stricte par liste blanche (Priorité 1)** : Construction dynamique de l'ensemble des clés autorisées à partir de `get_default_params().keys()`. Avant toute injection dans `session['params']`, le moteur vérifie que la clé appartient à cette liste blanche ; toute clé inconnue ou malveillante est ignorée silencieusement dans les branches JSON et texte. Les valeurs `script_type` et `lamp_mode` sont rigoureusement restreintes respectivement à `['STEM', 'LOOP']` et `['classic', 'enriched']`.
+2. **Limitation de taille et protection anti-abus (Priorité 2)** : Application du rate limiter (`check_rate_limit(max_requests=15, window_seconds=60)`) en amont de la route. Vérification préalable de la taille du fichier importé sur le disque (`file.seek(0, os.SEEK_END)`) pour rejeter immédiatement tout fichier excédant 1 Mo.
+3. **Masquage des traces techniques en production (Priorité 3)** : Conditionnement du retour des exceptions : en mode `FLASK_ENV=production`, l'application ne retourne plus la trace brute (`str(e)`) au client, se contentant d'un message utilisateur sécurisé et traduit.
+4. **Filtrage des extensions et nettoyage des noms (Priorité 4)** : Mise en place d'une liste blanche d'extensions (`ALLOWED_PARAMS_EXTENSIONS = {'txt', 'json', 'params'}` et fichiers `.params.txt`) combinée à l'appel systématique à `secure_filename`.
+
+**Justification biologique** :
+Les pipelines bioinformatiques exposés sur un serveur web clinique doivent garantir l'intégrité absolue de la session d'analyse et prévenir toute injection d'attributs arbitraires ou attaque par déni de service (saturation mémoire par upload massif). Ce durcissement protège le moteur thermodynamique LAVA tout en préservant la reproductibilité des analyses de routine.
+
+**Impact attendu** :
+Une sécurité logicielle de niveau production : étanchéité totale face aux injections de paramètres illégitimes et aux surcharges serveur, sans altérer l'expérience utilisateur lors de l'import de fichiers de paramètres légitimes.

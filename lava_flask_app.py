@@ -124,6 +124,8 @@ TRANSLATIONS = {
         'file_uploaded': 'Fichier uploadé avec succès',
         'no_file_uploaded': 'Aucun fichier FASTA uploadé',
         'invalid_file': 'Type de fichier non autorisé',
+        'rate_limit_error': 'Trop de requêtes. Veuillez patienter une minute.',
+        'file_too_large': 'Le fichier de paramètres dépasse la taille maximale autorisée (1 Mo).',
         'execution_list': 'Liste des exécutions',
         'new_execution': 'Nouvelle exécution',
         'refresh': 'Actualiser',
@@ -311,6 +313,8 @@ TRANSLATIONS = {
         'file_uploaded': 'File uploaded successfully',
         'no_file_uploaded': 'No FASTA file uploaded',
         'invalid_file': 'File type not allowed',
+        'rate_limit_error': 'Too many requests. Please wait a minute.',
+        'file_too_large': 'The parameter file exceeds the maximum allowed size (1 MB).',
         'execution_list': 'Execution list',
         'new_execution': 'New execution',
         'refresh': 'Refresh',
@@ -508,6 +512,14 @@ executions_lock = threading.Lock()
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+ALLOWED_PARAMS_EXTENSIONS = {'txt', 'json', 'params'}
+
+def allowed_params_file(filename):
+    if not filename or '.' not in filename:
+        return False
+    ext = filename.rsplit('.', 1)[1].lower()
+    return ext in ALLOWED_PARAMS_EXTENSIONS or filename.lower().endswith('.params.txt')
 
 # Ensemble des paramètres flottants connus (utilisé par _convert_param_value)
 # Known float parameters set (used by _convert_param_value)
@@ -744,12 +756,31 @@ def update_params():
 @app.route('/upload_params_file', methods=['POST'])
 def upload_params_file():
     """Importe et applique des parametres depuis un fichier (.params.txt ou .json) d'un run precedent"""
+    # Priorite 2 : Rate limiting
+    if not check_rate_limit(max_requests=15, window_seconds=60):
+        return jsonify({'status': 'error', 'message': get_text('rate_limit_error')}), 429
+
     if 'params' not in session:
         session['params'] = get_default_params()
     
     file = request.files.get('params_file')
     if not file or not file.filename:
         return jsonify({'status': 'error', 'message': get_text('no_file_uploaded')}), 400
+    
+    # Priorite 4 : Validation de l'extension et nom securise
+    if not allowed_params_file(file.filename):
+        return jsonify({'status': 'error', 'message': get_text('invalid_file')}), 400
+    
+    filename = secure_filename(file.filename)
+    if not filename:
+        return jsonify({'status': 'error', 'message': get_text('invalid_file')}), 400
+
+    # Priorite 2 : Limite de taille (1 Mo max)
+    file.seek(0, os.SEEK_END)
+    file_size = file.tell()
+    file.seek(0)
+    if file_size > 1024 * 1024:
+        return jsonify({'status': 'error', 'message': get_text('file_too_large')}), 400
     
     try:
         content = file.read().decode('utf-8', errors='replace')
@@ -761,16 +792,21 @@ def upload_params_file():
         }
         reverse_mapping = {v: k for k, v in param_mapping.items()}
         
+        # Priorite 1 : Liste blanche des cles de parametres valides
+        valid_keys = set(get_default_params().keys())
+        valid_keys.update(['include_stem_primers', 'include_loop_primers', 'script_type', 'lamp_mode'])
+        
         # Test si fichier JSON
         if content.strip().startswith('{'):
             try:
                 import json
                 data = json.loads(content)
                 if isinstance(data, dict):
-                    if 'script_type' in data:
-                        session['params']['script_type'] = data['script_type']
-                    if 'lamp_mode' in data:
-                        _apply_lamp_mode(session['params'], data['lamp_mode'], session['params'].get('script_type', 'STEM'))
+                    # Priorite 1 : Validation stricte des valeurs script_type et lamp_mode
+                    if 'script_type' in data and str(data['script_type']).upper() in ['STEM', 'LOOP']:
+                        session['params']['script_type'] = str(data['script_type']).upper()
+                    if 'lamp_mode' in data and str(data['lamp_mode']).lower() in ['classic', 'enriched']:
+                        _apply_lamp_mode(session['params'], str(data['lamp_mode']).lower(), session['params'].get('script_type', 'STEM'))
                         
                     for k, v in data.items():
                         if k not in ['script_type', 'lamp_mode']:
@@ -780,8 +816,13 @@ def upload_params_file():
                             elif k not in session['params'] and k in param_mapping:
                                 py_key = param_mapping[k]
                             
-                            session['params'][py_key] = _convert_param_value(py_key, v)
+                            # Priorite 1 : Validation par liste blanche avant ecriture
+                            if py_key in valid_keys:
+                                session['params'][py_key] = _convert_param_value(py_key, v)
             except Exception as e:
+                # Priorite 3 : Ne pas exposer les traces en production
+                if os.environ.get('FLASK_ENV') == 'production':
+                    return jsonify({'status': 'error', 'message': get_text('error_import_params')}), 400
                 return jsonify({'status': 'error', 'message': f"Erreur de lecture JSON: {str(e)}"}), 400
         else:
             # Format texte LAVA (.params.txt ou ligne a ligne --param: val)
@@ -836,16 +877,21 @@ def upload_params_file():
                     if key in param_mapping:
                         py_key = param_mapping[key]
                     
-                    if py_key in ['include_stem_primers', 'include_loop_primers']:
-                        bool_val = str(val).lower() in ['1', 'true', 'yes', 'on']
-                        session['params'][py_key] = bool_val
-                    else:
-                        session['params'][py_key] = _convert_param_value(py_key, val)
+                    # Priorite 1 : Validation par liste blanche avant ecriture
+                    if py_key in valid_keys and py_key not in ['script_type', 'lamp_mode']:
+                        if py_key in ['include_stem_primers', 'include_loop_primers']:
+                            bool_val = str(val).lower() in ['1', 'true', 'yes', 'on']
+                            session['params'][py_key] = bool_val
+                        else:
+                            session['params'][py_key] = _convert_param_value(py_key, val)
         
         session.modified = True
         return jsonify({'status': 'success', 'message': get_text('params_imported'), 'params': session['params']})
         
     except Exception as e:
+        # Priorite 3 : Ne pas exposer les traces en production
+        if os.environ.get('FLASK_ENV') == 'production':
+            return jsonify({'status': 'error', 'message': get_text('error_import_params')}), 500
         return jsonify({'status': 'error', 'message': f"{get_text('error_import_params')} ({str(e)})"}), 500
 
 def translate_error_to_user_friendly(error_message, lang='fr'):
