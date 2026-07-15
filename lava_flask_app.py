@@ -544,25 +544,21 @@ def _validate_and_cap_threads(val):
     """Valide et plafonne le nombre de threads/cœurs demandé (Priorité 1 & 2).
     Validates and caps requested CPU threads to prevent DoS and core oversubscription."""
     cpu_count = os.cpu_count() or 4
-    max_global_runs = int(os.environ.get('MAX_CONCURRENT_RUNS', 5))
     
-    # Plafond administrateur au déploiement (défaut: cpu_count - 1, min 1)
+    # Plafond administrateur (par défaut: tous les cœurs sauf 1 pour le système, min 1)
     default_admin_cap = max(1, cpu_count - 1)
     try:
         admin_cap = int(os.environ.get('MAX_THREADS_PER_RUN', default_admin_cap))
     except (ValueError, TypeError):
         admin_cap = default_admin_cap
         
-    # Plafond calculé pour éviter la sur-souscription des cœurs (Priorité 2)
-    concurrency_cap = max(1, cpu_count // max(1, max_global_runs))
+    effective_cap = max(1, admin_cap)
     
-    # Plafond effectif final par exécution (le minimum entre le plafond admin et la concurrence)
-    effective_cap = max(1, min(admin_cap, concurrency_cap))
-    
-    # Validation et bornage de la valeur transmise
+    # Mode automatique : allouer par défaut le plafond raisonnable disponible
     if isinstance(val, str) and val.strip().lower() == 'auto':
         return effective_cap
         
+    # Mode entier explicite : borner entre 1 et le plafond maximal autorisé (admin_cap)
     try:
         n = int(val)
         if n <= 0:

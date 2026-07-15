@@ -1700,4 +1700,26 @@ Dans un pipeline de criblage LAMP de haute spécificité, les étapes successive
 - Mise à jour régulière et proportionnelle de la jauge à chaque retour de lot, sans saut brutal à 100%.
 - Basculement instantané du libellé et réactivation de l'animation visuelle lors du passage à l'étape suivante.
 
+---
+
+### Date/Étape : 2026-07-15 - Déverrouillage du bornage explicite des threads dans l'interface Web
+
+**Fichiers impactés** :
+- `lava_flask_app.py`
+
+**Nature du changement** : [Bug Fix / Architecture]
+
+**Explication technique** :
+- Lors de la validation des paramètres entrants (`_validate_and_cap_threads` dans `lava_flask_app.py`), le calcul du plafond effectif (`effective_cap`) appliquait une division rigide par le quota maximal d'exécutions concurrentes (`cpu_count // MAX_CONCURRENT_RUNS`). Sur une station de travail 10 cœurs (ex: MacBook Pro M1/M2/M3) avec un quota par défaut de 5 exécutions (`MAX_CONCURRENT_RUNS=5`), ce calcul imposait systématiquement un plafond maximal à 2 cœurs (`10 // 5 = 2`).
+- En conséquence, quelle que soit la valeur inscrite par l'utilisateur dans l'interface Web (`4`, `6`, `8` ou `auto`), la fonction de validation rabattait inconditionnellement le paramètre à `2` (`min(val, 2)`).
+- Ce bridage par division a été supprimé au profit d'un bornage direct et lisible par le plafond maximal de sécurité du système (`cpu_count - 1` ou la variable d'environnement `MAX_THREADS_PER_RUN`). Si un utilisateur demande explicitement 4, 6 ou 8 cœurs sur sa machine 10 cœurs, l'interface accepte et transmet exactement cette valeur au moteur Perl (`--threads 4` / `--threads 8`). Le mode `auto` s'aligne automatiquement sur la capacité maximale raisonnable (`cpu_count - 1`).
+
+**Justification biologique** :
+En recherche génomique virale, lorsqu'un bioinformaticien exécute localement une analyse lourde sur son poste de travail ou sur une grappe dédiée pour concevoir des amorces LAMP à large spectre (ex: validation sur des centaines d'alignements complets de Fièvre Jaune ou Dengue), il a besoin de mobiliser toute la puissance de calcul disponible de sa machine pour réduire le temps de criblage thermodynamique de plusieurs heures à quelques minutes. Imposer un bridage fixe à 2 cœurs par calcul empêchait l'exploitation réelle des architectures multicoq modernes et ralentissait inutilement la recherche combinatoire.
+
+**Impact attendu** :
+- Prise en compte exacte et fidèle de la valeur saisie par l'utilisateur pour le paramètre `--threads` (`4`, `6`, `8`...).
+- Attribution automatique de tous les cœurs disponibles moins un (`9` sur un système 10 cœurs) lorsque le mode `auto` est sélectionné.
+- Suppression définitive du blocage à `threads = 2`.
+
 
