@@ -506,6 +506,12 @@
                                                 value="{{ params.min_signatures_for_success }}" min="1" max="100">
                                             <div class="form-text x-small">{{ 'min_signatures_desc'|t }}</div>
                                         </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small">{{ 'threads_label'|t }}</label>
+                                            <input type="text" class="form-control form-control-sm"
+                                                name="threads" value="{{ params.threads }}" placeholder="auto">
+                                            <div class="form-text x-small">{{ 'threads_desc'|t }}</div>
+                                        </div>
                                     </div>
                                     <hr>
 

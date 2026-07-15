@@ -1590,4 +1590,29 @@ L'évaluation de la tolérance aux mésappariements sur les alignements viraux m
 **Impact attendu** :
 Accélération spectaculaire de la phase initiale de validation et de génération des amorces candidates sur l'ensemble des modes (`LOOP` et `STEM`), avec un temps de criblage divisé proportionnellement au nombre de processeurs disponibles sur l'hôte, tout en assurant une architecture logicielle centralisée et propre.
 
+---
+
+### [2026-07-15] Exposition Ergonomique de la Parallélisation Multi-Cœurs sur l'Interface Web (Flask & UI)
+
+**Date/Étape** : 2026-07-15 - Mise à jour de l'interface graphique (`lava_flask_app.py` et `templates/index.html`) pour permettre la configuration du nombre de cœurs / threads depuis le navigateur Web.
+
+**Fichiers impactés** :
+- `lava_flask_app.py` (intégration de `threads` dans les paramètres par défaut `get_default_params()`, le mapping `param_mapping`, `common_params` de la route d'exécution, et les dictionnaires de traduction FR/EN)
+- `templates/index.html` (ajout d'un champ de saisie dédié "Nombre de cœurs / Threads" dans la section Configuration d'exécution)
+
+**Nature du changement** : [Architecture / Interface / Ergonomie]
+
+**Explication technique** :
+1. **Paramétrage par défaut et mapping Flask (`lava_flask_app.py`)** : Ajout de la clé `'threads': 'auto'` dans `get_default_params()`. Le convertisseur `_convert_param_value` gère dynamiquement la saisie d'entiers (`1`, `2`, `4`, `8`...) ou de la chaîne littérale `'auto'`. Lors de la soumission d'une analyse via `/execute`, le paramètre `threads` (ou son alias `cpu`) est injecté directement dans les arguments CLI de la commande Perl (`--threads <valeur>`).
+2. **Champ de contrôle dans l'interface (`templates/index.html`)** : Création d'un champ texte réactif dans l'accordéon "Paramètres Avancés" (section *Execution Config*), permettant au bioinformaticien d'indiquer `auto` ou un nombre explicite de cœurs processeur à allouer.
+3. **Internationalisation (I18n)** : Ajout des clés `threads_label` et `threads_desc` dans les dictionnaires français et anglais du backend Flask pour une expérience utilisateur bilingue fluide.
+
+**Justification biologique** :
+Lors de l'analyse d'alignements viraux complexes, l'allocation dynamique des ressources de calcul est essentielle pour s'adapter à la fois à l'infrastructure matérielle de l'utilisateur (ordinateur portable personnel vs serveur partagé en laboratoire) et à la profondeur du criblage d'amorces LAMP. Donner le contrôle direct sur la parallélisation depuis l'interface Web évite de saturer un serveur multi-utilisateurs tout en permettant, sur machine dédiée, de débloquer la puissance maximale (`auto`) pour accélérer le design d'amorces à haute densité de variants.
+
+**Impact attendu** :
+- Contrôle complet sur l'allocation des cœurs CPU directement depuis l'interface graphique de l'application LAVA.
+- Transparence accrue lors de l'export et de l'import des fichiers de paramètres (`.params.txt` / JSON).
+- Transmission fluide et sécurisée de la configuration de concurrence vers le moteur bioinformatique Perl (`PipelineUtils.pm` et `ForkManager.pm`).
+
 

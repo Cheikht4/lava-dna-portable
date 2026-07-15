@@ -104,6 +104,8 @@ TRANSLATIONS = {
         'resolve_overlap_coverage': 'Pourcentage de Couverture (Universalité)',
         'resolve_overlap_desc': 'Critère utilisé pour garder le "champion" d\'une région ciblée par plusieurs signatures.',
         'penalty_plateau_desc': 'Ratio zone "confort" (ex: 0.25)',
+        'threads_label': 'Nombre de cœurs / Threads (--threads)',
+        'threads_desc': "Nombre de cœurs CPU alloués ('auto' ou entier ex: 4).",
         'penalty_slope_desc': 'Pente sigmoïde (ex: 0.15)',
         'min_signatures_desc': '% minimum de séquences cibles que la signature doit amplifier. Ex: 1 = tolérant, 70 = strict.',
         'spatial_reduction_title': 'Réduction spatiale des candidats',
@@ -293,6 +295,8 @@ TRANSLATIONS = {
         'resolve_overlap_coverage': 'Coverage Percentage (Universality)',
         'resolve_overlap_desc': 'Criterion used to keep the "champion" of a region targeted by multiple signatures.',
         'penalty_plateau_desc': '"Comfort zone" ratio (e.g. 0.25)',
+        'threads_label': 'CPU Cores / Threads (--threads)',
+        'threads_desc': "Number of allocated CPU cores ('auto' or integer e.g. 4).",
         'penalty_slope_desc': 'Sigmoid slope (e.g. 0.15)',
         'min_signatures_desc': 'Minimum % of target sequences the signature must amplify. E.g. 1 = tolerant, 70 = strict.',
         'spatial_reduction_title': 'Spatial Candidate Reduction',
@@ -599,6 +603,7 @@ def get_default_params():
         'max_poly_bases': 2,
         'min_signatures_for_success': 1,
         'max_overlap_percent': 0,
+        'threads': 'auto',
         # Reduction spatiale par fenetre / Spatial window reduction
         'window_size': 0,        # 0 = desactive, ex: 5 = fenetre de 5nt
         'max_per_window': 0,     # 0 = desactive, ex: 3 = 3 candidats max par fenetre
@@ -1037,7 +1042,9 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
             'primer_min_match_percent': 'primer_min_match_percent',
             'primer_iupac_min_percent': 'primer_iupac_min_percent',
             'min_primer_coverage': 'min_primer_coverage',
-            'min_base_frequency': 'min_base_frequency'
+            'min_base_frequency': 'min_base_frequency',
+            'threads': 'threads',
+            'cpu': 'threads'
         }
         
         # Paramètres valides pour les scripts Perl (pour filtrer les invalides)
@@ -1068,6 +1075,8 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
             'max_dist_outer_middle', 'max_dist_middle_inner',
             # Reduction spatiale par fenetre / Spatial window reduction
             'window_size', 'max_per_window',
+            # Parallélisation multi-cœurs / Multi-core parallelization
+            'threads',
         }
 
         # Paramètres spécifiques à LOOP
