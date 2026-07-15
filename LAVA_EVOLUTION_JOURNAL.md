@@ -1615,4 +1615,34 @@ Lors de l'analyse d'alignements viraux complexes, l'allocation dynamique des res
 - Transparence accrue lors de l'export et de l'import des fichiers de paramètres (`.params.txt` / JSON).
 - Transmission fluide et sécurisée de la configuration de concurrence vers le moteur bioinformatique Perl (`PipelineUtils.pm` et `ForkManager.pm`).
 
+---
+
+### [2026-07-15] Sécurisation et Plafonnement Strict de la Concurrence CPU (`threads` / `ForkManager`)
+
+**Date/Étape** : 2026-07-15 - Mise en place d'une défense en profondeur contre le déni de service (DoS) par sur-souscription des cœurs dans `lava_flask_app.py` et `lib/LLNL/LAVA/ForkManager.pm`.
+
+**Fichiers impactés** :
+- `lava_flask_app.py` (création de la fonction de validation et de plafonnement `_validate_and_cap_threads`, application dans `_convert_param_value` et lors de la soumission dans `/execute` et `execute_lava`, mise à jour des traductions)
+- `lib/LLNL/LAVA/ForkManager.pm` (validation numérique stricte de `max_processes`, repli sur `get_auto_cpu_count()` et instauration d'un plafond dur dans `new`)
+
+**Nature du changement** : [Architecture / Sécurité / Performance]
+
+**Explication technique** :
+1. **Plafonnement et prévention de sur-souscription côté Flask (`lava_flask_app.py`)** :
+   - Introduction d'une validation systématique `_validate_and_cap_threads(val)` qui intercepte toute valeur de `threads` ou `cpu` (depuis le formulaire Web, un fichier de paramètres ou un appel direct).
+   - Prise en compte du plafond administrateur via la variable d'environnement `MAX_THREADS_PER_RUN` (par défaut `os.cpu_count() - 1`).
+   - Calcul d'un plafond effectif de concurrence (`concurrency_cap = max(1, os.cpu_count() // MAX_CONCURRENT_RUNS)`) pour s'assurer que $N$ exécutions simultanées ne saturent pas l'hôte en forkant un nombre de processus supérieur aux cœurs disponibles. Si l'utilisateur demande `auto` ou une valeur numérique excessive (ex: `500`), elle est automatiquement ramenée et bornée au plafond effectif sécurisé. Toute chaîne non numérique (ex: `abc`) retombe sur `auto` sans erreur bloquante.
+2. **Défense en profondeur côté Perl (`LLNL::LAVA::ForkManager`)** :
+   - Dans `sub new`, vérification numérique stricte (`$max_processes !~ /^-?\d+$/`) pour éliminer la coercition de chaînes invalides qui déclenchait des avertissements Perl, repliant immédiatement sur le décompte automatique `get_auto_cpu_count()`.
+   - Application d'un plafond dur au niveau du moteur : si `max_processes` dépasse le nombre réel de cœurs disponibles sur la machine (`$auto_count`), il est automatiquement rabattu à cette limite avec émission d'un avertissement (`warn`), y compris lors des appels en ligne de commande autonomes hors interface Web.
+3. **Documentation I18n** : Mise à jour explicite des textes d'aide `threads_desc` en français et en anglais pour informer l'utilisateur du bornage automatique en situation de charge simultanée.
+
+**Justification biologique** :
+La validation thermodynamique des amorces LAMP à l'échelle d'alignements complets de génomes viraux est l'opération la plus exigeante en temps processeur et en bande passante mémoire du pipeline bioinformatique. Sans plafond d'exécution par processus, une simple erreur de paramétrage (ou une soumission malveillante) demandant 500 cœurs, couplée au quota de 5 exécutions concurrentes du serveur, provoquerait le fork instantané de 2500 processus lourds manipulant de larges objets BioPerl. Ce phénomène d'écrasement mémoire et de sur-souscription CPU entraînerait un effondrement immédiat du système (Kernel OOM Killer) et la perte des calculs en cours pour tous les scientifiques du laboratoire. Le plafonnement proportionnel assure l'isolation inter-processus et la stabilité opérationnelle continue du moteur scientifique LAVA.
+
+**Impact attendu** :
+- Protection absolue contre la surcharge processeur et l'épuisement de mémoire sur le serveur hôte.
+- Fonctionnement fluide et garanti de 5 analyses LAMP simultanées sans contention ni dégradation de performance.
+- Robustesse totale du moteur Perl autonome (`ForkManager`) face aux saisies aberrantes en ligne de commande (`--threads 500` ou `--threads abc`).
+
 

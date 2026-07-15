@@ -105,7 +105,7 @@ TRANSLATIONS = {
         'resolve_overlap_desc': 'Critère utilisé pour garder le "champion" d\'une région ciblée par plusieurs signatures.',
         'penalty_plateau_desc': 'Ratio zone "confort" (ex: 0.25)',
         'threads_label': 'Nombre de cœurs / Threads (--threads)',
-        'threads_desc': "Nombre de cœurs CPU alloués ('auto' ou entier ex: 4).",
+        'threads_desc': "Nombre de cœurs CPU alloués ('auto' ou entier ex: 4). La valeur est automatiquement bornée selon la charge et la concurrence autorisée (MAX_CONCURRENT_RUNS) pour éviter la sur-souscription.",
         'penalty_slope_desc': 'Pente sigmoïde (ex: 0.15)',
         'min_signatures_desc': '% minimum de séquences cibles que la signature doit amplifier. Ex: 1 = tolérant, 70 = strict.',
         'spatial_reduction_title': 'Réduction spatiale des candidats',
@@ -296,7 +296,7 @@ TRANSLATIONS = {
         'resolve_overlap_desc': 'Criterion used to keep the "champion" of a region targeted by multiple signatures.',
         'penalty_plateau_desc': '"Comfort zone" ratio (e.g. 0.25)',
         'threads_label': 'CPU Cores / Threads (--threads)',
-        'threads_desc': "Number of allocated CPU cores ('auto' or integer e.g. 4).",
+        'threads_desc': "Number of allocated CPU cores ('auto' or integer e.g. 4). Automatically capped based on machine limits and allowed concurrency (MAX_CONCURRENT_RUNS) to prevent oversubscription.",
         'penalty_slope_desc': 'Sigmoid slope (e.g. 0.15)',
         'min_signatures_desc': 'Minimum % of target sequences the signature must amplify. E.g. 1 = tolerant, 70 = strict.',
         'spatial_reduction_title': 'Spatial Candidate Reduction',
@@ -540,9 +540,42 @@ FLOAT_PARAMS = {
     'min_primer_coverage', 'max_overlap_percent'
 }
 
+def _validate_and_cap_threads(val):
+    """Valide et plafonne le nombre de threads/cœurs demandé (Priorité 1 & 2).
+    Validates and caps requested CPU threads to prevent DoS and core oversubscription."""
+    cpu_count = os.cpu_count() or 4
+    max_global_runs = int(os.environ.get('MAX_CONCURRENT_RUNS', 5))
+    
+    # Plafond administrateur au déploiement (défaut: cpu_count - 1, min 1)
+    default_admin_cap = max(1, cpu_count - 1)
+    try:
+        admin_cap = int(os.environ.get('MAX_THREADS_PER_RUN', default_admin_cap))
+    except (ValueError, TypeError):
+        admin_cap = default_admin_cap
+        
+    # Plafond calculé pour éviter la sur-souscription des cœurs (Priorité 2)
+    concurrency_cap = max(1, cpu_count // max(1, max_global_runs))
+    
+    # Plafond effectif final par exécution (le minimum entre le plafond admin et la concurrence)
+    effective_cap = max(1, min(admin_cap, concurrency_cap))
+    
+    # Validation et bornage de la valeur transmise
+    if isinstance(val, str) and val.strip().lower() == 'auto':
+        return effective_cap
+        
+    try:
+        n = int(val)
+        if n <= 0:
+            return effective_cap
+        return max(1, min(n, effective_cap))
+    except (ValueError, TypeError):
+        return effective_cap
+
 def _convert_param_value(key, value):
     """Convertit une valeur de paramètre au bon type (float, int ou str).
     Converts a parameter value to the correct type (float, int, or str)."""
+    if key in ('threads', 'cpu'):
+        return _validate_and_cap_threads(value)
     is_float = (key in FLOAT_PARAMS or 
                 any(hint in key for hint in ('tm', 'percent', 'coverage', 'conc', 
                                               'salt', 'frequency', 'slope', 
@@ -1113,6 +1146,8 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
                 
                 # Seulement ajouter si c'est un paramètre valide pour Perl
                 if perl_param_name in valid_perl_params:
+                    if perl_param_name in ('threads', 'cpu'):
+                        param_value = _validate_and_cap_threads(param_value)
                     cmd.extend([f"--{perl_param_name}", str(param_value)])
                 else:
                     print(f"⚠️  Paramètre ignoré (non supporté par Perl): {param_name} -> {perl_param_name}")
@@ -1361,6 +1396,10 @@ def execute_lava():
             else:
                 session['params'][key] = _convert_param_value(key, value)
     
+    # Priorité 1 & 2 : Re-valider et borner systématiquement threads avant exécution
+    if 'threads' in session['params']:
+        session['params']['threads'] = _validate_and_cap_threads(session['params']['threads'])
+    session.modified = True
 
     execution_id = str(uuid.uuid4())
     

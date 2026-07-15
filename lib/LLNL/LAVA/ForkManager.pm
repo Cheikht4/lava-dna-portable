@@ -36,9 +36,24 @@ use Storable qw(nstore retrieve);
 sub new {
     my ($class, $max_processes, $temp_dir) = @_;
     
-    # Validation et gestion du mode automatique
-    if (!defined $max_processes || $max_processes =~ /^auto$/i || $max_processes <= 0) {
-        $max_processes = get_auto_cpu_count();
+    my $auto_count = get_auto_cpu_count();
+    $auto_count = 1 if $auto_count < 1;
+    
+    # Validation et gestion du mode automatique ou cas non numerique ('abc')
+    if (!defined $max_processes || $max_processes =~ /^auto$/i || $max_processes !~ /^-?\d+$/) {
+        $max_processes = $auto_count;
+    } else {
+        $max_processes = int($max_processes);
+    }
+    
+    if ($max_processes <= 0) {
+        $max_processes = $auto_count;
+    }
+    
+    # Plafond dur (defense en profondeur) : ne jamais forker plus que le nombre de coeurs disponibles (auto_count)
+    if ($max_processes > $auto_count) {
+        warn "[ForkManager] Plafond de processus depasse ($max_processes > $auto_count). Ajustement au maximum raisonnable : $auto_count.\n";
+        $max_processes = $auto_count;
     }
     $max_processes = 1 if $max_processes < 1;
     
