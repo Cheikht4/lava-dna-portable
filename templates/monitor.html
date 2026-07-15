@@ -432,11 +432,13 @@ function refreshStatus() {
                 bar.setAttribute('aria-valuenow', pct);
                 bar.textContent = pct + '%';
 
-                // Stopper l'animation quand terminé
+                // Stopper l'animation quand terminé, ou la réactiver pour une nouvelle étape
                 if (pct >= 100) {
                     bar.classList.remove('progress-bar-animated');
                     document.getElementById('progress-label').innerHTML =
                         `<i class="fas fa-check-circle me-2 text-success"></i>${p.label} - ${i18n.progress_done}`;
+                } else {
+                    bar.classList.add('progress-bar-animated');
                 }
 
                 // Extra (OK/DEG/REJ) et ETA

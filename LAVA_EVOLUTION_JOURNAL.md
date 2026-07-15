@@ -1672,4 +1672,32 @@ Lors du design d'amorces LAMP sur des génomes viraux complets ou très polymorp
 - Fin définitive de la latence visuelle et du chargement instantané à 100% en fin d'exécution.
 - Fluidité de suivi garantie à la fois en exécution monocoq (`threads=1`) et en parallélisation intensive multicoq.
 
+---
+
+### Date/Étape : 2026-07-15 - Suppression du bridage modulo 200 et émission continue des transitions d'étapes
+
+**Fichiers impactés** :
+- `lib/LLNL/LAVA/PipelineUtils.pm`
+- `templates/monitor.html`
+
+**Nature du changement** : [Bug Fix / Architecture]
+
+**Explication technique** :
+1. **Suppression du bridage de fréquence (`return if $done % 200 != 0`) dans `_update_progress`** :
+   - Historiquement, la fonction `_update_progress` s'interrompait silencieusement si l'avancement incrémental `$done` n'était pas un multiple strict de 200 ou n'égalait pas `$total`. Sous la gestion multi-processus (`ForkManager`), les processus enfants restituent des lots dont la taille (`$chunk_size`) n'est pratiquement jamais un multiple exact de 200 (ex: 314, 628, 942...). En conséquence, la condition `return if ...` bloquait 99% des émissions `[LAVA-PROGRESS]` vers l'application Flask, laissant la barre invisible ou figée à 0% jusqu'à l'achèvement du tout dernier lot ($done == $total) où elle bondissait à 100%.
+   - Ce filtre par modulo a été intégralement supprimé : chaque retour d'un lot d'exécution émet désormais immédiatement la ligne de statut dans le flux standard, permettant une progression visuelle fluide de 0% à 100%.
+2. **Émission d'initialisation de transition (`_make_progress_bar`)** :
+   - Lors du basculement d'une étape du pipeline à la suivante (ex: passage de `Outer Forward F3` à `Outer Reverse B3`), la création de la nouvelle instance de barre de progression (`_make_progress_bar`) n'émettait aucune ligne `[LAVA-PROGRESS] $label|0|$total`. L'interface Web conservait alors le libellé et le statut 100% de l'étape précédente pendant toute la durée de la nouvelle étape.
+   - Un appel explicite `printf("[LAVA-PROGRESS] %s|0|%d||? it/s|0\n", $label, $total)` a été ajouté dès l'instanciation de la barre, forçant la carte de monitoring à basculer instantanément sur le titre de la nouvelle étape et à réinitialiser la progression à 0%.
+3. **Ré-animation graphique (`monitor.html`)** :
+   - Dans l'interface de surveillance, lorsqu'une étape atteignait 100%, la classe CSS `progress-bar-animated` était retirée définitivement. Un branchement `else` (`pct < 100`) a été ajouté pour réinsérer dynamiquement cette classe à l'arrivée d'une nouvelle étape de calcul.
+
+**Justification biologique** :
+Dans un pipeline de criblage LAMP de haute spécificité, les étapes successives (validation des amorces F3, puis B3, puis F2/F1c/B2/B1c, et enfin la combinatoire des tiges et boucles) ont des durées intrinsèquement hétérogènes. Si le scientifique ne perçoit pas la transition exacte entre le filtrage de la région 5' (Forward) et de la région 3' (Reverse), il ne peut pas diagnostiquer quelle population oligonucléotidique subit le taux d'attrition ou de rejet thermodynamique le plus sévère. La transparence continue du suivi est indispensable pour ajuster les fenêtres de tolérance d'hybridation et d'entropie d'alignement.
+
+**Impact attendu** :
+- Affichage immédiat de la barre dès 0% à l'amorçage de chaque étape de criblage (F3, B3, F2, B2, etc.).
+- Mise à jour régulière et proportionnelle de la jauge à chaque retour de lot, sans saut brutal à 100%.
+- Basculement instantané du libellé et réactivation de l'animation visuelle lors du passage à l'étape suivante.
+
 

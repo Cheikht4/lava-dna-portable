@@ -81,6 +81,11 @@ our $HAS_TERM_PROGRESSBAR = eval { require Term::ProgressBar; Term::ProgressBar-
 sub _make_progress_bar {
   my ($total, $label) = @_;
   $label //= "Traitement";
+  my $t0 = time();
+
+  # Émission immédiate de la ligne LAVA-PROGRESS à 0% dès le lancement de l'étape pour informer Flask
+  printf("[LAVA-PROGRESS] %s|0|%d||? it/s|0\n", $label, $total // 1);
+  my $old_handle = select(STDOUT); $| = 1; select($old_handle);
 
   if ($HAS_TERM_PROGRESSBAR && -t STDOUT) {
     # Mode riche : Term::ProgressBar avec ETA / Rich mode: Term::ProgressBar with ETA
@@ -92,10 +97,9 @@ sub _make_progress_bar {
       fh     => \*STDERR,
     });
     $bar->minor(0);
-    return { type => 'term', bar => $bar, total => $total, done => 0 };
+    return { type => 'term', bar => $bar, total => $total, done => 0, label => $label, t0 => $t0 };
   } else {
     # Mode fallback : barre ASCII maison / Fallback mode: built-in ASCII bar
-    my $t0 = time();
     return {
       type   => 'ascii',
       total  => $total,
@@ -116,30 +120,15 @@ sub _make_progress_bar {
 sub _update_progress {
   my ($bar_r, $done, $extra_r) = @_;
   $bar_r->{done} = $done;
-  my $total = $bar_r->{total};
+  my $total = $bar_r->{total} // 1;
 
-  if ($bar_r->{type} eq 'term') {
+  if ($bar_r->{type} eq 'term' && defined $bar_r->{bar}) {
     $bar_r->{bar}->update($done);
-    return;
   }
 
-  # Fallback ASCII : afficher toutes les 200 iterations ou a 100%
-  # Fallback ASCII: print every 200 iterations or at 100%
-  return if ($done % 200 != 0 && $done != $total);
-
+  # Nous ne filtrons plus les mises à jour par modulo 200 afin de ne pas masquer le suivi en temps réel sous Flask
   my $now     = time();
-  my $elapsed = $now - $bar_r->{t0} + 0.001;
-  my $pct     = $total > 0 ? int($done / $total * 100) : 0;
-  my $filled  = int($pct / 5);   # 20 segments
-  my $empty   = 20 - $filled;
-  my $bar_str = "#" x $filled . "-" x $empty;
-
-  my $eta_str = "";
-  if ($done > 0 && $done < $total) {
-    my $rate    = $done / $elapsed;
-    my $remain  = ($total - $done) / $rate;
-    $eta_str = sprintf(" ETA:%ds", int($remain));
-  }
+  my $elapsed = $now - ($bar_r->{t0} // $now) + 0.001;
 
   my $extra_str = "";
   if ($extra_r) {
@@ -150,8 +139,6 @@ sub _update_progress {
     $extra_str = " | " . join(" ", @parts) if @parts;
   }
 
-  # Emission vers STDOUT pour Flask (toujours, pas seulement en TTY)
-  # Emit to STDOUT for Flask (always, not only in TTY)
   my $rate_str = ($done > 0 && $elapsed > 0) ? sprintf('%.0f it/s', $done / $elapsed) : '? it/s';
   my $eta_val  = ($done > 0 && $done < $total && $elapsed > 0)
                  ? int(($total - $done) / ($done / $elapsed)) : 0;
