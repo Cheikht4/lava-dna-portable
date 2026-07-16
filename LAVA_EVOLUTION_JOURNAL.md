@@ -1769,4 +1769,26 @@ En présence de gènes viraux fortement mutés (ex: gènes d'enveloppe de la Den
 - Maintien d'une vitesse de validation inférieure à la milliseconde par amorce, y compris sur les cas limites (`n_cand > 20`).
 - Sélection des combinaisons IUPAC offrant le meilleur compromis couverture / stabilité thermodynamique grâce à l'exploration prioritaire Best-First.
 
+---
+
+### Date/Étape : 2026-07-16 - Correction de la contrainte de positions consécutives dans la recherche combinatoire de Validator.pm
+
+**Fichiers impactés** :
+- `lib/LLNL/LAVA/Validator.pm`
+- `t/30_testValidator.t`
+
+**Nature du changement** : [Bug Fix / Algorithmique / Thermodynamique]
+
+**Explication technique** :
+- **Indépendance vis-à-vis de l'ordre de tri des gains** : La vérification de la contrainte des positions consécutives (`max_consec_degen`) supposait auparavant que le tableau du sous-ensemble courant (`$current_combo_ref`) était ordonné par indice de position croissante. Depuis l'introduction du tri par gain de couverture (Étape 1), ce tableau est ordonné par gain décroissant (ex: `[7, 5, 6]`). L'ancienne vérification échouait à détecter les suites adjacentes insérées dans le désordre.
+- **Réécriture par tri et décompte exact** : Avant d'accepter l'ajout d'une position candidate dans le sous-ensemble combinatoire en cours d'exploration, l'algorithme extrait l'ensemble de toutes les positions (`@all_pos = map { $_->{pos} } @$current_combo_ref + $item->{pos}`), les trie par ordre strictement croissant (`sort { $a <=> $b }`), puis calcule la longueur de la plus longue séquence contiguë (`$all_pos[$j] == $all_pos[$j-1] + 1`). Si cette suite dépasse `max_consec_degen`, l'ajout est immédiatement rejeté (`next`).
+- **Enrichissement des tests unitaires** : Ajout de la Section 4 dans `t/30_testValidator.t` comportant 4 tests unitaires de régression sur des jeux de données synthétiques, dont le scénario d'ordre inverse `[7, 5, 6]` et la validation de suites non adjacentes (`[5, 7, 9]`).
+
+**Justification biologique** :
+La formation de dégénérescences (codes IUPAC comme R, Y, W) sur plus de 2 à 3 nucléotides adjacents (ex: `NNN` ou `RRR`) fragilise fortement la stabilité de l'hybridation thermostable requise par la polymérase à 65°C lors d'une réaction LAMP. Ces bulles d'instabilité favorisent les amorces dimères ou des hybridations aspécifiques. Garantir que la limite `max_consec_degen` (généralement configurée à 2 ou 3) est strictement respectée sur l'amorce finale, quel que soit l'ordre dans lequel l'algorithme a découvert et combiné les variants viraux les plus impactants, assure que les amorces conservent une cinétique d'hybridation fiable et spécifique.
+
+**Impact attendu** :
+- Respect rigoureux et garanti du paramètre `max_consec_degen` (ou `--max_consec_degen`) sur toutes les combinaisons d'amorces générées.
+- Élimination définitive des faux positifs où des séries de bases dégénérées consécutives s'infiltraient à cause de l'ordre de tri par gain.
+
 

@@ -36,7 +36,7 @@ sub ok {
 }
 
 # Nombre total de tests déclarés / Total declared tests
-BEGIN { print "1..34\n"; }
+BEGIN { print "1..38\n"; }
 
 # ─────────────────────────────────────────────────────────
 # SECTION 1 : isIUPACCompatible
@@ -136,6 +136,86 @@ my ($seq2, $cov2, $degen2, $ids2) = checkPrimerMismatchTolerance(
 );
 my $seq2_included = grep { $_ == 2 } @$ids2;
 ok(!$seq2_included, "checkPrimerMismatchTolerance: 3' mismatch is rejected even with tolerance 2");
+
+# ─────────────────────────────────────────────────────────
+# SECTION 4 : Vérification des dégénérescences consécutives
+# Order-independent consecutive degeneracy checking
+# ─────────────────────────────────────────────────────────
+
+# Scénario 1 : positions 5, 6, 7 candidates avec gains [7, 5, 6]
+# 100 séquences synthétiques sur amorce AAAAAAAAAAAAAAAAAAAA (20 bp)
+my $base_primer = "AAAAAAAAAAAAAAAAAAAA";
+my @consec_seqs = ($base_primer);
+# 50 séquences parfaites
+for (1..50) { push @consec_seqs, $base_primer; }
+# 30 séquences avec C en pos 7 (gain 30%)
+for (1..30) { 
+    my $s = $base_primer; substr($s, 7, 1) = 'C'; push @consec_seqs, $s; 
+}
+# 15 séquences avec G en pos 5 (gain 15%)
+for (1..15) { 
+    my $s = $base_primer; substr($s, 5, 1) = 'G'; push @consec_seqs, $s; 
+}
+# 5 séquences avec T en pos 6 (gain 5%)
+for (1..5) { 
+    my $s = $base_primer; substr($s, 6, 1) = 'T'; push @consec_seqs, $s; 
+}
+
+# 1) Test avec max_consec_degen = 2 : ne doit PAS contenir 5, 6 et 7 à la fois
+my ($c_seq1, $c_cov1, $c_deg1, $c_ids1) = checkPrimerMismatchTolerance(
+    \@consec_seqs, 0, 20, $base_primer,
+    100, 10, 95,
+    5, 2, 5, 0, 4, 0.01
+);
+my $has_pos5 = (substr($c_seq1, 5, 1) ne 'A') ? 1 : 0;
+my $has_pos6 = (substr($c_seq1, 6, 1) ne 'A') ? 1 : 0;
+my $has_pos7 = (substr($c_seq1, 7, 1) ne 'A') ? 1 : 0;
+ok(!($has_pos5 && $has_pos6 && $has_pos7), 'checkPrimerMismatchTolerance: consecutive limit=2 rejects run of 3 (pos 5,6,7 sorted as 7,5,6)');
+
+# 2) Test avec max_consec_degen = 2 sur positions 5, 6 : doit être accepté (2 consécutives autorisées)
+my @consec_seqs2 = ($base_primer);
+for (1..60) { push @consec_seqs2, $base_primer; }
+for (1..25) { my $s = $base_primer; substr($s, 5, 1) = 'G'; push @consec_seqs2, $s; }
+for (1..15) { my $s = $base_primer; substr($s, 6, 1) = 'T'; push @consec_seqs2, $s; }
+
+my ($c_seq2, $c_cov2, $c_deg2, $c_ids2) = checkPrimerMismatchTolerance(
+    \@consec_seqs2, 0, 20, $base_primer,
+    100, 10, 95,
+    5, 2, 5, 0, 4, 0.01
+);
+my $has2_pos5 = (substr($c_seq2, 5, 1) ne 'A') ? 1 : 0;
+my $has2_pos6 = (substr($c_seq2, 6, 1) ne 'A') ? 1 : 0;
+ok($has2_pos5 && $has2_pos6, 'checkPrimerMismatchTolerance: consecutive limit=2 allows run of 2 (pos 5,6)');
+
+# 3) Test avec max_consec_degen = 2 sur positions non adjacentes 5, 7, 9 : doit être accepté
+my @consec_seqs3 = ($base_primer);
+for (1..55) { push @consec_seqs3, $base_primer; }
+for (1..20) { my $s = $base_primer; substr($s, 5, 1) = 'G'; push @consec_seqs3, $s; }
+for (1..15) { my $s = $base_primer; substr($s, 7, 1) = 'C'; push @consec_seqs3, $s; }
+for (1..10) { my $s = $base_primer; substr($s, 9, 1) = 'T'; push @consec_seqs3, $s; }
+
+my ($c_seq3, $c_cov3, $c_deg3, $c_ids3) = checkPrimerMismatchTolerance(
+    \@consec_seqs3, 0, 20, $base_primer,
+    100, 10, 95,
+    5, 2, 5, 0, 4, 0.01
+);
+my $has3_pos5 = (substr($c_seq3, 5, 1) ne 'A') ? 1 : 0;
+my $has3_pos7 = (substr($c_seq3, 7, 1) ne 'A') ? 1 : 0;
+my $has3_pos9 = (substr($c_seq3, 9, 1) ne 'A') ? 1 : 0;
+ok($has3_pos5 && $has3_pos7 && $has3_pos9, 'checkPrimerMismatchTolerance: consecutive limit=2 allows non-adjacent positions (pos 5,7,9)');
+
+# 4) Test de conformité absolue : vérification que la plus longue série consécutive dans c_seq1 ne dépasse pas max_consec_degen
+my $max_run_seen = 0;
+my $curr_run = 0;
+for my $i (0 .. length($c_seq1) - 1) {
+    if (substr($c_seq1, $i, 1) ne substr($base_primer, $i, 1)) {
+        $curr_run++;
+        $max_run_seen = $curr_run if $curr_run > $max_run_seen;
+    } else {
+        $curr_run = 0;
+    }
+}
+ok($max_run_seen <= 2, 'checkPrimerMismatchTolerance: produced primer strictly satisfies max_consec_degen=2');
 
 print "\n# Résultat : $passCount/$testCount tests passés\n";
 print "# Result  : $passCount/$testCount tests passed\n";

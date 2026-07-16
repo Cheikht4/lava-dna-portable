@@ -395,20 +395,23 @@ sub checkPrimerMismatchTolerance {
                   # Vérification limite 3' / Check 3' limit
                   next if $new_count_3p > $max_3p_degen;
                   
-                  # Vérification limite positions consécutives / Check consecutive limit
+                  # Vérification limite positions consécutives (indépendante de l'ordre de tri) / Check consecutive limit (order-independent)
                   if (@$current_combo_ref > 0) {
-                      my $last_pos = $current_combo_ref->[-1]->{pos};
-                      if ($item->{pos} == $last_pos + 1) {
-                          my $consec_len = 2;
-                          for (my $j = scalar(@$current_combo_ref) - 2; $j >= 0; $j--) {
-                              if ($current_combo_ref->[$j]->{pos} == $current_combo_ref->[$j+1]->{pos} - 1) {
-                                  $consec_len++;
-                              } else {
-                                  last;
-                              }
+                      my @all_pos = map { $_->{pos} } @$current_combo_ref;
+                      push @all_pos, $item->{pos};
+                      @all_pos = sort { $a <=> $b } @all_pos;
+                      
+                      my $max_consec = 1;
+                      my $curr_consec = 1;
+                      for (my $j = 1; $j < scalar(@all_pos); $j++) {
+                          if ($all_pos[$j] == $all_pos[$j-1] + 1) {
+                              $curr_consec++;
+                              $max_consec = $curr_consec if $curr_consec > $max_consec;
+                          } else {
+                              $curr_consec = 1;
                           }
-                          next if $consec_len > $max_consec_degen;
                       }
+                      next if $max_consec > $max_consec_degen;
                   }
                   
                   push @$current_combo_ref, $item;
