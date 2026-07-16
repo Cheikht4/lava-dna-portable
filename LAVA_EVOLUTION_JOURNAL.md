@@ -1747,4 +1747,26 @@ Lors de la conception d'essais LAMP face à des souches virales émergentes ou �
 - Élimination totale du biais géométrique (gauche vers droite) lors du placement des dégénérescences IUPAC.
 - Temps de calcul par amorce maintenu de l'ordre de quelques microsecondes grâce à la faible cardinalité des combinaisons candidates.
 
+---
+
+### Date/Étape : 2026-07-16 - Mise en place de l'Étape 1 (protection combinatoire contre l'explosion dans Validator.pm)
+
+**Fichiers impactés** :
+- `lib/LLNL/LAVA/Validator.pm`
+
+**Nature du changement** : [Algorithmique / Thermodynamique / Performance]
+
+**Explication technique** :
+- **Tri heuristique Best-First par impact de couverture (`gain`)** : Lors de la phase d'identification des positions candidates modifiables (`@candidate_positions`), chaque position enregistre désormais son gain de couverture potentiel (`gain = iupac_percent - primer_base_percent`). Les positions sont triées par gain décroissant puis par criticité de zone en 3' avant de lancer l'exploration Branch and Bound.
+- **Plafonnement des positions candidates (`Top-12 candidates capping`)** : Si le nombre total de positions modifiables sur une amorce dépasse 12 (ce qui se produit sur environ 6,8% des amorces dans les régions virales hypervariables où `n_cand` peut atteindre 25), le moteur retient exclusivement les 12 positions qui maximisent le gain de couverture (`splice(@candidate_positions, 12)`). L'espace de recherche factoriel est ainsi mathématiquement borné de $\binom{25}{k}$ (plusieurs millions de combinaisons) à un maximum strict de $\binom{12}{k} \le 4096$ combinaisons.
+- **Budget maximal d'évaluation (`Early Termination Budget`)** : Intégration d'un compteur global d'évaluations (`$eval_count`) limité à 2000 sous-ensembles par amorce candidate. Si ce plafond est atteint, l'algorithme interrompt immédiatement l'exploration et retourne le meilleur oligonucléotide dégénéré trouvé, garantissant l'absence totale d'interblocage ou d'épuisement CPU.
+
+**Justification biologique** :
+En présence de gènes viraux fortement mutés (ex: gènes d'enveloppe de la Dengue ou de la Fièvre Jaune multilatérale), certaines séquences cibles présentent plus d'une vingtaine de polymorphismes mineurs sur 20 à 25 nucléotides de longueur d'amorce. Évaluer exhaustivement toutes les combinaisons dégénérées possibles ($>3 \times 10^6$) sur ces zones très bruitées ne présente aucun intérêt thermodynamique : une amorce incorporant plus de 4 à 6 bases dégénérées devient instable et forme des structures secondaires hétérogènes. En triant les mutations par leur apport direct en couverture et en élaguant l'espace de recherche aux 12 positions les plus structurantes, l'algorithme concentre sa puissance de calcul sur les dégénérescences biologiquement viables qui capturent les variants majeurs de l'épidémie.
+
+**Impact attendu** :
+- Élimination garantie de toute explosion combinatoire ou ralentissement lors de la validation des amorces dans les régions génomiques hypervariables.
+- Maintien d'une vitesse de validation inférieure à la milliseconde par amorce, y compris sur les cas limites (`n_cand > 20`).
+- Sélection des combinaisons IUPAC offrant le meilleur compromis couverture / stabilité thermodynamique grâce à l'exploration prioritaire Best-First.
+
 

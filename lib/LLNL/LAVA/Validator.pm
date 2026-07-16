@@ -328,22 +328,37 @@ sub checkPrimerMismatchTolerance {
                       push @candidate_positions, {
                           pos   => $pos_offset,
                           code  => $iupac_code,
-                          is_3p => $is_3p
+                          is_3p => $is_3p,
+                          gain  => ($iupac_percent - $primer_base_percent)
                       };
                   }
               }
           }
       }
 
-      # 2. Énumération combinatoire des sous-ensembles par profondeur / Combinatorial subset enumeration
+      # 2. Énumération combinatoire des sous-ensembles avec protection anti-explosion (Étape 1)
+      # 2. Combinatorial subset enumeration with anti-explosion protection (Step 1)
       my $n_cand = scalar(@candidate_positions);
       if ($n_cand > 0) {
+          # ÉTAPE 1 : Tri par gain de couverture décroissant et plafonnement aux Top-12 positions les plus impactantes
+          # STEP 1: Sort by decreasing coverage gain and cap to Top-12 most impactful candidate positions
+          @candidate_positions = sort { $b->{gain} <=> $a->{gain} || $a->{is_3p} <=> $b->{is_3p} } @candidate_positions;
+          if ($n_cand > 12) {
+              splice(@candidate_positions, 12);
+              $n_cand = 12;
+          }
+
+          my $eval_count = 0;
+          my $max_evaluations = 2000;
           my $recurse;
           $recurse = sub {
               my ($idx, $current_combo_ref, $count_3p) = @_;
               
+              return if $eval_count >= $max_evaluations;
+              
               # Évaluer si le sous-ensemble courant contient au moins une modification
               if (@$current_combo_ref > 0) {
+                  $eval_count++;
                   my $test_primer = $candidate_primer_uc;
                   for my $item (@$current_combo_ref) {
                       substr($test_primer, $item->{pos}, 1) = $item->{code};
@@ -373,6 +388,7 @@ sub checkPrimerMismatchTolerance {
               return if scalar(@$current_combo_ref) >= $max_total_degen;
               
               for my $i ($idx .. $n_cand - 1) {
+                  return if $eval_count >= $max_evaluations;
                   my $item = $candidate_positions[$i];
                   my $new_count_3p = $count_3p + $item->{is_3p};
                   
