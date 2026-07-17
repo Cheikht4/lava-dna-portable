@@ -199,11 +199,11 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "penalty_plateau=f" => \$options{"penalty_plateau"},
       "penalty_slope=f" => \$options{"penalty_slope"},
 
-      # --- NOUVEAUX PARAMÈTRES DE TOLÉRANCE AUX MISMATCHES ---
+      # --- NOUVEAUX PARAMÈTRES DE TOLÉRANCE AUX MISMATCHES (AVEC ALIAS HARMONISÉS) ---
       "primer_min_match_percent=f" => \$options{"primer_min_match_percent"},
-      "primer_iupac_min_percent=f" => \$options{"primer_iupac_min_percent"},
-      "min_primer_coverage=f" => \$options{"min_primer_coverage"},
-      # --------------------------------------------------------
+      "primer_min_iupac_percent|primer_iupac_min_percent=f" => \$options{"primer_min_iupac_percent"},
+      "primer_min_coverage_percent|min_primer_coverage=f" => \$options{"primer_min_coverage_percent"},
+      # ---------------------------------------------------------------------------------
 
       # TODO: Not sure if the pair target lengths should be exposed to the 
       # user, or adjusted based on other parameters
@@ -253,7 +253,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "max_dist_middle_inner" => 30,
       # --- PARAMETRES DE TOLERANCE AUX MISMATCHES ---
       "primer_min_match_percent" => 80,
+      "primer_min_iupac_percent" => 98,
       "primer_iupac_min_percent" => 98,
+      "primer_min_coverage_percent" => 80,
       "min_primer_coverage" => 80,
       # -----------------------------------------
       "dntp_conc" => 1.4,
@@ -686,13 +688,18 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $alignmentFormat = optionWithDefault($options_r, "alignment_format",
     $optionDefaults{"alignment_format"});
 
-  # --- RÉCUPÉRATION DES PARAMÈTRES DE TOLÉRANCE AUX MISMATCHES ---
+  # --- RÉCUPÉRATION DES PARAMÈTRES DE TOLÉRANCE AUX MISMATCHES (AVEC ALIAS HARMONISÉS) ---
+  $options_r->{"primer_min_iupac_percent"} //= $options_r->{"primer_iupac_min_percent"};
+  $options_r->{"primer_iupac_min_percent"} //= $options_r->{"primer_min_iupac_percent"};
+  $options_r->{"primer_min_coverage_percent"} //= $options_r->{"min_primer_coverage"};
+  $options_r->{"min_primer_coverage"} //= $options_r->{"primer_min_coverage_percent"};
+
   my $primerMinMatchPercent = optionWithDefault($options_r, "primer_min_match_percent",
     $optionDefaults{"primer_min_match_percent"});
-  my $primerIupacMinPercent = optionWithDefault($options_r, "primer_iupac_min_percent", 
-    $optionDefaults{"primer_iupac_min_percent"});
-  my $minPrimerCoverage = optionWithDefault($options_r, "min_primer_coverage", 
-    $optionDefaults{"min_primer_coverage"});
+  my $primerIupacMinPercent = optionWithDefault($options_r, "primer_min_iupac_percent", 
+    $optionDefaults{"primer_min_iupac_percent"});
+  my $minPrimerCoverage = optionWithDefault($options_r, "primer_min_coverage_percent", 
+    $optionDefaults{"primer_min_coverage_percent"});
   
   print "Configuration tolérance mismatches:\n";
   print "  - Match strict minimum: ${primerMinMatchPercent}%\n";

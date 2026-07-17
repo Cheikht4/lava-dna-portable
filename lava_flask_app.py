@@ -827,6 +827,8 @@ def upload_params_file():
             'minimum_primer_coverage': 'min_primer_coverage', 
             'minimum_signature_coverage': 'min_signature_coverage',
             'mismatch_tolerance': 'primer_min_match_percent',
+            'primer_min_iupac_percent': 'primer_iupac_min_percent',
+            'primer_min_coverage_percent': 'min_primer_coverage',
         }
         reverse_mapping = {v: k for k, v in param_mapping.items()}
         
@@ -1070,6 +1072,8 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
             'minimum_primer_coverage': 'min_primer_coverage', 
             'minimum_signature_coverage': 'min_signature_coverage',
             'mismatch_tolerance': 'primer_min_match_percent',
+            'primer_min_iupac_percent': 'primer_iupac_min_percent',
+            'primer_min_coverage_percent': 'min_primer_coverage',
             'signature_max_length': 'signature_max_length',
             'max_primer_gen': 'max_primer_gen',
             'primer_min_match_percent': 'primer_min_match_percent',
@@ -1084,7 +1088,7 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
         # Paramètres communs (utilisés par LOOP et STEM)
         common_params = {
             'signature_max_length', 'max_primer_gen', 'primer_min_match_percent',
-            'primer_iupac_min_percent', 'min_primer_coverage', 'min_base_frequency',
+            'primer_iupac_min_percent', 'primer_min_iupac_percent', 'min_primer_coverage', 'primer_min_coverage_percent', 'min_base_frequency',
             'min_signatures_for_success', 'max_overlap_percent', 'resolve_overlap_by',
             'primer3_executable', 'thermodynamic_path', 'alignment_format',
             'dntp_conc', 'dna_conc', 'salt_monovalent', 'salt_divalent',
