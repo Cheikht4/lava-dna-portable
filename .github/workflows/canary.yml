@@ -1,0 +1,30 @@
+name: LAVA Canary Regression Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  canary-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y primer3 bioperl libxml-libxml-perl
+
+      - name: Verify primer3_core is in PATH
+        run: which primer3_core || echo "primer3_core not found in PATH"
+
+      - name: Run Canary Regression Test
+        run: |
+          export PERL5LIB=$GITHUB_WORKSPACE/lib
+          prove -v t/canary_regression.t
