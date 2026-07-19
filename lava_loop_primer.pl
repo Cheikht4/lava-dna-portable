@@ -1377,14 +1377,22 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   next if (abs($innerTm - $loopTm) > $maxTmDiff);
               }
               
-              # Distance Check
-              next if ($innerLocation - ($loopLocation + $loopLength) < $minPrimerSpacing);
-              
-              # 3.2 Calculate Search Bounds for Middle Primer (F2)
+              # 3.2 Calculate Search Bounds for Middle Primer (F2) (Structure: F3-F2-LF-F1c)
               my $middleStartAt = $searchStartAt;
-              my $middleEndAt = $loopLocation - 1 - $minPrimerSpacing;
+              my $middleEndAt = $loopLocation - $loopLength - $minPrimerSpacing;
               
-              my $innerToLoopDistance = $innerLocation - ($loopLocation + $loopLength);
+              # Ensure Middle isn't too close to Inner (respecting loop gap or standard gap)
+              # [restauré depuis a6098f5 : le refactor 55328b2 avait supprime cette contrainte]
+              if ($includeLoopPrimers) {
+                  my $altMiddleEndAt = $innerLocation - ($loopMinGap + 1);
+                  $middleEndAt = $altMiddleEndAt if ($altMiddleEndAt < $middleEndAt);
+              } else {
+                  my $altMiddleEndAt = $innerLocation - $minPrimerSpacing;
+                  $middleEndAt = $altMiddleEndAt if ($altMiddleEndAt < $middleEndAt);
+              }
+              $middleEndAt = 0 if $middleEndAt < 0;
+              
+              my $innerToLoopDistance = $innerLocation - ($loopLocation + 1);
               
               my $middleCount = scalar(@{$masterMiddleF_r});
               for(my $j = 0; $j < $middleCount; $j++)
@@ -1396,8 +1404,11 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   next if ($middleLocation < $middleStartAt);
                   last if ($middleLocation > $middleEndAt);
                   
-                  # Distance Check
-                  next if ($loopLocation - ($middleLocation + $middleLength) < $minPrimerSpacing);
+                  # Validity Checks [restauré depuis a6098f5]
+                  if ($includeLoopPrimers) {
+                      next if ($middleLocation + $middleLength + $minPrimerSpacing > $loopLocation - $loopLength + 1);
+                      next if ($middleLocation + $middleLength + $loopMinGap > $innerLocation);
+                  }
 
                   # --- DYNAMIC THERMAL FILTER (Neighbor Check) ---
                   if ($includeLoopPrimers) {
@@ -1610,16 +1621,19 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   next if (abs($innerTm - $loopTm) > $maxTmDiff);
               }
               
-              next if ($loopLocation - ($innerLocation + $innerLength) < $minPrimerSpacing);
-              
               # 4.2 Calculate Search Bounds for Middle Primer (Reverse)
               my $middleStartAt = $loopLocation + $loopLength + $minPrimerSpacing;
-              if (!$includeLoopPrimers) {
-                   $middleStartAt = $innerLocation + $innerLength + $minPrimerSpacing;
+              # [restauré depuis a6098f5 : contrainte loopMinGap/inner supprimee par 55328b2]
+              if ($includeLoopPrimers) {
+                  my $altMiddleStartAt = $innerLocation + ($loopMinGap + 1);
+                  $middleStartAt = $altMiddleStartAt if ($altMiddleStartAt > $middleStartAt);
+              } else {
+                  my $altMiddleStartAt = $innerLocation + $minPrimerSpacing;
+                  $middleStartAt = $altMiddleStartAt if ($altMiddleStartAt > $middleStartAt);
               }
               my $middleEndAt = $searchEndAt;
               
-              my $innerToLoopDistance = $loopLocation - ($innerLocation + $innerLength);
+              my $innerToLoopDistance = $loopLocation - ($innerLocation + 1);
               
               my $middleCount = scalar(@{$masterMiddleR_r});
               for(my $j = 0; $j < $middleCount; $j++)
@@ -1631,9 +1645,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   last if ($middleLocation > $middleEndAt);
                   
                   if ($includeLoopPrimers) {
-                      next if ($middleLocation - ($loopLocation + $loopLength) < $minPrimerSpacing);
-                  } else {
-                      next if ($middleLocation - ($innerLocation + $innerLength) < $minPrimerSpacing);
+                       next if ($middleLocation - $middleLength - $minPrimerSpacing < $loopLocation + $loopLength - 1);
+                       next if ($middleLocation - $middleLength - $loopMinGap < $innerLocation);
                   }
 
                   if ($includeLoopPrimers) {
@@ -1642,11 +1655,11 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                       next if (abs($innerTm - $midTm) > $maxTmDiff);
                   }
 
-                  # 4.3 Calculate Search Bounds for Outer Primer (Reverse)
-                  my $outerStartAt = $middleLocation + $middleLength + $minPrimerSpacing;
+                  # 4.3 Calculate Search Bounds for Outer Primer (B3)
+                  my $outerStartAt = $middleLocation + 1 + $minPrimerSpacing;
                   my $outerEndAt = $searchEndAt;
                   
-                  my $loopToMiddleDistance = $middleLocation - ($loopLocation + $loopLength);
+                  my $loopToMiddleDistance = ($middleLocation - $middleLength + 1) - ($loopLocation + $loopLength);
                   
                   my $outerCount = scalar(@{$masterOuterR_r});
                   for(my $k = 0; $k < $outerCount; $k++)
@@ -1657,12 +1670,12 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                       next if ($outerLocation < $outerStartAt);
                       last if ($outerLocation > $outerEndAt);
                       
-                      next if ($outerLocation - ($middleLocation + $middleLength) < $minPrimerSpacing);
+                      next if ($outerLocation - $outerLength + 1 - $minPrimerSpacing <= $middleLocation);
                       
                       next if (abs($midTm - $outTm) > $maxTmDiff);
                       
-                      my $middleToOuterDistance = $outerLocation - ($middleLocation + $middleLength);
-                      my $innerToMiddleDistance = $middleLocation - ($innerLocation + $innerLength);
+                      my $middleToOuterDistance = ($outerLocation - $outerLength) - $middleLocation;
+                      my $innerToMiddleDistance = ($middleLocation - $middleLength) - $innerLocation;
                       
                       my $spacingPenalty = 0;
                       my $primer3Penalty = 0;
