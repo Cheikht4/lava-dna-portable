@@ -235,7 +235,8 @@ sub checkPrimerMismatchTolerance {
   # Fonction helper d'évaluation d'un candidat sur les cibles (Phase 4 intégrée)
   # Helper function to evaluate a candidate primer against targets (Integrated Phase 4)
   my $evaluate_candidate = sub {
-    my ($test_primer_seq) = @_;
+    my ($test_primer_seq, $tolerance) = @_;
+    $tolerance = 0 unless defined $tolerance;  # defaut = correspondance EXACTE (0 mismatch)
     my @compatible_seqs = ();
     
     for my $target (@target_regions) {
@@ -255,7 +256,7 @@ sub checkPrimerMismatchTolerance {
           } else {
             # Mismatch hors zone 3' : Toléré jusqu'à max_tolerated_mismatch / Mismatch outside 3' zone: Tolerated up to max_tolerated_mismatch
             $mismatch_count++;
-            if ($mismatch_count > $max_tolerated_mismatch) {
+            if ($mismatch_count > $tolerance) {
               $is_fully_compatible = 0;
               last;
             }
@@ -427,14 +428,17 @@ sub checkPrimerMismatchTolerance {
 
   $optimized_primer = $best_primer;
   $has_modifications = ($best_mod_count > 0) ? 1 : 0;
-  my @final_compatible_sequences = @$best_compatible_seqs;
-  my $final_coverage_percent = $best_coverage_percent;
+
+  # Validation finale : la tolerance aux mismatchs n'intervient qu'ICI, contre min_primer_coverage.
+  # Final validation: mismatch tolerance applies ONLY here, against min_primer_coverage.
+  my $tolerant_seqs_r = $evaluate_candidate->($optimized_primer, $max_tolerated_mismatch);
+  my $final_coverage_percent = (scalar(@$tolerant_seqs_r) / $total_regions) * 100;
 
   if ($final_coverage_percent < $min_primer_coverage) {
     return ("", $final_coverage_percent, 0, []);
   }
-  
-  return ($optimized_primer, $final_coverage_percent, $has_modifications, \@final_compatible_sequences);
+
+  return ($optimized_primer, $final_coverage_percent, $has_modifications, $tolerant_seqs_r);
 }
 
 
