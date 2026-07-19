@@ -1359,8 +1359,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               $innerLength + 20;
             if($searchStartAt < 0) { $searchStartAt = 0; }
 
-            my $stemStartAt = $innerLocation + $innerLength + $minPrimerSpacing;
-            my $stemEndAt   = $innerLocation + $innerLength + int($innerPairTargetLength / 2);
+            my $stemStartAt = $innerLocation + $innerLength + $minPrimerSpacing + $stemPrimerMaxLength;
+            my $stemEndAt   = $innerLocation + $innerLength + $minPrimerSpacing + (2 * $stemPrimerMaxLength);
             if($stemEndAt < $stemStartAt) { $stemEndAt = $stemStartAt + 50; }
             if($stemEndAt < 0) { $stemEndAt = 0; }
 
@@ -1598,10 +1598,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
             my $searchStartAt = $innerLocation + $innerLength +
               $minPrimerSpacing;
 
-            my $stemStartAt = $innerLocation - int($innerPairTargetLength / 2);
+            my $stemStartAt = $innerLocation - $minPrimerSpacing - (2 * $stemPrimerMaxLength);
+            my $stemEndAt   = $innerLocation - $minPrimerSpacing - $stemPrimerMaxLength;
             if($stemStartAt < 0) { $stemStartAt = 0; }
-            my $stemEndAt = $innerLocation - $minPrimerSpacing;
-            if($stemEndAt < 0) { $stemEndAt = 0; }
+            if($stemStartAt > $stemEndAt) { $stemStartAt = ($stemEndAt > 50) ? $stemEndAt - 50 : 0; }  # fallback
 
             my $curr_stemSubset_r = $stemReverseSubset_r;
             my $curr_stemSubsetData_r = $stemReverseSubsetData_r;
