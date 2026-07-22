@@ -173,6 +173,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "include_loop_primers=i" => \$options{"include_loop_primers"},
       "loop_min_gap=i" => \$options{"loop_min_gap"},
       "min_signatures_for_success=i" => \$options{"min_signatures_for_success"},
+      "signature_common_target_min_percent=f" => \$options{"signature_common_target_min_percent"},
       "min_primer_spacing=i" => \$options{"min_primer_spacing"},
       "min_inner_pair_spacing=i" => \$options{"min_inner_pair_spacing"},
       "max_overlap_percent=f" => \$options{"max_overlap_percent"},
@@ -238,6 +239,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "include_loop_primers" => 1,
       "loop_min_gap" => 25,
       "min_signatures_for_success" => 1, # Should probably never go lower
+      "signature_common_target_min_percent" => 70,
       "min_primer_spacing" => 1,
       "min_inner_pair_spacing" => 1,
       # Some LAMP-specific approximate targets for a "minimum sized" signature
@@ -370,6 +372,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 	">]\n" .
       "    [--min_signatures_for_success <length, default=" .
         $optionDefaults{"min_signatures_for_success"} .
+  ">]\n" .
+      "    [--signature_common_target_min_percent <float, default=" .
+        $optionDefaults{"signature_common_target_min_percent"} .
   ">]\n" .
     "    [--max_overlap_percent <length, default=" .
       $optionDefaults{"max_overlap_percent"} .
@@ -597,8 +602,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     optionWithDefault($options_r, "loop_min_gap", 
       $optionDefaults{"loop_min_gap"});
   my $signatureCommonTargetMinPercent =
-    optionWithDefault($options_r, "min_signatures_for_success",
-      $optionDefaults{"min_signatures_for_success"});
+    optionWithDefault($options_r, "signature_common_target_min_percent",
+      $optionDefaults{"signature_common_target_min_percent"});
   my $maxSigOverlapPercent = 
     optionWithDefault($options_r, "max_overlap_percent",
       $optionDefaults{"max_overlap_percent"});
@@ -1024,7 +1029,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     $loopBackPrimerMeasurements_r =
     analyzeAll(\@loopBackPrimers, $loopPrimerAnalyzer);
   } else {
-    print "Analyse de / Analysis ofs loop primers ignorée\n";
+    print "Analyse / Analysis of loop primers ignorée\n";
   }
 
   print "Analyzing middle forward primers\n";
@@ -1483,10 +1488,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                       
                       # Save if best
                       if ($currentSetPenalty < $bestSetPenalty) {
+                          $chunk_hits++ unless exists $chunk_infos{$innerIndex};
                           $chunk_infos{$innerIndex} = [$loopInfo, $middleInfo, $outerInfo];
                           $chunk_penalties{$innerIndex} = [$spacingPenalty, $primer3Penalty, $detailStr];
                           $bestSetPenalty = $currentSetPenalty;
-                          $chunk_hits++ unless exists $chunk_infos{$innerIndex};
                       }
                   } # End Outer
               } # End Middle
@@ -1724,10 +1729,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                       my $currentSetPenalty = $spacingPenalty + $primer3Penalty;
                       
                       if ($currentSetPenalty < $bestSetPenalty) {
+                          $chunk_hits++ unless exists $chunk_infos{$innerIndex};
                           $chunk_infos{$innerIndex} = [$loopInfo, $middleInfo, $outerInfo];
                           $chunk_penalties{$innerIndex} = [$spacingPenalty, $primer3Penalty, $detailStr];
                           $bestSetPenalty = $currentSetPenalty;
-                          $chunk_hits++ unless exists $chunk_infos{$innerIndex};
                       }
                   } # End Outer
               } # End Middle
@@ -2061,7 +2066,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   # Analyser les combinaisons de signatures (SUR LES SIGNATURES RÉDUITES ET VALIDÉES)
   if (scalar(@possibleSignatures) > 0) {
     my $num_signatures = scalar(@possibleSignatures);
-    print "\n🔍 Analyse de / Analysis ofs combinaisons sur les $num_signatures signatures finales après réduction...\n";
+    print "\n🔍 Analyse / Analysis of combinaisons sur les $num_signatures signatures finales après réduction...\n";
     
     # Vérifier d'abord si une signature atteint déjà 100% de couverture / First check if a signature already reaches 100% coverage
     my $has_perfect_signature = 0;
@@ -2126,7 +2131,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       }
       
       close($comb_fh);
-      print "Analyse de / Analysis ofs combinaisons sauvegardée dans: $combinations_file\n\n";
+      print "Analyse / Analysis of combinaisons sauvegardée dans: $combinations_file\n\n";
     }
   }
 

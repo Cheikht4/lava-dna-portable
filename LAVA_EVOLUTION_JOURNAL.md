@@ -1845,3 +1845,25 @@ Dans les chaînes de traitement bioinformatiques à haut débit de type LAVA, la
 - Tolérance zéro pour les régressions : 100 % de rétrocompatibilité assurée avec tous les fichiers de paramètres historiques et les anciens scripts d'automatisation.
 
 
+### [2026-07-22] Préparation Release v1.0 : Corrections critiques et cosmétiques
+
+**Fichiers impactés** : `lava_stem_primer.pl`, `lava_loop_primer.pl`, `lib/LLNL/LAVA/PipelineUtils.pm`
+**Nature du changement** : [Bug Fix / Architecture / Reporting]
+
+**Explication technique** :
+1. **Seuil de couverture des Signatures (FIX 1)** :
+   - Dans `lava_stem_primer.pl`, suppression du repli inopportun de `signature_common_target_min_percent` sur `min_signatures_for_success`.
+   - Dans `lava_loop_primer.pl`, intégration complète de l'option `signature_common_target_min_percent` (GetOptions, %optionDefaults, aide) pour dissocier le pourcentage de couverture (70% par défaut) du compte brut de signatures.
+2. **Compteur de combinaisons Reverse (FIX 2)** :
+   - Déplacement de l'incrémentation `$chunk_hits++` avant l'assignation de `%chunk_infos` dans les processus enfants Forward et Reverse (fichiers STEM et LOOP) pour éviter que le test `exists` ne bloque le compteur à 0. L'agrégation produit désormais le nombre correct de combinaisons trouvées.
+3. **Nettoyage Typographique (FIX 3)** :
+   - Correction globale de la faute de frappe ("Analyse de / Analysis ofs" remplacé par "Analyse / Analysis of").
+   - Nettoyage du message de réduction dans `PipelineUtils.pm` (suppression du "ha" parasite).
+
+**Justification biologique** :
+Un outil de diagnostic se doit d'être irréprochable sur ses filtres d'inclusion. L'utilisation par erreur de "1" (compte) comme seuil de pourcentage (1%) au lieu de 70% laissait passer des signatures ne couvrant quasiment aucun variant, ruinant l'objectif d'universalité. En corrigeant ce découplage, LAVA garantit que les signatures candidates (LOOP et STEM) couvrent bien par défaut au minimum 70% de l'alignement viral avant d'être optimisées. De plus, la correction des compteurs et des logs consolide la qualité de l'interface et la confiance de l'utilisateur final.
+
+**Impact attendu** :
+- Les signatures à trop faible couverture (<70%) sont désormais rejetées drastiquement (sauf paramétrage explicite de l'utilisateur).
+- Les compteurs "[Stem Rev] N combinaisons" affichent le nombre réel de combinaisons trouvées.
+- Validation des 7/7 tests de non-régression "canary" pour la sortie officielle de la v1.0.

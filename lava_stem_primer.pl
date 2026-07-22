@@ -615,8 +615,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     optionWithDefault($options_r, "max_tm_diff", 5.0);
   my $signatureCommonTargetMinPercent =
     optionWithDefault($options_r, "signature_common_target_min_percent",
-      optionWithDefault($options_r, "min_signatures_for_success",
-        $optionDefaults{"signature_common_target_min_percent"}));
+      $optionDefaults{"signature_common_target_min_percent"});
   # Lit signature_common_target_min_percent si fourni, sinon se replie sur min_signatures_for_success envoyé par l'IHM Flask
   # Reads signature_common_target_min_percent if provided, otherwise falls back to min_signatures_for_success sent by the Flask GUI
   my $maxSigOverlapPercent = 
@@ -1019,7 +1018,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     $stemBackPrimerMeasurements_r =
       analyzeAll(\@stemBackPrimers, $stemPrimerAnalyzer);
   } else {
-    print "Analyse de / Analysis ofs STEM primers ignorée\n";
+    print "Analyse / Analysis of STEM primers ignorée\n";
   }
 
   print "Analyzing middle forward primers\n";
@@ -1522,10 +1521,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   my $forwardSetPenalty = $spacingPenalty + $primer3Penalty;
                   if($forwardSetPenalty < $bestSetPenalty)
                   {
+                    $chunk_hits++ unless exists $chunk_infos{$innerIndex};
                     $chunk_infos{$innerIndex} = [$stemInfo, $middleInfo, $outerInfo];
                     $chunk_penalties{$innerIndex} = [$spacingPenalty, $primer3Penalty, $detailStr];
                     $bestSetPenalty = $forwardSetPenalty;
-                    $chunk_hits++ unless exists $chunk_infos{$innerIndex};
                   }
                 } # End forward outer iteration
               } # End forward middle iteration
@@ -1768,10 +1767,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   my $reverseSetPenalty = $spacingPenalty + $primer3Penalty;
                   if($reverseSetPenalty < $bestSetPenalty)
                   {
+                    $chunk_hits++ unless exists $chunk_infos{$innerIndex};
                     $chunk_infos{$innerIndex} = [$stemInfo, $middleInfo, $outerInfo];
                     $chunk_penalties{$innerIndex} = [$spacingPenalty, $primer3Penalty, $detailStr];
                     $bestSetPenalty = $reverseSetPenalty;
-                    $chunk_hits++ unless exists $chunk_infos{$innerIndex};
                   }
                 } # End reverse outer iteration
               } # End reverse middle iteration
@@ -2147,7 +2146,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   # Analyser les combinaisons de signatures (SUR LES SIGNATURES RÉDUITES ET VALIDÉES)
   if (scalar(@possibleSignatures) > 0) {
     my $num_signatures = scalar(@possibleSignatures);
-    print "\n🔍 Analyse de / Analysis ofs combinaisons sur les $num_signatures signatures finales après réduction...\n";
+    print "\n🔍 Analyse / Analysis of combinaisons sur les $num_signatures signatures finales après réduction...\n";
     
     # Vérifier d'abord si une signature atteint déjà 100% de couverture / First check if a signature already reaches 100% coverage
     my $has_perfect_signature = 0;
@@ -2212,7 +2211,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       }
       
       close($comb_fh);
-      print "Analyse de / Analysis ofs combinaisons sauvegardée dans: $combinations_file\n\n";
+      print "Analyse / Analysis of combinaisons sauvegardée dans: $combinations_file\n\n";
     }
   }
 

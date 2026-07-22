@@ -979,7 +979,7 @@ sub reduceSignaturesByOverlap
   }
 
   my $signatureCount= scalar(@{$signatures_r});
-  print " Reducing signatures ha $signatureCount->";
+  print " Reducing signatures ( $signatureCount->";
   
   # Short-cut if we're at 100% overlap
   if($maxOverlapPercent == 100)
