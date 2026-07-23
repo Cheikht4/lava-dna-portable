@@ -254,7 +254,38 @@ sub getOligosWithMismatchTolerance {
     push @sequences, $seqContent;
   }
   
-  my @candidatePrimers = $enumerator->getOligos($alignment);
+  # LAVA 2026: Fractionnement physique pour éviter le bug d'INCLUDED_REGION ignoré par Primer3
+  my $original_included_region = $enumerator->{"d_primer3Targets"}->{"INCLUDED_REGION"};
+  my $slice_offset = 0;
+  my $targetAlignment = $alignment;
+  
+  if ($original_included_region) {
+    my ($start, $len) = split(/,/, $original_included_region);
+    my $slice_start_1based = $start + 1;
+    my $slice_end_1based   = $start + $len;
+    my $alignmentLength    = $alignment->length();
+    
+    if ($slice_end_1based > $alignmentLength) { $slice_end_1based = $alignmentLength; }
+    
+    $targetAlignment = $alignment->slice($slice_start_1based, $slice_end_1based);
+    $slice_offset = $start;
+    
+    print "  [$label] Fractionnement physique de l'alignement : $slice_start_1based à $slice_end_1based\n";
+    delete $enumerator->{"d_primer3Targets"}->{"INCLUDED_REGION"};
+  }
+
+  my @candidatePrimers = $enumerator->getOligos($targetAlignment);
+  
+  if ($original_included_region) {
+    $enumerator->{"d_primer3Targets"}->{"INCLUDED_REGION"} = $original_included_region;
+  }
+  
+  if ($slice_offset > 0) {
+      foreach my $primer (@candidatePrimers) {
+          my $local_loc = $primer->location();
+          $primer->location($local_loc + $slice_offset);
+      }
+  }
   my @validatedPrimers = ();
   my $strict_count = 0;
   my $degenerate_count = 0;
@@ -439,28 +470,51 @@ sub buildNativeReversePool {
   # --- 3. Lancer Primer3 sur le RC de l alignement ---
   # Run Primer3 on the RC alignment (generates native minus-strand primers)
   
-  # LAVA 2026: Si une fenetre géométrique (INCLUDED_REGION) est définie pour le brin PLUS,
-  # on doit inverser ses coordonnées pour qu'elle s'applique correctement au RC MSA
+  # LAVA 2026: Au lieu de faire confiance au paramètre INCLUDED_REGION (qui est ignoré
+  # silencieusement par Primer3 v2.6 pour les amorces internes pick_hyb_probe_only),
+  # on fractionne (slice) physiquement l'alignement RC, comme suggéré !
+  
   my $original_included_region = $enumerator->{"d_primer3Targets"}->{"INCLUDED_REGION"};
+  my $rc_slice_offset = 0;
+  my $targetAlignment = $rcAlignment;
+  
   if ($original_included_region) {
     my ($start, $len) = split(/,/, $original_included_region);
     # BioPerl/Primer3 utilise des coordonnées 0-based.
-    # start = index 0-based.
     # Ex: alignment = 11039 bases. start = 4128, len = 1201.
     # Fin de la region sur brin plus = start + len = 4128 + 1201 = 5329.
     # Nouveau start sur RC = alignmentLength - fin = 11039 - 5329 = 5710.
     my $rc_start = $alignmentLength - ($start + $len);
     if ($rc_start < 0) { $rc_start = 0; }
     
-    $enumerator->{"d_primer3Targets"}->{"INCLUDED_REGION"} = "$rc_start,$len";
-    print "  [NativeReverse] RC INCLUDED_REGION ajustée : $rc_start,$len\n";
+    # Bio::SimpleAlign->slice est 1-based et inclusif
+    my $slice_start_1based = $rc_start + 1;
+    my $slice_end_1based   = $rc_start + $len;
+    if ($slice_end_1based > $alignmentLength) { $slice_end_1based = $alignmentLength; }
+    
+    # FRACTIONNEMENT PHYSIQUE !
+    $targetAlignment = $rcAlignment->slice($slice_start_1based, $slice_end_1based);
+    $rc_slice_offset = $rc_start;
+    
+    print "  [NativeReverse] Fractionnement physique de l'alignement RC : $slice_start_1based à $slice_end_1based\n";
+    
+    # On supprime temporairement INCLUDED_REGION pour ne pas embrouiller Primer3
+    delete $enumerator->{"d_primer3Targets"}->{"INCLUDED_REGION"};
   }
 
-  my @candidatePrimers = $enumerator->getOligos($rcAlignment);
+  my @candidatePrimers = $enumerator->getOligos($targetAlignment);
   
-  # Restaurer l'original pour ne pas corrompre l'énumérateur
+  # Restaurer INCLUDED_REGION
   if ($original_included_region) {
     $enumerator->{"d_primer3Targets"}->{"INCLUDED_REGION"} = $original_included_region;
+  }
+  
+  # AJUSTER LES COORDONNÉES DES CANDIDATS (car elles sont relatives au sous-alignement)
+  if ($rc_slice_offset > 0) {
+      foreach my $primer (@candidatePrimers) {
+          my $local_loc = $primer->location();
+          $primer->location($local_loc + $rc_slice_offset);
+      }
   }
   print "  [NativeReverse] Primer3 a genere / generated " . scalar(@candidatePrimers) . " candidats sur RC MSA\n";
 
@@ -2192,12 +2246,15 @@ sub injectFixedPrimers {
     $fixed_oligo->setTag("compatible_sequence_ids", $compatible_seq_ids);
     $fixed_oligo->setTag("original_sequence",      $primer_seq);
 
-    # Tags specifiques aux amorces fixees
     # Tags specific to fixed primers
     $fixed_oligo->setTag("is_fixed",               1);
     $fixed_oligo->setTag("fixed_type",             $primer_type);
     $fixed_oligo->setTag("coverage_forced",        $coverage_forced);
     $fixed_oligo->setTag("fixed_original_seq",     $primer_seq);
+    
+    # LAVA 2026: Eviter les crashs dans analyzeAll
+    $fixed_oligo->setTag("primer3_penalty",        0);
+    $fixed_oligo->setTag("primer3_tm",             0);
 
     printf("[FIXED PRIMER] Amorce injectee : TYPE=%s POS=%d STRAND=%s SEQ=%s COUV=%.1f%% FORCE=%d\n",
            $primer_type, $position, $strand, $final_sequence, $coverage_percent, $coverage_forced);
