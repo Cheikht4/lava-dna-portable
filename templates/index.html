@@ -591,15 +591,20 @@
                         <div class="form-text">{{ 'files_will_be_named'|t }}</div>
                     </div>
 
-                    <!-- Fixed Primers -->
-                    <div class="mb-3">
-                        <label for="fixed_primers" class="form-label fw-bold"><i class="fas fa-anchor me-2"></i>{{ 'fixed_primers'|t|default('Amorces Fixées (Fixed Primers)') }}</label>
-                        <textarea class="form-control font-monospace" name="fixed_primers" rows="3" placeholder="TYPE:SEQUENCE ou TYPE:SEQUENCE:POSITION (ex: F2:ACGTACGT... ou B3:GCTAGC...:450)
-Un par ligne / One per line"></textarea>
-                        <div class="form-text">
-                            Optionnel. Force LAVA à intégrer des amorces validées expérimentalement (Branche & Bound IUPAC appliqué).<br>
-                            Types valides : F3 B3 F2 B2 F1C B1C FLOOP BLOOP FSTEM BSTEM.
+                    <!-- Fixed Primers (Dynamic Rows) -->
+                    <div class="mb-4 p-3 border rounded bg-light">
+                        <label class="form-label fw-bold text-primary"><i class="fas fa-anchor me-2"></i>{{ 'fixed_primers'|t|default('Amorces Fixées (Optionnel)') }}</label>
+                        <div class="form-text mb-3">
+                            Force LAVA à utiliser des amorces validées expérimentalement comme point d'ancrage. Le moteur ajoutera des bases dégénérées si nécessaire (Branch & Bound).
                         </div>
+                        
+                        <div id="fixed_primers_list">
+                            <!-- Les lignes dynamiques s'ajouteront ici -->
+                        </div>
+                        
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addFixedPrimerRow()">
+                            <i class="fas fa-plus me-1"></i> Ajouter une amorce fixée
+                        </button>
                     </div>
 
                     <button type="submit" class="btn btn-warning btn-lg">
@@ -784,6 +789,40 @@ Un par ligne / One per line"></textarea>
             console.error(err);
             alert('Erreur lors de l\'envoi du fichier de paramètres');
         });
+    }
+
+    function addFixedPrimerRow() {
+        const container = document.getElementById('fixed_primers_list');
+        const row = document.createElement('div');
+        row.className = 'row mb-2 fixed-primer-row align-items-center';
+        row.innerHTML = `
+            <div class="col-md-3">
+                <select class="form-select fp-type" name="fp_type[]">
+                    <option value="F3">F3</option>
+                    <option value="B3">B3</option>
+                    <option value="F2">F2</option>
+                    <option value="B2">B2</option>
+                    <option value="F1C">F1C</option>
+                    <option value="B1C">B1C</option>
+                    <option value="FLOOP">FLOOP</option>
+                    <option value="BLOOP">BLOOP</option>
+                    <option value="FSTEM">FSTEM</option>
+                    <option value="BSTEM">BSTEM</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <input type="text" class="form-control fp-seq" name="fp_seq[]" placeholder="Séquence (ex: ACGT...)" required>
+            </div>
+            <div class="col-md-3">
+                <input type="number" class="form-control fp-pos" name="fp_pos[]" placeholder="Position (opt.)" min="0">
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-outline-danger btn-sm w-100" onclick="this.closest('.fixed-primer-row').remove()">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(row);
     }
 </script>
 {% endblock %}

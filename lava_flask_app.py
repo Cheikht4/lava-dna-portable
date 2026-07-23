@@ -1410,9 +1410,28 @@ def execute_lava():
         _apply_lamp_mode(session['params'], request.form['lamp_mode'], script_type)
     elif 'lamp_mode' not in session['params']:
         session['params']['lamp_mode'] = 'classic'
+        
+    # --- Traitement des amorces fixees (tableaux dynamiques) ---
+    fp_types = request.form.getlist('fp_type[]')
+    fp_seqs = request.form.getlist('fp_seq[]')
+    fp_poss = request.form.getlist('fp_pos[]')
+    
+    fp_list = []
+    # Parcourir et construire la chaine multiline (une par ligne)
+    for i in range(len(fp_types)):
+        if i < len(fp_seqs) and fp_seqs[i].strip():
+            fp_str = f"{fp_types[i]}:{fp_seqs[i].strip()}"
+            if i < len(fp_poss) and fp_poss[i].strip():
+                fp_str += f":{fp_poss[i].strip()}"
+            fp_list.append(fp_str)
+            
+    if fp_list:
+        session['params']['fixed_primers'] = "\n".join(fp_list)
+    elif 'fixed_primers' in session['params']:
+        del session['params']['fixed_primers']
     
     for key, value in request.form.items():
-        if key not in ['script_type', 'lamp_mode', 'output_name']:
+        if key not in ['script_type', 'lamp_mode', 'output_name', 'fp_type[]', 'fp_seq[]', 'fp_pos[]']:
             if key in ['include_stem_primers', 'include_loop_primers']:
                 session['params'][key] = value == 'on'
             else:
