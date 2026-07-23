@@ -2164,6 +2164,37 @@ sub injectFixedPrimers {
 
   return \%result unless defined $fixed_specs_ref && @{$fixed_specs_ref};
 
+  # LAVA 2026: Fonction de calcul Tm robuste via oligotm
+  my $calc_tm = sub {
+      my ($seq, $type) = @_;
+      my %IUPAC = (
+          'A' => ['A'], 'C' => ['C'], 'G' => ['G'], 'T' => ['T'], 'U' => ['T'],
+          'M' => ['A','C'], 'R' => ['A','G'], 'W' => ['A','T'],
+          'S' => ['C','G'], 'Y' => ['C','T'], 'K' => ['G','T'],
+          'V' => ['A','C','G'], 'H' => ['A','C','T'], 'D' => ['A','G','T'], 'B' => ['C','G','T'],
+          'N' => ['A','C','G','T']
+      );
+      my @seqs = ('');
+      for my $char (split //, uc($seq)) {
+          my $bases = $IUPAC{$char} || [$char];
+          my @new_seqs;
+          for my $s (@seqs) {
+              for my $b (@$bases) { push @new_seqs, $s . $b; }
+          }
+          @seqs = @new_seqs;
+      }
+      my $sum = 0; my $count = 0;
+      my $cmd = "oligotm -mv 50 -dv 8 -n 1.4 -d 400 -tp 1 -sc 1";
+      for my $s (@seqs) {
+          my $tm = `$cmd $s 2>/dev/null`;
+          chomp($tm);
+          if ($tm =~ /^([\d\.]+)$/) { $sum += $1; $count++; }
+      }
+      if ($count > 0) { return $sum / $count; }
+      print "[FIXED PRIMER] WARNING: oligotm echoue ou introuvable. Utilisation d'un Tm par defaut.\n";
+      return ($type =~ /^F1C|B1C$/i) ? 62.0 : 60.0;
+  };
+
   # Extraire les sequences de l alignement pour la validation
   # Extract alignment sequences for validation
   my @sequences = ();
@@ -2252,9 +2283,10 @@ sub injectFixedPrimers {
     $fixed_oligo->setTag("coverage_forced",        $coverage_forced);
     $fixed_oligo->setTag("fixed_original_seq",     $primer_seq);
     
-    # LAVA 2026: Eviter les crashs dans analyzeAll
+    # LAVA 2026: Eviter les crashs dans analyzeAll, mais avec VRAI Tm
     $fixed_oligo->setTag("primer3_penalty",        0);
-    $fixed_oligo->setTag("primer3_tm",             0);
+    my $real_tm = $calc_tm->($final_sequence, $primer_type);
+    $fixed_oligo->setTag("primer3_tm",             $real_tm);
 
     printf("[FIXED PRIMER] Amorce injectee : TYPE=%s POS=%d STRAND=%s SEQ=%s COUV=%.1f%% FORCE=%d\n",
            $primer_type, $position, $strand, $final_sequence, $coverage_percent, $coverage_forced);
