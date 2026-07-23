@@ -1867,3 +1867,51 @@ Un outil de diagnostic se doit d'être irréprochable sur ses filtres d'inclusio
 - Les signatures à trop faible couverture (<70%) sont désormais rejetées drastiquement (sauf paramétrage explicite de l'utilisateur).
 - Les compteurs "[Stem Rev] N combinaisons" affichent le nombre réel de combinaisons trouvées.
 - Validation des 7/7 tests de non-régression "canary" pour la sortie officielle de la v1.0.
+
+---
+
+### [2026-07-23] Feature : Amorce(s) Ancree(s) (Fixed Primer) - Branche feature/fixed-primer
+
+**Fichiers impactes** : `lib/LLNL/LAVA/PipelineUtils.pm`, `lava_loop_primer.pl`, `lava_stem_primer.pl`
+**Nature du changement** : [Algorithmique / Architecture / Feature]
+
+**Explication technique** :
+Ajout de la fonctionnalite "Fixed Primer" (inspiree de PrimerExplorer V5), permettant de fixer
+une ou plusieurs amorces LAMP dont la sequence est deja connue et validee experimentalement.
+
+Deux nouvelles fonctions centralisees dans `PipelineUtils.pm` :
+1. `findPrimerPositionInAlignment($alignment, $seq, $hint_pos)` : Localise une sequence d amorce
+   dans le MSA. Strategie en cascade : essai a la position fournie, fallback scan complet
+   (brin + et brin - via rev_comp).
+2. `injectFixedPrimers($alignment, \@specs, ...)` : Pour chaque amorce specifiee, localise
+   sa position, la passe par `checkPrimerMismatchTolerance` (Branch and Bound IUPAC) pour
+   tenter d ajouter des bases degenerees et ameliorer la couverture, puis cree un objet
+   `LLNL::LAVA::Oligo` compatible avec le reste du pipeline. L amorce est TOUJOURS injectee
+   dans le pool (tag `coverage_forced=1`) meme si la couverture est sous le seuil.
+
+Interface CLI : option `--fixed_primer` repeatable (N amorces fixables).
+Format : `TYPE:SEQUENCE` ou `TYPE:SEQUENCE:POSITION`.
+Types valides LOOP : F3 B3 F2 B2 F1C B1C FLOOP BLOOP.
+Types valides STEM : F3 B3 F2 B2 F1C B1C FSTEM BSTEM.
+
+Les amorces fixees sont injectees en debut de pool (via `unshift`) avant l appel a `analyzeAll`,
+pour etre traitees par le moteur combinatoire Branch and Bound exactement comme les amorces
+normales, tout en restant garanties dans la signature finale.
+
+**Justification biologique** :
+Dans les projets de surveillance epidemiologique en temps reel, les equipes de laboratoire
+ont souvent deja valide une ou plusieurs amorces par PCR classique ou par LAMP initial.
+La re-conception complete d un kit en abandonnant les amorces deja testees represente un
+cout et un delai inacceptable (commande oligos, re-validation wet lab, stock epuise).
+La fonctionnalite "Fixed Primer" permet de garder ces amorces validees comme point d ancrage,
+et de laisser LAVA optimiser les 5 amorces restantes autour d elles en tirant parti
+du Branch and Bound et de la tolerance aux mismatches IUPAC. Le tag `coverage_forced`
+signale explicitement a l analyste que l amorce n a pas satisfait le seuil naturellement
+mais est incluse par decision de l utilisateur (transparence totale).
+
+**Impact attendu** :
+- Capacite de reutiliser des amorces validees existantes sans reprendre le design complet.
+- Branch and Bound IUPAC applique sur l amorce fixee pour tenter d ameliorer sa couverture.
+- Logs detailles `[FIXED PRIMER]` pour la tracabilite de l injection.
+- Aucune regression : 7/7 tests canary passes.
+

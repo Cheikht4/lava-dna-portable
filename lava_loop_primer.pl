@@ -91,7 +91,7 @@ use LLNL::LAVA::PrimerSetInfo::PCRPair;
 use LLNL::LAVA::PrimerSet::LAMP;
 use LLNL::LAVA::Core qw(generateDistancePenalties calculate_proportional_geometry generateSigmoidPenalty countDegenerateBases);
 use LLNL::LAVA::Validator qw(checkPrimerMismatchTolerance getPrimerTargetedSequences isIUPACCompatible rev_comp generateIUPACCode validateCompleteSignatureSpacing);
-use LLNL::LAVA::PipelineUtils qw(getOligosWithMismatchTolerance set_pipeline_threads buildNativeReversePool analyzeAll enumeratePairs buildMetricsArray reducePairInfosByPenalty reducePrimersByOverlap reduceSignaturesByOverlap flattenInfoData buildBigMerge calculateSignatureIntersection createPerSignatureFiles createAmplificationFiles analyzeSignatureCombinations generateCombinations calculateDynamicPairLengths); # buildReversePrimers retiré (DEPRECATED, remplacé par buildNativeReversePool)
+use LLNL::LAVA::PipelineUtils qw(getOligosWithMismatchTolerance set_pipeline_threads buildNativeReversePool analyzeAll enumeratePairs buildMetricsArray reducePairInfosByPenalty reducePrimersByOverlap reduceSignaturesByOverlap flattenInfoData buildBigMerge calculateSignatureIntersection createPerSignatureFiles createAmplificationFiles analyzeSignatureCombinations generateCombinations calculateDynamicPairLengths injectFixedPrimers findPrimerPositionInAlignment); # buildReversePrimers retire (DEPRECATED, remplace par buildNativeReversePool)
 use LLNL::LAVA::ForkManager;
 
 # Activer l'auto-flush de STDOUT pour les logs temps réel via Flask / Enable STDOUT auto-flush for real-time logs via Flask
@@ -213,11 +213,15 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       #"inner_pair_target_length=i" => \$options{"inner_pair_target_length"}, 
 
       "option_file|options_file=s" => \$options{"option_file"},
+      # --- AMORCES FIXEES (peut etre repete plusieurs fois) ---
+      # --- FIXED PRIMERS (can be repeated multiple times) ---
+      "fixed_primer=s" => \@{$options{"fixed_primer"}},
     );
 
   my %optionDefaults =
     (
       "threads" => "auto",
+      "fixed_primer" => [],  # Tableau d'amorces fixees / Array of fixed primers
       "signature_max_length" => 320,
       "outer_primer_target_length" => 20,
       "outer_primer_min_length" => 18,
@@ -445,6 +449,37 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   print "Config: Min Base Frequency = $minBaseFrequency\n";
   my $entropyThreshold = optionWithDefault($options_r, "entropy_threshold", 1.5);
   my $maxTmDiff = optionWithDefault($options_r, "max_tm_diff", 5.0);
+
+  # --- Parsing des amorces fixees / Parsing of fixed primers ---
+  # Format accepte : TYPE:SEQUENCE  ou  TYPE:SEQUENCE:POSITION
+  # Accepted format: TYPE:SEQUENCE  or  TYPE:SEQUENCE:POSITION
+  # Types valides LOOP : F3 B3 F2 B2 F1C B1C FLOOP BLOOP
+  # Valid types LOOP:   F3 B3 F2 B2 F1C B1C FLOOP BLOOP
+  my @fixedPrimerSpecs = ();
+  my @raw_fixed = @{ $options{"fixed_primer"} // [] };
+  for my $raw (@raw_fixed) {
+    my @parts = split(/:/, $raw, 3);
+    if (@parts < 2 || !$parts[0] || !$parts[1]) {
+      print "[FIXED PRIMER] AVERTISSEMENT: Format invalide '$raw'. Attendu TYPE:SEQUENCE ou TYPE:SEQUENCE:POSITION. Ignore.\n";
+      print "[FIXED PRIMER] WARNING: Invalid format '$raw'. Expected TYPE:SEQUENCE or TYPE:SEQUENCE:POSITION. Skipped.\n";
+      next;
+    }
+    my $spec = {
+      type => uc($parts[0]),
+      seq  => uc($parts[1]),
+      pos  => (defined $parts[2] && $parts[2] =~ /^\d+$/) ? int($parts[2]) : undef,
+    };
+    # Validation du type pour LOOP
+    my %valid_loop_types = map { $_ => 1 } qw(F3 B3 F2 B2 F1C B1C FLOOP BLOOP);
+    if (!$valid_loop_types{$spec->{type}}) {
+      print "[FIXED PRIMER] AVERTISSEMENT: Type '$spec->{type}' non reconnu pour LOOP. Types valides: F3 B3 F2 B2 F1C B1C FLOOP BLOOP.\n";
+      print "[FIXED PRIMER] WARNING: Type '$spec->{type}' not recognized for LOOP. Valid types: F3 B3 F2 B2 F1C B1C FLOOP BLOOP.\n";
+    }
+    push @fixedPrimerSpecs, $spec;
+    printf("[FIXED PRIMER] Spec enregistree: TYPE=%s SEQ=%s POS=%s\n",
+           $spec->{type}, $spec->{seq}, defined $spec->{pos} ? $spec->{pos} : "auto");
+  }
+
 
   my $outerPrimerTargetLength =
     optionWithDefault($options_r, "outer_primer_target_length", 
@@ -1010,6 +1045,29 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $middlePrimerAnalyzer = $outerPrimerAnalyzer;
   my $innerPrimerAnalyzer = $outerPrimerAnalyzer;
   my $loopPrimerAnalyzer = $outerPrimerAnalyzer;
+
+  # --- INJECTION DES AMORCES FIXEES dans les pools correspondants ---
+  # --- INJECT FIXED PRIMERS into the corresponding pools ---
+  if (@fixedPrimerSpecs) {
+    print "\n=== Injection des amorces fixees / Fixed Primer Injection ===\n";
+    my $fixed_results_r = injectFixedPrimers(
+      $inputMSA, \@fixedPrimerSpecs,
+      $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
+      $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen,
+      $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency
+    );
+    # Fusionner les amorces fixees dans chaque pool / Merge fixed primers into each pool
+    unshift @outerForwardPrimers,  @{ $fixed_results_r->{"F3"}    // [] };
+    unshift @outerReversePrimers,  @{ $fixed_results_r->{"B3"}    // [] };
+    unshift @middleForwardPrimers, @{ $fixed_results_r->{"F2"}    // [] };
+    unshift @middleReversePrimers, @{ $fixed_results_r->{"B2"}    // [] };
+    unshift @innerForwardPrimers,  @{ $fixed_results_r->{"F1C"}   // [] };
+    unshift @innerReversePrimers,  @{ $fixed_results_r->{"B1C"}   // [] };
+    unshift @loopForwardPrimers,   @{ $fixed_results_r->{"FLOOP"} // [] };
+    unshift @loopBackPrimers,      @{ $fixed_results_r->{"BLOOP"} // [] };
+    print "=== Injection terminee / Fixed Primer Injection done ===\n\n";
+  }
+
 
   print "Analyzing outer forward primers\n";
   my $outerForwardPrimerMeasurements_r =
