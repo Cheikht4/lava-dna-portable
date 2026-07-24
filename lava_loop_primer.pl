@@ -1565,7 +1565,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   last if ($loopLocation > $loopEndAt);
 
                   # --- DYNAMIC THERMAL FILTER (Inner vs Loop) ---
-                  next if (abs($innerTm - $loopTm) > $maxTmDiff);
+                  next if (abs($innerTm - $loopTm) > $maxTmDiff) unless ($innerInfo->getTag("is_fixed") || $loopInfo->getTag("is_fixed"));
               }
               
               # 3.2 Calculate Search Bounds for Middle Primer (F2) (Structure: F3-F2-LF-F1c)
@@ -1599,13 +1599,15 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   if ($includeLoopPrimers) {
                       next if ($middleLocation + $middleLength + $minPrimerSpacing > $loopLocation - $loopLength + 1);
                       next if ($middleLocation + $middleLength + $loopMinGap > $innerLocation);
+                  } else {
+                      next if ($middleLocation + $middleLength + $minPrimerSpacing > $innerLocation);
                   }
 
                   # --- DYNAMIC THERMAL FILTER (Neighbor Check) ---
                   if ($includeLoopPrimers) {
-                      next if (abs($loopTm - $midTm) > $maxTmDiff);
+                      next if (abs($loopTm - $midTm) > $maxTmDiff) unless ($loopInfo->getTag("is_fixed") || $middleInfo->getTag("is_fixed"));
                   } else {
-                      next if (abs($innerTm - $midTm) > $maxTmDiff);
+                      next if (abs($innerTm - $midTm) > $maxTmDiff) unless ($innerInfo->getTag("is_fixed") || $middleInfo->getTag("is_fixed"));
                   }
 
                   # 3.3 Calculate Search Bounds for Outer Primer (F3)
@@ -1628,7 +1630,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                       next if ($outerLocation + $outerLength + $minPrimerSpacing > $middleLocation);
                       
                       # --- DYNAMIC THERMAL FILTER (Middle vs Outer) ---
-                      next if (abs($midTm - $outTm) > $maxTmDiff);
+                      next if (abs($midTm - $outTm) > $maxTmDiff) unless ($middleInfo->getTag("is_fixed") || $outerInfo->getTag("is_fixed"));
                       
                       # Calculate Penalty
                       my $middleToOuterDistance = $middleLocation - ($outerLocation + $outerLength);
