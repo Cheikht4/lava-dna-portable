@@ -1,0 +1,113 @@
+Config: Min Base Frequency = 0.05
+[FIXED PRIMER] Spec enregistree: TYPE=F2 SEQ=TACCCGCGGCAAGACGGGAA POS=auto
+
+INFO: Calcul dynamique des longueurs cibles active.
+INFO: Dynamic target length calculation activated.
+  -> Cible Middle Pair calculee : 140 nt (distance max: 30 nt)
+  -> Cible Inner Pair calculee : 80 nt (distance max: 30 nt)
+--------------------------------------------------
+
+Configuration tolérance mismatches:
+  - Match strict minimum: 80%
+  - Couverture IUPAC minimum: 98%
+  - Seuil élimination primer: 80%
+
+
+[FIXED PRIMER WINDOW] Resolution anticipee des positions / Early position resolution...
+[FIXED PRIMER] ERREUR: Sequence 'TACCCGCGGCAAGACGGGAA' introuvable dans l'alignement.
+[FIXED PRIMER] ERROR: Sequence 'TACCCGCGGCAAGACGGGAA' not found in the alignment.
+[FIXED PRIMER WINDOW] AVERTISSEMENT: position introuvable pour F2 'TACCCGCGGCAAGACGGGAA'. Fenetre non contrainte pour cette amorce.
+[FIXED PRIMER WINDOW] WARNING: position not found for F2 'TACCCGCGGCAAGACGGGAA'. No window constraint for this primer.
+Enumerating outer forward primers
+INFO: Utilisation de la tolerance aux mismatches activee en multi-coeurs (threads: 1)
+  - Seuil de concordance stricte / Strict match threshold: 80%
+  - Seuil de couverture IUPAC / IUPAC coverage threshold: 98%
+Primer3Conserved getOligos had 0 oligos
+⚠️  AUCUN OLIGO TROUVÉ. Diagnostic :
+   -> Régions exclues par entropie (1 zones) : 148-352
+INFO: Analyse de 0 amorces candidates Forward avec tolerance aux mismatches...
+  Generated "0" outer forward primers
+Enumerating outer NATIVE reverse primers (Option B)
+  [NativeReverse] Longueur alignement / Alignment length: 500 nt
+  [NativeReverse] RC MSA construit avec 10 sequences / RC MSA built with 10 sequences
+Primer3Conserved getOligos had 0 oligos
+⚠️  AUCUN OLIGO TROUVÉ. Diagnostic :
+   -> Régions exclues par entropie (1 zones) : 148-352
+  [NativeReverse] Primer3 a genere / generated 0 candidats sur RC MSA
+INFO: [NativeReverse] Analyse de 0 amorces candidates Reverse en multi-coeurs (threads: 1)...
+  - Strict match: 80% | IUPAC: 98% | Coverage: 80%
+  - MaxDegen: 2 total / 2 au 3prime
+  Generated "0" outer native reverse primers
+Loop primers désactivés - génération ignorée
+Enumerating middle forward primers
+Skipping middle forward (F2) enumeration because it is fixed.
+Enumerating middle NATIVE reverse primers (Option B)
+  [NativeReverse] Longueur alignement / Alignment length: 500 nt
+  [NativeReverse] RC MSA construit avec 10 sequences / RC MSA built with 10 sequences
+Primer3Conserved getOligos had 0 oligos
+⚠️  AUCUN OLIGO TROUVÉ. Diagnostic :
+   -> Régions exclues par entropie (1 zones) : 148-352
+  [NativeReverse] Primer3 a genere / generated 0 candidats sur RC MSA
+INFO: [NativeReverse] Analyse de 0 amorces candidates Reverse en multi-coeurs (threads: 1)...
+  - Strict match: 80% | IUPAC: 98% | Coverage: 80%
+  - MaxDegen: 2 total / 2 au 3prime
+  Generated "0" middle native reverse primers
+Enumerating inner forward primers
+INFO: Utilisation de la tolerance aux mismatches activee en multi-coeurs (threads: 1)
+  - Seuil de concordance stricte / Strict match threshold: 80%
+  - Seuil de couverture IUPAC / IUPAC coverage threshold: 98%
+Primer3Conserved getOligos had 0 oligos
+⚠️  AUCUN OLIGO TROUVÉ. Diagnostic :
+   -> Régions exclues par entropie (1 zones) : 148-353
+INFO: Analyse de 0 amorces candidates Forward avec tolerance aux mismatches...
+  Generated "0" inner primers
+Enumerating inner NATIVE reverse primers (Option B)
+  [NativeReverse] Longueur alignement / Alignment length: 500 nt
+  [NativeReverse] RC MSA construit avec 10 sequences / RC MSA built with 10 sequences
+Primer3Conserved getOligos had 0 oligos
+⚠️  AUCUN OLIGO TROUVÉ. Diagnostic :
+   -> Régions exclues par entropie (1 zones) : 147-352
+  [NativeReverse] Primer3 a genere / generated 0 candidats sur RC MSA
+INFO: [NativeReverse] Analyse de 0 amorces candidates Reverse en multi-coeurs (threads: 1)...
+  - Strict match: 80% | IUPAC: 98% | Coverage: 80%
+  - MaxDegen: 2 total / 2 au 3prime
+  Generated "0" inner native reverse primers
+
+=== Injection des amorces fixees / Fixed Primer Injection ===
+
+[FIXED PRIMER] Traitement de l'amorce fixee : TYPE=F2 SEQ=TACCCGCGGCAAGACGGGAA
+[FIXED PRIMER] Processing fixed primer: TYPE=F2 SEQ=TACCCGCGGCAAGACGGGAA
+[FIXED PRIMER] ERREUR: Sequence 'TACCCGCGGCAAGACGGGAA' introuvable dans l'alignement.
+[FIXED PRIMER] ERROR: Sequence 'TACCCGCGGCAAGACGGGAA' not found in the alignment.
+[FIXED PRIMER] AVERTISSEMENT: Impossible de localiser 'TACCCGCGGCAAGACGGGAA'. Injection a la position 0 par defaut.
+[FIXED PRIMER] WARNING: Cannot locate 'TACCCGCGGCAAGACGGGAA'. Injecting at position 0 by default.
+[FIXED PRIMER] Lancement du Branch and Bound IUPAC pour ameliorer la couverture...
+[FIXED PRIMER] Running Branch and Bound IUPAC to improve coverage...
+
+[LAVA::Validator] Checking Primer: TACCCGCGGCAAGACGGGAA @ Pos 0
+[FIXED PRIMER] Couverture apres B&B : 0.0% < seuil 80.0% -> INCLUSION FORCEE (amorce fixee).
+[FIXED PRIMER] Coverage after B&B: 0.0% < threshold 80.0% -> FORCED INCLUSION (fixed primer).
+[FIXED PRIMER] Amorce injectee : TYPE=F2 POS=0 STRAND=plus SEQ=TACCCGCGGCAAGACGGGAA COUV=0.0% FORCE=1
+[FIXED PRIMER] Primer injected : TYPE=F2 POS=0 STRAND=plus SEQ=TACCCGCGGCAAGACGGGAA COVER=0.0% FORCED=1
+=== Injection terminee / Fixed Primer Injection done ===
+
+Analyzing outer forward primers
+Analyzing outer reverse primers
+Analyse / Analysis of loop primers ignorée
+Analyzing middle forward primers
+Analyzing middle reverse primers
+Analyzing inner forward primers
+Analyzing inner reverse primers
+Sorting primer sets
+Enumerating signatures
+Building Master Primer Lists (The Big Merge)...
+ 1->1)
+Master Lists Counts:
+  Inner F: 0, R: 0
+  Loop F: 0, R: 0
+  Middle F: 1, R: 0
+  Outer F: 0, R: 0
+Generating Sigmoid Penalties (Core.pm)...
+Scanning Forward Primer Combinations...
+  [Forward] 0 combinaisons Forward trouvees sur 0 amorces F1c.
+No valid forward primer combinations found.

@@ -1,0 +1,1744 @@
+Config: Min Base Frequency = 0.05
+[FIXED PRIMER] Spec enregistree: TYPE=F3 SEQ=ATGCATGCATGCATGCATGC POS=auto
+
+WARNING: max_dist_middle_inner (30) est trop petit pour accommoder loop_min_gap (25).
+WARNING: Pour eviter un conflit geometrique bloquant, max_dist_middle_inner est ajuste automatiquement a 45.
+
+INFO: Calcul dynamique des longueurs cibles active.
+INFO: Dynamic target length calculation activated.
+  -> Cible Middle Pair calculee : 140 nt (distance max: 30 nt)
+  -> Cible Inner Pair calculee : 50 nt (distance max: 45 nt)
+--------------------------------------------------
+
+Configuration tolérance mismatches:
+  - Match strict minimum: 80%
+  - Couverture IUPAC minimum: 98%
+  - Seuil élimination primer: 80%
+
+
+[FIXED PRIMER WINDOW] Resolution anticipee des positions / Early position resolution...
+[FIXED PRIMER] Sequence trouvee par scan complet a la position 0 (brin plus).
+[FIXED PRIMER] Sequence found by full scan at position 0 (strand plus).
+[FIXED PRIMER WINDOW] F3 'ATGCATGCATGCATGCATGC' -> position resolue : 0 (brin plus)
+[FIXED PRIMER WINDOW] Amorce F3@0 -> fenetre contrainte [0, 500] (sig_max=320 + marge=200)
+[FIXED PRIMER WINDOW] Primer F3@0 -> constraint window [0, 500] (sig_max=320 + margin=200)
+[FIXED PRIMER WINDOW] Fenetre globale retenue : [0, 500] (100.0% de l alignement)
+[FIXED PRIMER WINDOW] Global window retained  : [0, 500] (100.0% of alignment)
+[FIXED PRIMER WINDOW] Passing SEQUENCE_INCLUDED_REGION=0,501 to Primer3
+Enumerating outer forward primers
+Skipping outer forward (F3) enumeration because it is fixed.
+Enumerating outer NATIVE reverse primers (Option B)
+  [NativeReverse] Longueur alignement / Alignment length: 500 nt
+  [NativeReverse] RC MSA construit avec 10 sequences / RC MSA built with 10 sequences
+  [NativeReverse] Fractionnement physique de l'alignement RC : 1 à 500
+Primer3Conserved getOligos had 168 oligos
+  [NativeReverse] Primer3 a genere / generated 58 candidats sur RC MSA
+INFO: [NativeReverse] Analyse de 58 amorces candidates Reverse en multi-coeurs (threads: 1)...
+  - Strict match: 80% | IUPAC: 98% | Coverage: 80%
+  - MaxDegen: 2 total / 2 au 3prime
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|0|58||? it/s|0
+
+[LAVA::Validator] Checking Primer: TCGTAGAAGTAGTCACGTGG @ Pos 225
+
+[LAVA::Validator] Checking Primer: CGTAGAAGTAGTCACGTGGT @ Pos 226
+
+[LAVA::Validator] Checking Primer: TGAGGAGCGCTATGATTAGG @ Pos 290
+REVERSE REJECTED           - PosRC: 225 -> GenomPos: 274, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 226 -> GenomPos: 273, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 290 -> GenomPos: 209, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|3|58| | OK:0 DEG:0 REJ:3|206 it/s|0
+
+[LAVA::Validator] Checking Primer: GGAGCGCTATGATTAGGTCT @ Pos 293
+
+[LAVA::Validator] Checking Primer: AGGAGCGCTATGATTAGGTC @ Pos 292
+
+[LAVA::Validator] Checking Primer: GAGGAGCGCTATGATTAGGT @ Pos 291
+REVERSE REJECTED           - PosRC: 293 -> GenomPos: 206, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 292 -> GenomPos: 207, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 291 -> GenomPos: 208, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|6|58| | OK:0 DEG:0 REJ:6|319 it/s|0
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACATA @ Pos 317
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAATC @ Pos 197
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGTTA @ Pos 171
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|9|58| | OK:0 DEG:0 REJ:9|381 it/s|0
+
+[LAVA::Validator] Checking Primer: TAATGTAATCCGCGAACGAC @ Pos 193
+
+[LAVA::Validator] Checking Primer: AGCGCTATGATTAGGTCTCT @ Pos 295
+
+[LAVA::Validator] Checking Primer: TCCGCGAACGACAATCTTAT @ Pos 201
+REVERSE REJECTED           - PosRC: 193 -> GenomPos: 306, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 295 -> GenomPos: 204, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 201 -> GenomPos: 298, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|12|58| | OK:0 DEG:0 REJ:12|422 it/s|0
+
+[LAVA::Validator] Checking Primer: ATCCGCGAACGACAATCTTA @ Pos 200
+
+[LAVA::Validator] Checking Primer: TAATCCGCGAACGACAATCT @ Pos 198
+
+[LAVA::Validator] Checking Primer: CCGCGAACGACAATCTTATA @ Pos 202
+REVERSE REJECTED           - PosRC: 200 -> GenomPos: 299, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 198 -> GenomPos: 301, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 202 -> GenomPos: 297, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|15|58| | OK:0 DEG:0 REJ:15|439 it/s|0
+
+[LAVA::Validator] Checking Primer: GCGCTATGATTAGGTCTCTG @ Pos 296
+
+[LAVA::Validator] Checking Primer: CGCGAACGACAATCTTATAGG @ Pos 203
+
+[LAVA::Validator] Checking Primer: CCGCGAACGACAATCTTATAG @ Pos 202
+REVERSE REJECTED           - PosRC: 296 -> GenomPos: 203, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 203 -> GenomPos: 296, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 202 -> GenomPos: 297, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|18|58| | OK:0 DEG:0 REJ:18|438 it/s|0
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGTTAT @ Pos 171
+
+[LAVA::Validator] Checking Primer: TTAATGTAATCCGCGAACGAC @ Pos 192
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACAT @ Pos 317
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 192 -> GenomPos: 307, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|21|58| | OK:0 DEG:0 REJ:21|457 it/s|0
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACATAA @ Pos 317
+
+[LAVA::Validator] Checking Primer: GAAGTAGTCACGTGGTTGC @ Pos 230
+
+[LAVA::Validator] Checking Primer: GAGCGCTATGATTAGGTCTCT @ Pos 294
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 230 -> GenomPos: 269, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 294 -> GenomPos: 205, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|24|58| | OK:0 DEG:0 REJ:24|486 it/s|0
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGTT @ Pos 171
+
+[LAVA::Validator] Checking Primer: TCCGCGAACGACAATCTTA @ Pos 201
+
+[LAVA::Validator] Checking Primer: TCCGCGAACGACAATCTTATA @ Pos 201
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 201 -> GenomPos: 298, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 201 -> GenomPos: 298, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|27|58| | OK:0 DEG:0 REJ:27|494 it/s|0
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAAT @ Pos 197
+
+[LAVA::Validator] Checking Primer: AATGTAATCCGCGAACGAC @ Pos 194
+
+[LAVA::Validator] Checking Primer: AGCGCTATGATTAGGTCTCTG @ Pos 295
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 194 -> GenomPos: 305, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 295 -> GenomPos: 204, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|30|58| | OK:0 DEG:0 REJ:30|501 it/s|0
+
+[LAVA::Validator] Checking Primer: TCTTGAAGGCATGCACATAAT @ Pos 318
+
+[LAVA::Validator] Checking Primer: ATGAGGAGCGCTATGATTAGG @ Pos 289
+
+[LAVA::Validator] Checking Primer: GTAGAAGTAGTCACGTGGTTG @ Pos 227
+REVERSE REJECTED           - PosRC: 318 -> GenomPos: 181, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 289 -> GenomPos: 210, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 227 -> GenomPos: 272, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|33|58| | OK:0 DEG:0 REJ:33|512 it/s|0
+
+[LAVA::Validator] Checking Primer: CGTAGAAGTAGTCACGTGGTT @ Pos 226
+
+[LAVA::Validator] Checking Primer: ATGTAATCCGCGAACGACA @ Pos 195
+
+[LAVA::Validator] Checking Primer: AGGAGCGCTATGATTAGGT @ Pos 292
+REVERSE REJECTED           - PosRC: 226 -> GenomPos: 273, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 195 -> GenomPos: 304, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 292 -> GenomPos: 207, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|36|58| | OK:0 DEG:0 REJ:36|525 it/s|0
+
+[LAVA::Validator] Checking Primer: CCGCGAACGACAATCTTAT @ Pos 202
+
+[LAVA::Validator] Checking Primer: TAATCCGCGAACGACAATC @ Pos 198
+
+[LAVA::Validator] Checking Primer: GCGAACGACAATCTTATAGGT @ Pos 204
+REVERSE REJECTED           - PosRC: 202 -> GenomPos: 297, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 198 -> GenomPos: 301, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 204 -> GenomPos: 295, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|39|58| | OK:0 DEG:0 REJ:39|524 it/s|0
+
+[LAVA::Validator] Checking Primer: TGTAATCCGCGAACGACAA @ Pos 196
+
+[LAVA::Validator] Checking Primer: TCTTGAAGGCATGCACATAATT @ Pos 318
+
+[LAVA::Validator] Checking Primer: CCGCTTACCACAACGATG @ Pos 170
+REVERSE REJECTED           - PosRC: 196 -> GenomPos: 303, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 318 -> GenomPos: 181, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 170 -> GenomPos: 329, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|42|58| | OK:0 DEG:0 REJ:42|531 it/s|0
+
+[LAVA::Validator] Checking Primer: GGTCTTGAAGGCATGCAC @ Pos 316
+
+[LAVA::Validator] Checking Primer: GCGAACGACAATCTTATAGGTT @ Pos 204
+
+[LAVA::Validator] Checking Primer: TGTAATCCGCGAACGACA @ Pos 196
+REVERSE REJECTED           - PosRC: 316 -> GenomPos: 183, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 204 -> GenomPos: 295, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 196 -> GenomPos: 303, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|45|58| | OK:0 DEG:0 REJ:45|538 it/s|0
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGTTATT @ Pos 171
+
+[LAVA::Validator] Checking Primer: ATCCGCGAACGACAATCT @ Pos 200
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACATAAT @ Pos 317
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 200 -> GenomPos: 299, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|48|58| | OK:0 DEG:0 REJ:48|543 it/s|0
+
+[LAVA::Validator] Checking Primer: AATCCGCGAACGACAATC @ Pos 199
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACA @ Pos 317
+
+[LAVA::Validator] Checking Primer: TCCGCGAACGACAATCTT @ Pos 201
+REVERSE REJECTED           - PosRC: 199 -> GenomPos: 300, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 201 -> GenomPos: 298, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|51|58| | OK:0 DEG:0 REJ:51|550 it/s|0
+
+[LAVA::Validator] Checking Primer: CCAGATGCGTATGAGCCA @ Pos 270
+
+[LAVA::Validator] Checking Primer: AGTAGTCACGTGGTTGCC @ Pos 232
+
+[LAVA::Validator] Checking Primer: ATCCGCGAACGACAATCTTATA @ Pos 200
+REVERSE REJECTED           - PosRC: 270 -> GenomPos: 229, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 232 -> GenomPos: 267, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 200 -> GenomPos: 299, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|54|58| | OK:0 DEG:0 REJ:54|558 it/s|0
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGT @ Pos 171
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAA @ Pos 197
+
+[LAVA::Validator] Checking Primer: GAACGACAATCTTATAGGTTCGT @ Pos 206
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 206 -> GenomPos: 293, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|57|58| | OK:0 DEG:0 REJ:57|555 it/s|0
+
+[LAVA::Validator] Checking Primer: GCGAACGACAATCTTATAGGTTC @ Pos 204
+REVERSE REJECTED           - PosRC: 204 -> GenomPos: 295, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|58|58| | OK:0 DEG:0 REJ:58|552 it/s|0
+[LAVA-PROGRESS] Validation Outer Reverse (B3)|58|58||552 it/s|0
+  [NativeReverse] Resultats / Results:
+    - Strictes / Strict: 0
+    - Degenerees / Degenerate: 0
+    - Rejetees / Rejected: 58
+    - Total valide / Total validated: 0/58
+
+  Generated "0" outer native reverse primers
+Enumerating loop BACK (BLOOP) primers on plus strand
+INFO: Utilisation de la tolerance aux mismatches activee en multi-coeurs (threads: 1)
+  - Seuil de concordance stricte / Strict match threshold: 80%
+  - Seuil de couverture IUPAC / IUPAC coverage threshold: 98%
+  [Loop Back (BLOOP)] Fractionnement physique de l'alignement : 1 à 500
+Primer3Conserved getOligos had 160 oligos
+INFO: Analyse de 65 amorces candidates Forward avec tolerance aux mismatches...
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|0|65||? it/s|0
+
+[LAVA::Validator] Checking Primer: CCACGTGACTACTTCTACGA @ Pos 255
+
+[LAVA::Validator] Checking Primer: ACCACGTGACTACTTCTACG @ Pos 254
+
+[LAVA::Validator] Checking Primer: CCTAATCATAGCGCTCCTCA @ Pos 190
+REJECTED PRIMER - Pos: 255, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 254, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 190, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|3|65| | OK:0 DEG:0 REJ:3|205 it/s|0
+
+[LAVA::Validator] Checking Primer: ACCTAATCATAGCGCTCCTC @ Pos 189
+
+[LAVA::Validator] Checking Primer: GACCTAATCATAGCGCTCCT @ Pos 188
+
+[LAVA::Validator] Checking Primer: AGACCTAATCATAGCGCTCC @ Pos 187
+REJECTED PRIMER - Pos: 189, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 188, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 187, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|6|65| | OK:0 DEG:0 REJ:6|319 it/s|0
+
+[LAVA::Validator] Checking Primer: TATGTGCATGCCTTCAAGAC @ Pos 163
+
+[LAVA::Validator] Checking Primer: GATTGTCGTTCGCGGATTAC @ Pos 283
+
+[LAVA::Validator] Checking Primer: TAACATCGTTGTGGTAAGCG @ Pos 309
+REJECTED PRIMER - Pos: 163, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 283, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 309, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|9|65| | OK:0 DEG:0 REJ:9|377 it/s|0
+
+[LAVA::Validator] Checking Primer: GTCGTTCGCGGATTACATTA @ Pos 287
+
+[LAVA::Validator] Checking Primer: AGAGACCTAATCATAGCGCT @ Pos 185
+
+[LAVA::Validator] Checking Primer: AGATTGTCGTTCGCGGATTA @ Pos 282
+REJECTED PRIMER - Pos: 287, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 185, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 282, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|12|65| | OK:0 DEG:0 REJ:12|425 it/s|0
+
+[LAVA::Validator] Checking Primer: TAAGATTGTCGTTCGCGGAT @ Pos 280
+
+[LAVA::Validator] Checking Primer: ATAAGATTGTCGTTCGCGGA @ Pos 279
+
+[LAVA::Validator] Checking Primer: TATAAGATTGTCGTTCGCGG @ Pos 278
+REJECTED PRIMER - Pos: 280, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 279, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 278, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|15|65| | OK:0 DEG:0 REJ:15|447 it/s|0
+
+[LAVA::Validator] Checking Primer: CAGAGACCTAATCATAGCGC @ Pos 184
+
+[LAVA::Validator] Checking Primer: CTATAAGATTGTCGTTCGCGG @ Pos 277
+
+[LAVA::Validator] Checking Primer: CCTATAAGATTGTCGTTCGCG @ Pos 276
+REJECTED PRIMER - Pos: 184, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 277, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 276, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|18|65| | OK:0 DEG:0 REJ:18|455 it/s|0
+
+[LAVA::Validator] Checking Primer: ATAACATCGTTGTGGTAAGCG @ Pos 308
+
+[LAVA::Validator] Checking Primer: GTCGTTCGCGGATTACATTAA @ Pos 287
+
+[LAVA::Validator] Checking Primer: ATGTGCATGCCTTCAAGAC @ Pos 164
+REJECTED PRIMER - Pos: 308, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 287, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 164, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|21|65| | OK:0 DEG:0 REJ:21|471 it/s|0
+
+[LAVA::Validator] Checking Primer: TTATGTGCATGCCTTCAAGAC @ Pos 162
+
+[LAVA::Validator] Checking Primer: GCAACCACGTGACTACTTC @ Pos 251
+
+[LAVA::Validator] Checking Primer: CGTGACTACTTCTACGAACCT @ Pos 258
+REJECTED PRIMER - Pos: 162, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 251, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 258, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|24|65| | OK:0 DEG:0 REJ:24|491 it/s|0
+
+[LAVA::Validator] Checking Primer: AGAGACCTAATCATAGCGCTC @ Pos 185
+
+[LAVA::Validator] Checking Primer: AACATCGTTGTGGTAAGCG @ Pos 310
+
+[LAVA::Validator] Checking Primer: TAAGATTGTCGTTCGCGGA @ Pos 280
+REJECTED PRIMER - Pos: 185, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 310, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 280, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|27|65| | OK:0 DEG:0 REJ:27|507 it/s|0
+
+[LAVA::Validator] Checking Primer: CCACGTGACTACTTCTACGAA @ Pos 255
+
+[LAVA::Validator] Checking Primer: ACGTGACTACTTCTACGAACC @ Pos 257
+
+[LAVA::Validator] Checking Primer: TATAAGATTGTCGTTCGCGGA @ Pos 278
+REJECTED PRIMER - Pos: 255, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 257, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 278, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|30|65| | OK:0 DEG:0 REJ:30|508 it/s|0
+
+[LAVA::Validator] Checking Primer: GTCGTTCGCGGATTACATT @ Pos 287
+
+[LAVA::Validator] Checking Primer: ATTGTCGTTCGCGGATTAC @ Pos 284
+
+[LAVA::Validator] Checking Primer: CAGAGACCTAATCATAGCGCT @ Pos 184
+REJECTED PRIMER - Pos: 287, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 284, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 184, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|33|65| | OK:0 DEG:0 REJ:33|513 it/s|0
+
+[LAVA::Validator] Checking Primer: ATTATGTGCATGCCTTCAAGA @ Pos 161
+
+[LAVA::Validator] Checking Primer: CCTAATCATAGCGCTCCTCAT @ Pos 190
+
+[LAVA::Validator] Checking Primer: CAACCACGTGACTACTTCTAC @ Pos 252
+REJECTED PRIMER - Pos: 161, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 190, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 252, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|36|65| | OK:0 DEG:0 REJ:36|524 it/s|0
+
+[LAVA::Validator] Checking Primer: CACGTGACTACTTCTACGAAC @ Pos 256
+
+[LAVA::Validator] Checking Primer: AACCACGTGACTACTTCTACG @ Pos 253
+
+[LAVA::Validator] Checking Primer: TGTCGTTCGCGGATTACAT @ Pos 286
+REJECTED PRIMER - Pos: 256, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 253, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 286, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|39|65| | OK:0 DEG:0 REJ:39|532 it/s|0
+
+[LAVA::Validator] Checking Primer: ACCTAATCATAGCGCTCCT @ Pos 189
+
+[LAVA::Validator] Checking Primer: ATAAGATTGTCGTTCGCGG @ Pos 279
+
+[LAVA::Validator] Checking Primer: GATTGTCGTTCGCGGATTA @ Pos 283
+REJECTED PRIMER - Pos: 189, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 279, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 283, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|42|65| | OK:0 DEG:0 REJ:42|535 it/s|0
+
+[LAVA::Validator] Checking Primer: ACCTATAAGATTGTCGTTCGC @ Pos 275
+
+[LAVA::Validator] Checking Primer: TTGTCGTTCGCGGATTACA @ Pos 285
+
+[LAVA::Validator] Checking Primer: CGTGACTACTTCTACGAACCTA @ Pos 258
+REJECTED PRIMER - Pos: 275, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 285, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 258, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|45|65| | OK:0 DEG:0 REJ:45|530 it/s|0
+
+[LAVA::Validator] Checking Primer: AATTATGTGCATGCCTTCAAGA @ Pos 160
+
+[LAVA::Validator] Checking Primer: CATCGTTGTGGTAAGCGG @ Pos 312
+
+[LAVA::Validator] Checking Primer: GTGCATGCCTTCAAGACC @ Pos 166
+REJECTED PRIMER - Pos: 160, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 312, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 166, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|48|65| | OK:0 DEG:0 REJ:48|536 it/s|0
+
+[LAVA::Validator] Checking Primer: AACCTATAAGATTGTCGTTCGC @ Pos 274
+
+[LAVA::Validator] Checking Primer: TGTCGTTCGCGGATTACA @ Pos 286
+
+[LAVA::Validator] Checking Primer: AATAACATCGTTGTGGTAAGCG @ Pos 307
+REJECTED PRIMER - Pos: 274, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 286, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 307, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|51|65| | OK:0 DEG:0 REJ:51|537 it/s|0
+
+[LAVA::Validator] Checking Primer: AGATTGTCGTTCGCGGAT @ Pos 282
+
+[LAVA::Validator] Checking Primer: ATTATGTGCATGCCTTCAAGAC @ Pos 161
+
+[LAVA::Validator] Checking Primer: GATTGTCGTTCGCGGATT @ Pos 283
+REJECTED PRIMER - Pos: 282, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 161, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 283, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|54|65| | OK:0 DEG:0 REJ:54|545 it/s|0
+
+[LAVA::Validator] Checking Primer: TGTGCATGCCTTCAAGAC @ Pos 165
+
+[LAVA::Validator] Checking Primer: AAGATTGTCGTTCGCGGA @ Pos 281
+
+[LAVA::Validator] Checking Primer: TGGCTCATACGCATCTGG @ Pos 212
+REJECTED PRIMER - Pos: 165, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 281, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 212, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|57|65| | OK:0 DEG:0 REJ:57|552 it/s|0
+
+[LAVA::Validator] Checking Primer: GGCAACCACGTGACTACT @ Pos 250
+
+[LAVA::Validator] Checking Primer: TATAAGATTGTCGTTCGCGGAT @ Pos 278
+
+[LAVA::Validator] Checking Primer: ACATCGTTGTGGTAAGCG @ Pos 311
+REJECTED PRIMER - Pos: 250, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 278, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 311, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|60|65| | OK:0 DEG:0 REJ:60|558 it/s|0
+
+[LAVA::Validator] Checking Primer: TTGTCGTTCGCGGATTAC @ Pos 285
+
+[LAVA::Validator] Checking Primer: CGAACCTATAAGATTGTCGTTCG @ Pos 272
+
+[LAVA::Validator] Checking Primer: CGTGACTACTTCTACGAACCTAT @ Pos 258
+REJECTED PRIMER - Pos: 285, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 272, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 258, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|63|65| | OK:0 DEG:0 REJ:63|552 it/s|0
+
+[LAVA::Validator] Checking Primer: ACGAACCTATAAGATTGTCGTTC @ Pos 271
+
+[LAVA::Validator] Checking Primer: GAACCTATAAGATTGTCGTTCGC @ Pos 273
+REJECTED PRIMER - Pos: 271, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 273, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|65|65| | OK:0 DEG:0 REJ:65|544 it/s|0
+[LAVA-PROGRESS] Validation Loop Back (BLOOP)|65|65||544 it/s|0
+  [Forward] Resultats / Results:
+    - Strictes / Strict: 0
+    - Degenerees / Degenerate: 0
+    - Rejetees / Rejected: 65
+    - Total valide / Total validated: 0/65
+
+  Generated "0" loop BACK (BLOOP) primers
+Enumerating loop FORWARD (FLOOP) NATIVE reverse primers (Option B)
+  [NativeReverse] Longueur alignement / Alignment length: 500 nt
+  [NativeReverse] RC MSA construit avec 10 sequences / RC MSA built with 10 sequences
+  [NativeReverse] Fractionnement physique de l'alignement RC : 1 à 500
+Primer3Conserved getOligos had 168 oligos
+  [NativeReverse] Primer3 a genere / generated 58 candidats sur RC MSA
+INFO: [NativeReverse] Analyse de 58 amorces candidates Reverse en multi-coeurs (threads: 1)...
+  - Strict match: 80% | IUPAC: 98% | Coverage: 80%
+  - MaxDegen: 2 total / 2 au 3prime
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|0|58||? it/s|0
+
+[LAVA::Validator] Checking Primer: TCGTAGAAGTAGTCACGTGG @ Pos 225
+
+[LAVA::Validator] Checking Primer: CGTAGAAGTAGTCACGTGGT @ Pos 226
+
+[LAVA::Validator] Checking Primer: TGAGGAGCGCTATGATTAGG @ Pos 290
+REVERSE REJECTED           - PosRC: 225 -> GenomPos: 274, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 226 -> GenomPos: 273, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 290 -> GenomPos: 209, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|3|58| | OK:0 DEG:0 REJ:3|217 it/s|0
+
+[LAVA::Validator] Checking Primer: GGAGCGCTATGATTAGGTCT @ Pos 293
+
+[LAVA::Validator] Checking Primer: AGGAGCGCTATGATTAGGTC @ Pos 292
+
+[LAVA::Validator] Checking Primer: GAGGAGCGCTATGATTAGGT @ Pos 291
+REVERSE REJECTED           - PosRC: 293 -> GenomPos: 206, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 292 -> GenomPos: 207, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 291 -> GenomPos: 208, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|6|58| | OK:0 DEG:0 REJ:6|327 it/s|0
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACATA @ Pos 317
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAATC @ Pos 197
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGTTA @ Pos 171
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|9|58| | OK:0 DEG:0 REJ:9|390 it/s|0
+
+[LAVA::Validator] Checking Primer: TAATGTAATCCGCGAACGAC @ Pos 193
+
+[LAVA::Validator] Checking Primer: AGCGCTATGATTAGGTCTCT @ Pos 295
+
+[LAVA::Validator] Checking Primer: TCCGCGAACGACAATCTTAT @ Pos 201
+REVERSE REJECTED           - PosRC: 193 -> GenomPos: 306, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 295 -> GenomPos: 204, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 201 -> GenomPos: 298, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|12|58| | OK:0 DEG:0 REJ:12|428 it/s|0
+
+[LAVA::Validator] Checking Primer: ATCCGCGAACGACAATCTTA @ Pos 200
+
+[LAVA::Validator] Checking Primer: TAATCCGCGAACGACAATCT @ Pos 198
+
+[LAVA::Validator] Checking Primer: CCGCGAACGACAATCTTATA @ Pos 202
+REVERSE REJECTED           - PosRC: 200 -> GenomPos: 299, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 198 -> GenomPos: 301, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 202 -> GenomPos: 297, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|15|58| | OK:0 DEG:0 REJ:15|444 it/s|0
+
+[LAVA::Validator] Checking Primer: GCGCTATGATTAGGTCTCTG @ Pos 296
+
+[LAVA::Validator] Checking Primer: CGCGAACGACAATCTTATAGG @ Pos 203
+
+[LAVA::Validator] Checking Primer: CCGCGAACGACAATCTTATAG @ Pos 202
+REVERSE REJECTED           - PosRC: 296 -> GenomPos: 203, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 203 -> GenomPos: 296, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 202 -> GenomPos: 297, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|18|58| | OK:0 DEG:0 REJ:18|446 it/s|0
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGTTAT @ Pos 171
+
+[LAVA::Validator] Checking Primer: TTAATGTAATCCGCGAACGAC @ Pos 192
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACAT @ Pos 317
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 192 -> GenomPos: 307, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|21|58| | OK:0 DEG:0 REJ:21|466 it/s|0
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACATAA @ Pos 317
+
+[LAVA::Validator] Checking Primer: GAAGTAGTCACGTGGTTGC @ Pos 230
+
+[LAVA::Validator] Checking Primer: GAGCGCTATGATTAGGTCTCT @ Pos 294
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 230 -> GenomPos: 269, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 294 -> GenomPos: 205, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|24|58| | OK:0 DEG:0 REJ:24|495 it/s|0
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGTT @ Pos 171
+
+[LAVA::Validator] Checking Primer: TCCGCGAACGACAATCTTA @ Pos 201
+
+[LAVA::Validator] Checking Primer: TCCGCGAACGACAATCTTATA @ Pos 201
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 201 -> GenomPos: 298, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 201 -> GenomPos: 298, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|27|58| | OK:0 DEG:0 REJ:27|507 it/s|0
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAAT @ Pos 197
+
+[LAVA::Validator] Checking Primer: AATGTAATCCGCGAACGAC @ Pos 194
+
+[LAVA::Validator] Checking Primer: AGCGCTATGATTAGGTCTCTG @ Pos 295
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 194 -> GenomPos: 305, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 295 -> GenomPos: 204, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|30|58| | OK:0 DEG:0 REJ:30|513 it/s|0
+
+[LAVA::Validator] Checking Primer: TCTTGAAGGCATGCACATAAT @ Pos 318
+
+[LAVA::Validator] Checking Primer: ATGAGGAGCGCTATGATTAGG @ Pos 289
+
+[LAVA::Validator] Checking Primer: GTAGAAGTAGTCACGTGGTTG @ Pos 227
+REVERSE REJECTED           - PosRC: 318 -> GenomPos: 181, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 289 -> GenomPos: 210, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 227 -> GenomPos: 272, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|33|58| | OK:0 DEG:0 REJ:33|523 it/s|0
+
+[LAVA::Validator] Checking Primer: CGTAGAAGTAGTCACGTGGTT @ Pos 226
+
+[LAVA::Validator] Checking Primer: ATGTAATCCGCGAACGACA @ Pos 195
+
+[LAVA::Validator] Checking Primer: AGGAGCGCTATGATTAGGT @ Pos 292
+REVERSE REJECTED           - PosRC: 226 -> GenomPos: 273, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 195 -> GenomPos: 304, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 292 -> GenomPos: 207, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|36|58| | OK:0 DEG:0 REJ:36|535 it/s|0
+
+[LAVA::Validator] Checking Primer: CCGCGAACGACAATCTTAT @ Pos 202
+
+[LAVA::Validator] Checking Primer: TAATCCGCGAACGACAATC @ Pos 198
+
+[LAVA::Validator] Checking Primer: GCGAACGACAATCTTATAGGT @ Pos 204
+REVERSE REJECTED           - PosRC: 202 -> GenomPos: 297, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 198 -> GenomPos: 301, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 204 -> GenomPos: 295, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|39|58| | OK:0 DEG:0 REJ:39|530 it/s|0
+
+[LAVA::Validator] Checking Primer: TGTAATCCGCGAACGACAA @ Pos 196
+
+[LAVA::Validator] Checking Primer: TCTTGAAGGCATGCACATAATT @ Pos 318
+
+[LAVA::Validator] Checking Primer: CCGCTTACCACAACGATG @ Pos 170
+REVERSE REJECTED           - PosRC: 196 -> GenomPos: 303, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 318 -> GenomPos: 181, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 170 -> GenomPos: 329, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|42|58| | OK:0 DEG:0 REJ:42|537 it/s|0
+
+[LAVA::Validator] Checking Primer: GGTCTTGAAGGCATGCAC @ Pos 316
+
+[LAVA::Validator] Checking Primer: GCGAACGACAATCTTATAGGTT @ Pos 204
+
+[LAVA::Validator] Checking Primer: TGTAATCCGCGAACGACA @ Pos 196
+REVERSE REJECTED           - PosRC: 316 -> GenomPos: 183, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 204 -> GenomPos: 295, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 196 -> GenomPos: 303, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|45|58| | OK:0 DEG:0 REJ:45|543 it/s|0
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGTTATT @ Pos 171
+
+[LAVA::Validator] Checking Primer: ATCCGCGAACGACAATCT @ Pos 200
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACATAAT @ Pos 317
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 200 -> GenomPos: 299, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|48|58| | OK:0 DEG:0 REJ:48|549 it/s|0
+
+[LAVA::Validator] Checking Primer: AATCCGCGAACGACAATC @ Pos 199
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACA @ Pos 317
+
+[LAVA::Validator] Checking Primer: TCCGCGAACGACAATCTT @ Pos 201
+REVERSE REJECTED           - PosRC: 199 -> GenomPos: 300, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 201 -> GenomPos: 298, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|51|58| | OK:0 DEG:0 REJ:51|557 it/s|0
+
+[LAVA::Validator] Checking Primer: CCAGATGCGTATGAGCCA @ Pos 270
+
+[LAVA::Validator] Checking Primer: AGTAGTCACGTGGTTGCC @ Pos 232
+
+[LAVA::Validator] Checking Primer: ATCCGCGAACGACAATCTTATA @ Pos 200
+REVERSE REJECTED           - PosRC: 270 -> GenomPos: 229, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 232 -> GenomPos: 267, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 200 -> GenomPos: 299, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|54|58| | OK:0 DEG:0 REJ:54|565 it/s|0
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGT @ Pos 171
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAA @ Pos 197
+
+[LAVA::Validator] Checking Primer: GAACGACAATCTTATAGGTTCGT @ Pos 206
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 206 -> GenomPos: 293, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|57|58| | OK:0 DEG:0 REJ:57|562 it/s|0
+
+[LAVA::Validator] Checking Primer: GCGAACGACAATCTTATAGGTTC @ Pos 204
+REVERSE REJECTED           - PosRC: 204 -> GenomPos: 295, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|58|58| | OK:0 DEG:0 REJ:58|558 it/s|0
+[LAVA-PROGRESS] Validation Loop Forward (FLOOP)|58|58||557 it/s|0
+  [NativeReverse] Resultats / Results:
+    - Strictes / Strict: 0
+    - Degenerees / Degenerate: 0
+    - Rejetees / Rejected: 58
+    - Total valide / Total validated: 0/58
+
+  Generated "0" loop FORWARD (FLOOP) native primers
+Enumerating middle forward primers
+INFO: Utilisation de la tolerance aux mismatches activee en multi-coeurs (threads: 1)
+  - Seuil de concordance stricte / Strict match threshold: 80%
+  - Seuil de couverture IUPAC / IUPAC coverage threshold: 98%
+  [Middle Forward (F2)] Fractionnement physique de l'alignement : 1 à 500
+Primer3Conserved getOligos had 160 oligos
+INFO: Analyse de 65 amorces candidates Forward avec tolerance aux mismatches...
+[LAVA-PROGRESS] Validation Middle Forward (F2)|0|65||? it/s|0
+
+[LAVA::Validator] Checking Primer: CCACGTGACTACTTCTACGA @ Pos 255
+
+[LAVA::Validator] Checking Primer: ACCACGTGACTACTTCTACG @ Pos 254
+
+[LAVA::Validator] Checking Primer: CCTAATCATAGCGCTCCTCA @ Pos 190
+REJECTED PRIMER - Pos: 255, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 254, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 190, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|3|65| | OK:0 DEG:0 REJ:3|215 it/s|0
+
+[LAVA::Validator] Checking Primer: ACCTAATCATAGCGCTCCTC @ Pos 189
+
+[LAVA::Validator] Checking Primer: GACCTAATCATAGCGCTCCT @ Pos 188
+
+[LAVA::Validator] Checking Primer: AGACCTAATCATAGCGCTCC @ Pos 187
+REJECTED PRIMER - Pos: 189, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 188, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 187, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|6|65| | OK:0 DEG:0 REJ:6|329 it/s|0
+
+[LAVA::Validator] Checking Primer: TATGTGCATGCCTTCAAGAC @ Pos 163
+
+[LAVA::Validator] Checking Primer: GATTGTCGTTCGCGGATTAC @ Pos 283
+
+[LAVA::Validator] Checking Primer: TAACATCGTTGTGGTAAGCG @ Pos 309
+REJECTED PRIMER - Pos: 163, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 283, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 309, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|9|65| | OK:0 DEG:0 REJ:9|386 it/s|0
+
+[LAVA::Validator] Checking Primer: GTCGTTCGCGGATTACATTA @ Pos 287
+
+[LAVA::Validator] Checking Primer: AGAGACCTAATCATAGCGCT @ Pos 185
+
+[LAVA::Validator] Checking Primer: AGATTGTCGTTCGCGGATTA @ Pos 282
+REJECTED PRIMER - Pos: 287, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 185, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 282, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|12|65| | OK:0 DEG:0 REJ:12|430 it/s|0
+
+[LAVA::Validator] Checking Primer: TAAGATTGTCGTTCGCGGAT @ Pos 280
+
+[LAVA::Validator] Checking Primer: ATAAGATTGTCGTTCGCGGA @ Pos 279
+
+[LAVA::Validator] Checking Primer: TATAAGATTGTCGTTCGCGG @ Pos 278
+REJECTED PRIMER - Pos: 280, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 279, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 278, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|15|65| | OK:0 DEG:0 REJ:15|446 it/s|0
+
+[LAVA::Validator] Checking Primer: CAGAGACCTAATCATAGCGC @ Pos 184
+
+[LAVA::Validator] Checking Primer: CTATAAGATTGTCGTTCGCGG @ Pos 277
+
+[LAVA::Validator] Checking Primer: CCTATAAGATTGTCGTTCGCG @ Pos 276
+REJECTED PRIMER - Pos: 184, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 277, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 276, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|18|65| | OK:0 DEG:0 REJ:18|452 it/s|0
+
+[LAVA::Validator] Checking Primer: ATAACATCGTTGTGGTAAGCG @ Pos 308
+
+[LAVA::Validator] Checking Primer: GTCGTTCGCGGATTACATTAA @ Pos 287
+
+[LAVA::Validator] Checking Primer: ATGTGCATGCCTTCAAGAC @ Pos 164
+REJECTED PRIMER - Pos: 308, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 287, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 164, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|21|65| | OK:0 DEG:0 REJ:21|471 it/s|0
+
+[LAVA::Validator] Checking Primer: TTATGTGCATGCCTTCAAGAC @ Pos 162
+
+[LAVA::Validator] Checking Primer: GCAACCACGTGACTACTTC @ Pos 251
+
+[LAVA::Validator] Checking Primer: CGTGACTACTTCTACGAACCT @ Pos 258
+REJECTED PRIMER - Pos: 162, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 251, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 258, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|24|65| | OK:0 DEG:0 REJ:24|493 it/s|0
+
+[LAVA::Validator] Checking Primer: AGAGACCTAATCATAGCGCTC @ Pos 185
+
+[LAVA::Validator] Checking Primer: AACATCGTTGTGGTAAGCG @ Pos 310
+
+[LAVA::Validator] Checking Primer: TAAGATTGTCGTTCGCGGA @ Pos 280
+REJECTED PRIMER - Pos: 185, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 310, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 280, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|27|65| | OK:0 DEG:0 REJ:27|511 it/s|0
+
+[LAVA::Validator] Checking Primer: CCACGTGACTACTTCTACGAA @ Pos 255
+
+[LAVA::Validator] Checking Primer: ACGTGACTACTTCTACGAACC @ Pos 257
+
+[LAVA::Validator] Checking Primer: TATAAGATTGTCGTTCGCGGA @ Pos 278
+REJECTED PRIMER - Pos: 255, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 257, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 278, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|30|65| | OK:0 DEG:0 REJ:30|513 it/s|0
+
+[LAVA::Validator] Checking Primer: GTCGTTCGCGGATTACATT @ Pos 287
+
+[LAVA::Validator] Checking Primer: ATTGTCGTTCGCGGATTAC @ Pos 284
+
+[LAVA::Validator] Checking Primer: CAGAGACCTAATCATAGCGCT @ Pos 184
+REJECTED PRIMER - Pos: 287, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 284, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 184, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|33|65| | OK:0 DEG:0 REJ:33|516 it/s|0
+
+[LAVA::Validator] Checking Primer: ATTATGTGCATGCCTTCAAGA @ Pos 161
+
+[LAVA::Validator] Checking Primer: CCTAATCATAGCGCTCCTCAT @ Pos 190
+
+[LAVA::Validator] Checking Primer: CAACCACGTGACTACTTCTAC @ Pos 252
+REJECTED PRIMER - Pos: 161, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 190, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 252, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|36|65| | OK:0 DEG:0 REJ:36|524 it/s|0
+
+[LAVA::Validator] Checking Primer: CACGTGACTACTTCTACGAAC @ Pos 256
+
+[LAVA::Validator] Checking Primer: AACCACGTGACTACTTCTACG @ Pos 253
+
+[LAVA::Validator] Checking Primer: TGTCGTTCGCGGATTACAT @ Pos 286
+REJECTED PRIMER - Pos: 256, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 253, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 286, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|39|65| | OK:0 DEG:0 REJ:39|530 it/s|0
+
+[LAVA::Validator] Checking Primer: ACCTAATCATAGCGCTCCT @ Pos 189
+
+[LAVA::Validator] Checking Primer: ATAAGATTGTCGTTCGCGG @ Pos 279
+
+[LAVA::Validator] Checking Primer: GATTGTCGTTCGCGGATTA @ Pos 283
+REJECTED PRIMER - Pos: 189, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 279, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 283, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|42|65| | OK:0 DEG:0 REJ:42|532 it/s|0
+
+[LAVA::Validator] Checking Primer: ACCTATAAGATTGTCGTTCGC @ Pos 275
+
+[LAVA::Validator] Checking Primer: TTGTCGTTCGCGGATTACA @ Pos 285
+
+[LAVA::Validator] Checking Primer: CGTGACTACTTCTACGAACCTA @ Pos 258
+REJECTED PRIMER - Pos: 275, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 285, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 258, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|45|65| | OK:0 DEG:0 REJ:45|527 it/s|0
+
+[LAVA::Validator] Checking Primer: AATTATGTGCATGCCTTCAAGA @ Pos 160
+
+[LAVA::Validator] Checking Primer: CATCGTTGTGGTAAGCGG @ Pos 312
+
+[LAVA::Validator] Checking Primer: GTGCATGCCTTCAAGACC @ Pos 166
+REJECTED PRIMER - Pos: 160, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 312, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 166, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|48|65| | OK:0 DEG:0 REJ:48|534 it/s|0
+
+[LAVA::Validator] Checking Primer: AACCTATAAGATTGTCGTTCGC @ Pos 274
+
+[LAVA::Validator] Checking Primer: TGTCGTTCGCGGATTACA @ Pos 286
+
+[LAVA::Validator] Checking Primer: AATAACATCGTTGTGGTAAGCG @ Pos 307
+REJECTED PRIMER - Pos: 274, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 286, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 307, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|51|65| | OK:0 DEG:0 REJ:51|534 it/s|0
+
+[LAVA::Validator] Checking Primer: AGATTGTCGTTCGCGGAT @ Pos 282
+
+[LAVA::Validator] Checking Primer: ATTATGTGCATGCCTTCAAGAC @ Pos 161
+
+[LAVA::Validator] Checking Primer: GATTGTCGTTCGCGGATT @ Pos 283
+REJECTED PRIMER - Pos: 282, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 161, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 283, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|54|65| | OK:0 DEG:0 REJ:54|541 it/s|0
+
+[LAVA::Validator] Checking Primer: TGTGCATGCCTTCAAGAC @ Pos 165
+
+[LAVA::Validator] Checking Primer: AAGATTGTCGTTCGCGGA @ Pos 281
+
+[LAVA::Validator] Checking Primer: TGGCTCATACGCATCTGG @ Pos 212
+REJECTED PRIMER - Pos: 165, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 281, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 212, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|57|65| | OK:0 DEG:0 REJ:57|549 it/s|0
+
+[LAVA::Validator] Checking Primer: GGCAACCACGTGACTACT @ Pos 250
+
+[LAVA::Validator] Checking Primer: TATAAGATTGTCGTTCGCGGAT @ Pos 278
+
+[LAVA::Validator] Checking Primer: ACATCGTTGTGGTAAGCG @ Pos 311
+REJECTED PRIMER - Pos: 250, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 278, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 311, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|60|65| | OK:0 DEG:0 REJ:60|556 it/s|0
+
+[LAVA::Validator] Checking Primer: TTGTCGTTCGCGGATTAC @ Pos 285
+
+[LAVA::Validator] Checking Primer: CGAACCTATAAGATTGTCGTTCG @ Pos 272
+
+[LAVA::Validator] Checking Primer: CGTGACTACTTCTACGAACCTAT @ Pos 258
+REJECTED PRIMER - Pos: 285, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 272, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 258, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|63|65| | OK:0 DEG:0 REJ:63|549 it/s|0
+
+[LAVA::Validator] Checking Primer: ACGAACCTATAAGATTGTCGTTC @ Pos 271
+
+[LAVA::Validator] Checking Primer: GAACCTATAAGATTGTCGTTCGC @ Pos 273
+REJECTED PRIMER - Pos: 271, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 273, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Forward (F2)|65|65| | OK:0 DEG:0 REJ:65|541 it/s|0
+[LAVA-PROGRESS] Validation Middle Forward (F2)|65|65||541 it/s|0
+  [Forward] Resultats / Results:
+    - Strictes / Strict: 0
+    - Degenerees / Degenerate: 0
+    - Rejetees / Rejected: 65
+    - Total valide / Total validated: 0/65
+
+  Generated "0" middle primers
+Enumerating middle NATIVE reverse primers (Option B)
+  [NativeReverse] Longueur alignement / Alignment length: 500 nt
+  [NativeReverse] RC MSA construit avec 10 sequences / RC MSA built with 10 sequences
+  [NativeReverse] Fractionnement physique de l'alignement RC : 1 à 500
+Primer3Conserved getOligos had 168 oligos
+  [NativeReverse] Primer3 a genere / generated 58 candidats sur RC MSA
+INFO: [NativeReverse] Analyse de 58 amorces candidates Reverse en multi-coeurs (threads: 1)...
+  - Strict match: 80% | IUPAC: 98% | Coverage: 80%
+  - MaxDegen: 2 total / 2 au 3prime
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|0|58||? it/s|0
+
+[LAVA::Validator] Checking Primer: TCGTAGAAGTAGTCACGTGG @ Pos 225
+
+[LAVA::Validator] Checking Primer: CGTAGAAGTAGTCACGTGGT @ Pos 226
+
+[LAVA::Validator] Checking Primer: TGAGGAGCGCTATGATTAGG @ Pos 290
+REVERSE REJECTED           - PosRC: 225 -> GenomPos: 274, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 226 -> GenomPos: 273, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 290 -> GenomPos: 209, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|3|58| | OK:0 DEG:0 REJ:3|210 it/s|0
+
+[LAVA::Validator] Checking Primer: GGAGCGCTATGATTAGGTCT @ Pos 293
+
+[LAVA::Validator] Checking Primer: AGGAGCGCTATGATTAGGTC @ Pos 292
+
+[LAVA::Validator] Checking Primer: GAGGAGCGCTATGATTAGGT @ Pos 291
+REVERSE REJECTED           - PosRC: 293 -> GenomPos: 206, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 292 -> GenomPos: 207, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 291 -> GenomPos: 208, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|6|58| | OK:0 DEG:0 REJ:6|325 it/s|0
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACATA @ Pos 317
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAATC @ Pos 197
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGTTA @ Pos 171
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|9|58| | OK:0 DEG:0 REJ:9|387 it/s|0
+
+[LAVA::Validator] Checking Primer: TAATGTAATCCGCGAACGAC @ Pos 193
+
+[LAVA::Validator] Checking Primer: AGCGCTATGATTAGGTCTCT @ Pos 295
+
+[LAVA::Validator] Checking Primer: TCCGCGAACGACAATCTTAT @ Pos 201
+REVERSE REJECTED           - PosRC: 193 -> GenomPos: 306, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 295 -> GenomPos: 204, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 201 -> GenomPos: 298, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|12|58| | OK:0 DEG:0 REJ:12|423 it/s|0
+
+[LAVA::Validator] Checking Primer: ATCCGCGAACGACAATCTTA @ Pos 200
+
+[LAVA::Validator] Checking Primer: TAATCCGCGAACGACAATCT @ Pos 198
+
+[LAVA::Validator] Checking Primer: CCGCGAACGACAATCTTATA @ Pos 202
+REVERSE REJECTED           - PosRC: 200 -> GenomPos: 299, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 198 -> GenomPos: 301, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 202 -> GenomPos: 297, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|15|58| | OK:0 DEG:0 REJ:15|439 it/s|0
+
+[LAVA::Validator] Checking Primer: GCGCTATGATTAGGTCTCTG @ Pos 296
+
+[LAVA::Validator] Checking Primer: CGCGAACGACAATCTTATAGG @ Pos 203
+
+[LAVA::Validator] Checking Primer: CCGCGAACGACAATCTTATAG @ Pos 202
+REVERSE REJECTED           - PosRC: 296 -> GenomPos: 203, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 203 -> GenomPos: 296, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 202 -> GenomPos: 297, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|18|58| | OK:0 DEG:0 REJ:18|441 it/s|0
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGTTAT @ Pos 171
+
+[LAVA::Validator] Checking Primer: TTAATGTAATCCGCGAACGAC @ Pos 192
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACAT @ Pos 317
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 192 -> GenomPos: 307, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|21|58| | OK:0 DEG:0 REJ:21|459 it/s|0
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACATAA @ Pos 317
+
+[LAVA::Validator] Checking Primer: GAAGTAGTCACGTGGTTGC @ Pos 230
+
+[LAVA::Validator] Checking Primer: GAGCGCTATGATTAGGTCTCT @ Pos 294
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 230 -> GenomPos: 269, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 294 -> GenomPos: 205, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|24|58| | OK:0 DEG:0 REJ:24|489 it/s|0
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGTT @ Pos 171
+
+[LAVA::Validator] Checking Primer: TCCGCGAACGACAATCTTA @ Pos 201
+
+[LAVA::Validator] Checking Primer: TCCGCGAACGACAATCTTATA @ Pos 201
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 201 -> GenomPos: 298, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 201 -> GenomPos: 298, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|27|58| | OK:0 DEG:0 REJ:27|499 it/s|0
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAAT @ Pos 197
+
+[LAVA::Validator] Checking Primer: AATGTAATCCGCGAACGAC @ Pos 194
+
+[LAVA::Validator] Checking Primer: AGCGCTATGATTAGGTCTCTG @ Pos 295
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 194 -> GenomPos: 305, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 295 -> GenomPos: 204, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|30|58| | OK:0 DEG:0 REJ:30|506 it/s|0
+
+[LAVA::Validator] Checking Primer: TCTTGAAGGCATGCACATAAT @ Pos 318
+
+[LAVA::Validator] Checking Primer: ATGAGGAGCGCTATGATTAGG @ Pos 289
+
+[LAVA::Validator] Checking Primer: GTAGAAGTAGTCACGTGGTTG @ Pos 227
+REVERSE REJECTED           - PosRC: 318 -> GenomPos: 181, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 289 -> GenomPos: 210, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 227 -> GenomPos: 272, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|33|58| | OK:0 DEG:0 REJ:33|516 it/s|0
+
+[LAVA::Validator] Checking Primer: CGTAGAAGTAGTCACGTGGTT @ Pos 226
+
+[LAVA::Validator] Checking Primer: ATGTAATCCGCGAACGACA @ Pos 195
+
+[LAVA::Validator] Checking Primer: AGGAGCGCTATGATTAGGT @ Pos 292
+REVERSE REJECTED           - PosRC: 226 -> GenomPos: 273, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 195 -> GenomPos: 304, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 292 -> GenomPos: 207, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|36|58| | OK:0 DEG:0 REJ:36|529 it/s|0
+
+[LAVA::Validator] Checking Primer: CCGCGAACGACAATCTTAT @ Pos 202
+
+[LAVA::Validator] Checking Primer: TAATCCGCGAACGACAATC @ Pos 198
+
+[LAVA::Validator] Checking Primer: GCGAACGACAATCTTATAGGT @ Pos 204
+REVERSE REJECTED           - PosRC: 202 -> GenomPos: 297, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 198 -> GenomPos: 301, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 204 -> GenomPos: 295, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|39|58| | OK:0 DEG:0 REJ:39|526 it/s|0
+
+[LAVA::Validator] Checking Primer: TGTAATCCGCGAACGACAA @ Pos 196
+
+[LAVA::Validator] Checking Primer: TCTTGAAGGCATGCACATAATT @ Pos 318
+
+[LAVA::Validator] Checking Primer: CCGCTTACCACAACGATG @ Pos 170
+REVERSE REJECTED           - PosRC: 196 -> GenomPos: 303, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 318 -> GenomPos: 181, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 170 -> GenomPos: 329, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|42|58| | OK:0 DEG:0 REJ:42|530 it/s|0
+
+[LAVA::Validator] Checking Primer: GGTCTTGAAGGCATGCAC @ Pos 316
+
+[LAVA::Validator] Checking Primer: GCGAACGACAATCTTATAGGTT @ Pos 204
+
+[LAVA::Validator] Checking Primer: TGTAATCCGCGAACGACA @ Pos 196
+REVERSE REJECTED           - PosRC: 316 -> GenomPos: 183, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 204 -> GenomPos: 295, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 196 -> GenomPos: 303, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|45|58| | OK:0 DEG:0 REJ:45|537 it/s|0
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGTTATT @ Pos 171
+
+[LAVA::Validator] Checking Primer: ATCCGCGAACGACAATCT @ Pos 200
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACATAAT @ Pos 317
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 200 -> GenomPos: 299, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|48|58| | OK:0 DEG:0 REJ:48|543 it/s|0
+
+[LAVA::Validator] Checking Primer: AATCCGCGAACGACAATC @ Pos 199
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACA @ Pos 317
+
+[LAVA::Validator] Checking Primer: TCCGCGAACGACAATCTT @ Pos 201
+REVERSE REJECTED           - PosRC: 199 -> GenomPos: 300, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 201 -> GenomPos: 298, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|51|58| | OK:0 DEG:0 REJ:51|551 it/s|0
+
+[LAVA::Validator] Checking Primer: CCAGATGCGTATGAGCCA @ Pos 270
+
+[LAVA::Validator] Checking Primer: AGTAGTCACGTGGTTGCC @ Pos 232
+
+[LAVA::Validator] Checking Primer: ATCCGCGAACGACAATCTTATA @ Pos 200
+REVERSE REJECTED           - PosRC: 270 -> GenomPos: 229, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 232 -> GenomPos: 267, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 200 -> GenomPos: 299, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|54|58| | OK:0 DEG:0 REJ:54|559 it/s|0
+
+[LAVA::Validator] Checking Primer: CGCTTACCACAACGATGT @ Pos 171
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAA @ Pos 197
+
+[LAVA::Validator] Checking Primer: GAACGACAATCTTATAGGTTCGT @ Pos 206
+REVERSE REJECTED           - PosRC: 171 -> GenomPos: 328, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 206 -> GenomPos: 293, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|57|58| | OK:0 DEG:0 REJ:57|557 it/s|0
+
+[LAVA::Validator] Checking Primer: GCGAACGACAATCTTATAGGTTC @ Pos 204
+REVERSE REJECTED           - PosRC: 204 -> GenomPos: 295, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|58|58| | OK:0 DEG:0 REJ:58|553 it/s|0
+[LAVA-PROGRESS] Validation Middle Reverse (B2)|58|58||552 it/s|0
+  [NativeReverse] Resultats / Results:
+    - Strictes / Strict: 0
+    - Degenerees / Degenerate: 0
+    - Rejetees / Rejected: 58
+    - Total valide / Total validated: 0/58
+
+  Generated "0" middle native reverse primers
+Enumerating inner forward primers
+INFO: Utilisation de la tolerance aux mismatches activee en multi-coeurs (threads: 1)
+  - Seuil de concordance stricte / Strict match threshold: 80%
+  - Seuil de couverture IUPAC / IUPAC coverage threshold: 98%
+  [Inner Forward (F1c)] Fractionnement physique de l'alignement : 1 à 500
+Primer3Conserved getOligos had 194 oligos
+INFO: Analyse de 92 amorces candidates Forward avec tolerance aux mismatches...
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|0|92||? it/s|0
+
+[LAVA::Validator] Checking Primer: TTGTCGTTCGCGGATTACATTAA @ Pos 285
+
+[LAVA::Validator] Checking Primer: TAAGATTGTCGTTCGCGGATTAC @ Pos 280
+
+[LAVA::Validator] Checking Primer: AACCTATAAGATTGTCGTTCGCG @ Pos 274
+
+[LAVA::Validator] Checking Primer: ATTGTCGTTCGCGGATTACATTA @ Pos 284
+REJECTED PRIMER - Pos: 285, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 280, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 274, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 284, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|4|92| | OK:0 DEG:0 REJ:4|214 it/s|0
+
+[LAVA::Validator] Checking Primer: CTATAAGATTGTCGTTCGCGGAT @ Pos 277
+
+[LAVA::Validator] Checking Primer: ACGTGACTACTTCTACGAACCTA @ Pos 257
+
+[LAVA::Validator] Checking Primer: AACCACGTGACTACTTCTACGAA @ Pos 253
+
+[LAVA::Validator] Checking Primer: AATAACATCGTTGTGGTAAGCGG @ Pos 307
+REJECTED PRIMER - Pos: 277, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 257, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 253, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 307, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|8|92| | OK:0 DEG:0 REJ:8|285 it/s|0
+
+[LAVA::Validator] Checking Primer: ATAAGATTGTCGTTCGCGGATTA @ Pos 279
+
+[LAVA::Validator] Checking Primer: TATAAGATTGTCGTTCGCGGATT @ Pos 278
+
+[LAVA::Validator] Checking Primer: ACCTAATCATAGCGCTCCTCATT @ Pos 189
+
+[LAVA::Validator] Checking Primer: ATTATGTGCATGCCTTCAAGACC @ Pos 161
+REJECTED PRIMER - Pos: 279, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 278, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 189, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 161, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|12|92| | OK:0 DEG:0 REJ:12|326 it/s|0
+
+[LAVA::Validator] Checking Primer: GATTGTCGTTCGCGGATTACATT @ Pos 283
+
+[LAVA::Validator] Checking Primer: CACGTGACTACTTCTACGAACCT @ Pos 256
+
+[LAVA::Validator] Checking Primer: AATTATGTGCATGCCTTCAAGAC @ Pos 160
+
+[LAVA::Validator] Checking Primer: ATTGTCGTTCGCGGATTACATT @ Pos 284
+REJECTED PRIMER - Pos: 283, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 256, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 160, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 284, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|16|92| | OK:0 DEG:0 REJ:16|357 it/s|0
+
+[LAVA::Validator] Checking Primer: ACGTGACTACTTCTACGAACCT @ Pos 257
+
+[LAVA::Validator] Checking Primer: ACGTGACTACTTCTACGAACCTAT @ Pos 257
+
+[LAVA::Validator] Checking Primer: CTATAAGATTGTCGTTCGCGGATT @ Pos 277
+
+[LAVA::Validator] Checking Primer: ACCACGTGACTACTTCTACGAA @ Pos 254
+REJECTED PRIMER - Pos: 257, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 257, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 277, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 254, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|20|92| | OK:0 DEG:0 REJ:20|371 it/s|0
+
+[LAVA::Validator] Checking Primer: AACCACGTGACTACTTCTACGA @ Pos 253
+
+[LAVA::Validator] Checking Primer: GCAACCACGTGACTACTTCTAC @ Pos 251
+
+[LAVA::Validator] Checking Primer: CAACCACGTGACTACTTCTACG @ Pos 252
+
+[LAVA::Validator] Checking Primer: ATAACATCGTTGTGGTAAGCGG @ Pos 308
+REJECTED PRIMER - Pos: 253, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 251, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 252, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 308, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|24|92| | OK:0 DEG:0 REJ:24|400 it/s|0
+
+[LAVA::Validator] Checking Primer: ATTGTCGTTCGCGGATTACATTAA @ Pos 284
+
+[LAVA::Validator] Checking Primer: ACGAACCTATAAGATTGTCGTTCG @ Pos 271
+
+[LAVA::Validator] Checking Primer: CCTATAAGATTGTCGTTCGCGG @ Pos 276
+
+[LAVA::Validator] Checking Primer: ACCTATAAGATTGTCGTTCGCG @ Pos 275
+REJECTED PRIMER - Pos: 284, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 271, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 276, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 275, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|28|92| | OK:0 DEG:0 REJ:28|394 it/s|0
+
+[LAVA::Validator] Checking Primer: ATAAGATTGTCGTTCGCGGATTAC @ Pos 279
+
+[LAVA::Validator] Checking Primer: ACCTAATCATAGCGCTCCTCAT @ Pos 189
+
+[LAVA::Validator] Checking Primer: AAGATTGTCGTTCGCGGATTAC @ Pos 281
+
+[LAVA::Validator] Checking Primer: ATAAGATTGTCGTTCGCGGATT @ Pos 279
+REJECTED PRIMER - Pos: 279, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 189, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 281, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 279, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|32|92| | OK:0 DEG:0 REJ:32|399 it/s|0
+
+[LAVA::Validator] Checking Primer: CACGTGACTACTTCTACGAACC @ Pos 256
+
+[LAVA::Validator] Checking Primer: CCACGTGACTACTTCTACGAAC @ Pos 255
+
+[LAVA::Validator] Checking Primer: GATTGTCGTTCGCGGATTACAT @ Pos 283
+
+[LAVA::Validator] Checking Primer: TGTCGTTCGCGGATTACATTAA @ Pos 286
+REJECTED PRIMER - Pos: 256, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 255, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 283, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 286, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|36|92| | OK:0 DEG:0 REJ:36|409 it/s|0
+
+[LAVA::Validator] Checking Primer: TTGTCGTTCGCGGATTACATTA @ Pos 285
+
+[LAVA::Validator] Checking Primer: GATTGTCGTTCGCGGATTACATTA @ Pos 283
+
+[LAVA::Validator] Checking Primer: TTATGTGCATGCCTTCAAGACC @ Pos 162
+
+[LAVA::Validator] Checking Primer: CAGAGACCTAATCATAGCGCTC @ Pos 184
+REJECTED PRIMER - Pos: 285, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 283, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 162, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 184, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|40|92| | OK:0 DEG:0 REJ:40|420 it/s|0
+
+[LAVA::Validator] Checking Primer: CTATAAGATTGTCGTTCGCGGA @ Pos 277
+
+[LAVA::Validator] Checking Primer: CACGTGACTACTTCTACGAACCTA @ Pos 256
+
+[LAVA::Validator] Checking Primer: AGACCTAATCATAGCGCTCCTC @ Pos 187
+
+[LAVA::Validator] Checking Primer: GAGACCTAATCATAGCGCTCCT @ Pos 186
+REJECTED PRIMER - Pos: 277, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 256, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 187, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 186, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|44|92| | OK:0 DEG:0 REJ:44|425 it/s|0
+
+[LAVA::Validator] Checking Primer: AGAGACCTAATCATAGCGCTCC @ Pos 185
+
+[LAVA::Validator] Checking Primer: GAACCTATAAGATTGTCGTTCGCG @ Pos 273
+
+[LAVA::Validator] Checking Primer: CGAACCTATAAGATTGTCGTTCGC @ Pos 272
+
+[LAVA::Validator] Checking Primer: CCTAATCATAGCGCTCCTCATT @ Pos 190
+REJECTED PRIMER - Pos: 185, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 273, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 272, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 190, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|48|92| | OK:0 DEG:0 REJ:48|426 it/s|0
+
+[LAVA::Validator] Checking Primer: GACCTAATCATAGCGCTCCTCA @ Pos 188
+
+[LAVA::Validator] Checking Primer: CCAGAGACCTAATCATAGCGCT @ Pos 183
+
+[LAVA::Validator] Checking Primer: TATAAGATTGTCGTTCGCGGATTA @ Pos 278
+
+[LAVA::Validator] Checking Primer: TAAGATTGTCGTTCGCGGATTA @ Pos 280
+REJECTED PRIMER - Pos: 188, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 183, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 278, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 280, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|52|92| | OK:0 DEG:0 REJ:52|430 it/s|0
+
+[LAVA::Validator] Checking Primer: ACCTAATCATAGCGCTCCTCA @ Pos 189
+
+[LAVA::Validator] Checking Primer: TATAAGATTGTCGTTCGCGGATTAC @ Pos 278
+
+[LAVA::Validator] Checking Primer: AGATTGTCGTTCGCGGATTAC @ Pos 282
+
+[LAVA::Validator] Checking Primer: TAACATCGTTGTGGTAAGCGG @ Pos 309
+REJECTED PRIMER - Pos: 189, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 278, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 282, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 309, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|56|92| | OK:0 DEG:0 REJ:56|433 it/s|0
+
+[LAVA::Validator] Checking Primer: TATGTGCATGCCTTCAAGACC @ Pos 163
+
+[LAVA::Validator] Checking Primer: CTATAAGATTGTCGTTCGCGGATTA @ Pos 277
+
+[LAVA::Validator] Checking Primer: GATTGTCGTTCGCGGATTACA @ Pos 283
+
+[LAVA::Validator] Checking Primer: AGACCTAATCATAGCGCTCCT @ Pos 187
+REJECTED PRIMER - Pos: 163, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 277, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 283, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 187, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|60|92| | OK:0 DEG:0 REJ:60|437 it/s|0
+
+[LAVA::Validator] Checking Primer: TTGTCGTTCGCGGATTACATT @ Pos 285
+
+[LAVA::Validator] Checking Primer: ACCACGTGACTACTTCTACGA @ Pos 254
+
+[LAVA::Validator] Checking Primer: ACGTGACTACTTCTACGAACCTATA @ Pos 257
+
+[LAVA::Validator] Checking Primer: ATTGTCGTTCGCGGATTACAT @ Pos 284
+REJECTED PRIMER - Pos: 285, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 254, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 257, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 284, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|64|92| | OK:0 DEG:0 REJ:64|441 it/s|0
+
+[LAVA::Validator] Checking Primer: TACGAACCTATAAGATTGTCGTTCG @ Pos 270
+
+[LAVA::Validator] Checking Primer: CCAGAGACCTAATCATAGCGC @ Pos 183
+
+[LAVA::Validator] Checking Primer: AAGATTGTCGTTCGCGGATTA @ Pos 281
+
+[LAVA::Validator] Checking Primer: TAAGATTGTCGTTCGCGGATT @ Pos 280
+REJECTED PRIMER - Pos: 270, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 183, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 281, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 280, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|68|92| | OK:0 DEG:0 REJ:68|441 it/s|0
+
+[LAVA::Validator] Checking Primer: GACCTAATCATAGCGCTCCTC @ Pos 188
+
+[LAVA::Validator] Checking Primer: GAGACCTAATCATAGCGCTCC @ Pos 186
+
+[LAVA::Validator] Checking Primer: CACGTGACTACTTCTACGAACCTAT @ Pos 256
+
+[LAVA::Validator] Checking Primer: ATAAGATTGTCGTTCGCGGAT @ Pos 279
+REJECTED PRIMER - Pos: 188, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 186, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 256, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 279, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|72|92| | OK:0 DEG:0 REJ:72|445 it/s|0
+
+[LAVA::Validator] Checking Primer: GATTGTCGTTCGCGGATTACATTAA @ Pos 283
+
+[LAVA::Validator] Checking Primer: GCAACCACGTGACTACTTCTA @ Pos 251
+
+[LAVA::Validator] Checking Primer: TGTCGTTCGCGGATTACATTA @ Pos 286
+
+[LAVA::Validator] Checking Primer: ACGTGACTACTTCTACGAACCTATAA @ Pos 257
+REJECTED PRIMER - Pos: 283, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 251, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 286, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 257, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|76|92| | OK:0 DEG:0 REJ:76|446 it/s|0
+
+[LAVA::Validator] Checking Primer: AACATCGTTGTGGTAAGCGG @ Pos 310
+
+[LAVA::Validator] Checking Primer: CTACGAACCTATAAGATTGTCGTTCG @ Pos 269
+
+[LAVA::Validator] Checking Primer: GGCAACCACGTGACTACTTC @ Pos 250
+
+[LAVA::Validator] Checking Primer: AAGATTGTCGTTCGCGGATT @ Pos 281
+REJECTED PRIMER - Pos: 310, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 269, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 250, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 281, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|80|92| | OK:0 DEG:0 REJ:80|449 it/s|0
+
+[LAVA::Validator] Checking Primer: ATGTGCATGCCTTCAAGACC @ Pos 164
+
+[LAVA::Validator] Checking Primer: CACGTGACTACTTCTACGAACCTATA @ Pos 256
+
+[LAVA::Validator] Checking Primer: CGTGACTACTTCTACGAACCTATAAG @ Pos 258
+
+[LAVA::Validator] Checking Primer: CTTCTACGAACCTATAAGATTGTCGT @ Pos 266
+REJECTED PRIMER - Pos: 164, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 256, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 258, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 266, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|84|92| | OK:0 DEG:0 REJ:84|448 it/s|0
+
+[LAVA::Validator] Checking Primer: ACTTCTACGAACCTATAAGATTGTCG @ Pos 265
+
+[LAVA::Validator] Checking Primer: GCAACCACGTGACTACTTCT @ Pos 251
+
+[LAVA::Validator] Checking Primer: TCTACGAACCTATAAGATTGTCGTTC @ Pos 268
+
+[LAVA::Validator] Checking Primer: TGTCGTTCGCGGATTACATT @ Pos 286
+REJECTED PRIMER - Pos: 265, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 251, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 268, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 286, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|88|92| | OK:0 DEG:0 REJ:88|449 it/s|0
+
+[LAVA::Validator] Checking Primer: TTGTCGTTCGCGGATTACAT @ Pos 285
+
+[LAVA::Validator] Checking Primer: ATTGTCGTTCGCGGATTACA @ Pos 284
+
+[LAVA::Validator] Checking Primer: CTATAAGATTGTCGTTCGCGGATTAC @ Pos 277
+
+[LAVA::Validator] Checking Primer: TTCTACGAACCTATAAGATTGTCGTT @ Pos 267
+REJECTED PRIMER - Pos: 285, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 284, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 277, Couv: 10.0% < 80%
+REJECTED PRIMER - Pos: 267, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|92|92| | OK:0 DEG:0 REJ:92|448 it/s|0
+[LAVA-PROGRESS] Validation Inner Forward (F1c)|92|92||448 it/s|0
+  [Forward] Resultats / Results:
+    - Strictes / Strict: 0
+    - Degenerees / Degenerate: 0
+    - Rejetees / Rejected: 92
+    - Total valide / Total validated: 0/92
+
+  Generated "0" inner primers
+Enumerating inner NATIVE reverse primers (Option B)
+  [NativeReverse] Longueur alignement / Alignment length: 500 nt
+  [NativeReverse] RC MSA construit avec 10 sequences / RC MSA built with 10 sequences
+  [NativeReverse] Fractionnement physique de l'alignement RC : 1 à 500
+Primer3Conserved getOligos had 188 oligos
+  [NativeReverse] Primer3 a genere / generated 71 candidats sur RC MSA
+INFO: [NativeReverse] Analyse de 71 amorces candidates Reverse en multi-coeurs (threads: 1)...
+  - Strict match: 80% | IUPAC: 98% | Coverage: 80%
+  - MaxDegen: 2 total / 2 au 3prime
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|0|71||? it/s|0
+
+[LAVA::Validator] Checking Primer: TTAATGTAATCCGCGAACGACAA @ Pos 192
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAATCTTA @ Pos 197
+
+[LAVA::Validator] Checking Primer: CGCGAACGACAATCTTATAGGTT @ Pos 203
+REVERSE REJECTED           - PosRC: 192 -> GenomPos: 307, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 203 -> GenomPos: 296, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|3|71| | OK:0 DEG:0 REJ:3|180 it/s|0
+
+[LAVA::Validator] Checking Primer: TAATGTAATCCGCGAACGACAAT @ Pos 193
+
+[LAVA::Validator] Checking Primer: ATCCGCGAACGACAATCTTATAG @ Pos 200
+
+[LAVA::Validator] Checking Primer: CCGCTTACCACAACGATGTTATT @ Pos 170
+REVERSE REJECTED           - PosRC: 193 -> GenomPos: 306, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 200 -> GenomPos: 299, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 170 -> GenomPos: 329, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|6|71| | OK:0 DEG:0 REJ:6|256 it/s|0
+
+[LAVA::Validator] Checking Primer: AATCCGCGAACGACAATCTTATA @ Pos 199
+
+[LAVA::Validator] Checking Primer: TAATCCGCGAACGACAATCTTAT @ Pos 198
+
+[LAVA::Validator] Checking Primer: AATGAGGAGCGCTATGATTAGGT @ Pos 288
+REVERSE REJECTED           - PosRC: 199 -> GenomPos: 300, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 198 -> GenomPos: 301, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 288 -> GenomPos: 211, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|9|71| | OK:0 DEG:0 REJ:9|297 it/s|0
+
+[LAVA::Validator] Checking Primer: GGTCTTGAAGGCATGCACATAAT @ Pos 316
+
+[LAVA::Validator] Checking Primer: AATGTAATCCGCGAACGACAATC @ Pos 194
+
+[LAVA::Validator] Checking Primer: GTCTTGAAGGCATGCACATAATT @ Pos 317
+REVERSE REJECTED           - PosRC: 316 -> GenomPos: 183, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 194 -> GenomPos: 305, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 317 -> GenomPos: 182, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|12|71| | OK:0 DEG:0 REJ:12|338 it/s|0
+
+[LAVA::Validator] Checking Primer: AATGTAATCCGCGAACGACAAT @ Pos 194
+
+[LAVA::Validator] Checking Primer: AATCCGCGAACGACAATCTTATAG @ Pos 199
+
+[LAVA::Validator] Checking Primer: TCGTAGAAGTAGTCACGTGGTT @ Pos 225
+REVERSE REJECTED           - PosRC: 194 -> GenomPos: 305, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 199 -> GenomPos: 300, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 225 -> GenomPos: 274, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|15|71| | OK:0 DEG:0 REJ:15|363 it/s|0
+
+[LAVA::Validator] Checking Primer: GTAGAAGTAGTCACGTGGTTGC @ Pos 227
+
+[LAVA::Validator] Checking Primer: CGTAGAAGTAGTCACGTGGTTG @ Pos 226
+
+[LAVA::Validator] Checking Primer: CCGCTTACCACAACGATGTTAT @ Pos 170
+REVERSE REJECTED           - PosRC: 227 -> GenomPos: 272, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 226 -> GenomPos: 273, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 170 -> GenomPos: 329, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|18|71| | OK:0 DEG:0 REJ:18|391 it/s|0
+
+[LAVA::Validator] Checking Primer: TTAATGTAATCCGCGAACGACAAT @ Pos 192
+
+[LAVA::Validator] Checking Primer: CCGCGAACGACAATCTTATAGG @ Pos 202
+
+[LAVA::Validator] Checking Primer: CGCGAACGACAATCTTATAGGT @ Pos 203
+REVERSE REJECTED           - PosRC: 192 -> GenomPos: 307, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 202 -> GenomPos: 297, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 203 -> GenomPos: 296, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|21|71| | OK:0 DEG:0 REJ:21|386 it/s|0
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAATCTTAT @ Pos 197
+
+[LAVA::Validator] Checking Primer: ATGAGGAGCGCTATGATTAGGT @ Pos 289
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAATCTT @ Pos 197
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 289 -> GenomPos: 210, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|24|71| | OK:0 DEG:0 REJ:24|390 it/s|0
+
+[LAVA::Validator] Checking Primer: AATCCGCGAACGACAATCTTAT @ Pos 199
+
+[LAVA::Validator] Checking Primer: ATGTAATCCGCGAACGACAATC @ Pos 195
+
+[LAVA::Validator] Checking Primer: TAATGTAATCCGCGAACGACAA @ Pos 193
+REVERSE REJECTED           - PosRC: 199 -> GenomPos: 300, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 195 -> GenomPos: 304, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 193 -> GenomPos: 306, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|27|71| | OK:0 DEG:0 REJ:27|404 it/s|0
+
+[LAVA::Validator] Checking Primer: TTAATGTAATCCGCGAACGACA @ Pos 192
+
+[LAVA::Validator] Checking Primer: TAATGTAATCCGCGAACGACAATC @ Pos 193
+
+[LAVA::Validator] Checking Primer: GGTCTTGAAGGCATGCACATAA @ Pos 316
+REVERSE REJECTED           - PosRC: 192 -> GenomPos: 307, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 193 -> GenomPos: 306, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 316 -> GenomPos: 183, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|30|71| | OK:0 DEG:0 REJ:30|413 it/s|0
+
+[LAVA::Validator] Checking Primer: GAGCGCTATGATTAGGTCTCTG @ Pos 294
+
+[LAVA::Validator] Checking Primer: TCCGCGAACGACAATCTTATAG @ Pos 201
+
+[LAVA::Validator] Checking Primer: GGAGCGCTATGATTAGGTCTCT @ Pos 293
+REVERSE REJECTED           - PosRC: 294 -> GenomPos: 205, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 201 -> GenomPos: 298, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 293 -> GenomPos: 206, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|33|71| | OK:0 DEG:0 REJ:33|422 it/s|0
+
+[LAVA::Validator] Checking Primer: AGGAGCGCTATGATTAGGTCTC @ Pos 292
+
+[LAVA::Validator] Checking Primer: GAGGAGCGCTATGATTAGGTCT @ Pos 291
+
+[LAVA::Validator] Checking Primer: CGCGAACGACAATCTTATAGGTTC @ Pos 203
+REVERSE REJECTED           - PosRC: 292 -> GenomPos: 207, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 291 -> GenomPos: 208, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 203 -> GenomPos: 296, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|36|71| | OK:0 DEG:0 REJ:36|430 it/s|0
+
+[LAVA::Validator] Checking Primer: AATGAGGAGCGCTATGATTAGG @ Pos 288
+
+[LAVA::Validator] Checking Primer: TGAGGAGCGCTATGATTAGGTC @ Pos 290
+
+[LAVA::Validator] Checking Primer: AGCGCTATGATTAGGTCTCTGG @ Pos 295
+REVERSE REJECTED           - PosRC: 288 -> GenomPos: 211, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 290 -> GenomPos: 209, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 295 -> GenomPos: 204, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|39|71| | OK:0 DEG:0 REJ:39|437 it/s|0
+
+[LAVA::Validator] Checking Primer: TAATCCGCGAACGACAATCTTATA @ Pos 198
+
+[LAVA::Validator] Checking Primer: TAATCCGCGAACGACAATCTTA @ Pos 198
+
+[LAVA::Validator] Checking Primer: TGAGGAGCGCTATGATTAGGT @ Pos 290
+REVERSE REJECTED           - PosRC: 198 -> GenomPos: 301, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 198 -> GenomPos: 301, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 290 -> GenomPos: 209, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|42|71| | OK:0 DEG:0 REJ:42|439 it/s|0
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAATCTTATA @ Pos 197
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAATCT @ Pos 197
+
+[LAVA::Validator] Checking Primer: CCGCTTACCACAACGATGTTA @ Pos 170
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 170 -> GenomPos: 329, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|45|71| | OK:0 DEG:0 REJ:45|437 it/s|0
+
+[LAVA::Validator] Checking Primer: GGTCTTGAAGGCATGCACATA @ Pos 316
+
+[LAVA::Validator] Checking Primer: TAATCCGCGAACGACAATCTTATAG @ Pos 198
+
+[LAVA::Validator] Checking Primer: TGTAATCCGCGAACGACAATC @ Pos 196
+REVERSE REJECTED           - PosRC: 316 -> GenomPos: 183, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 198 -> GenomPos: 301, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 196 -> GenomPos: 303, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|48|71| | OK:0 DEG:0 REJ:48|440 it/s|0
+
+[LAVA::Validator] Checking Primer: AGGAGCGCTATGATTAGGTCT @ Pos 292
+
+[LAVA::Validator] Checking Primer: AATGTAATCCGCGAACGACAA @ Pos 194
+
+[LAVA::Validator] Checking Primer: TCGTAGAAGTAGTCACGTGGT @ Pos 225
+REVERSE REJECTED           - PosRC: 292 -> GenomPos: 207, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 194 -> GenomPos: 305, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 225 -> GenomPos: 274, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|51|71| | OK:0 DEG:0 REJ:51|449 it/s|0
+
+[LAVA::Validator] Checking Primer: ATGTAATCCGCGAACGACAAT @ Pos 195
+
+[LAVA::Validator] Checking Primer: GCGCTATGATTAGGTCTCTGG @ Pos 296
+
+[LAVA::Validator] Checking Primer: AATCCGCGAACGACAATCTTA @ Pos 199
+REVERSE REJECTED           - PosRC: 195 -> GenomPos: 304, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 296 -> GenomPos: 203, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 199 -> GenomPos: 300, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|54|71| | OK:0 DEG:0 REJ:54|452 it/s|0
+
+[LAVA::Validator] Checking Primer: TAATCCGCGAACGACAATCTT @ Pos 198
+
+[LAVA::Validator] Checking Primer: GGAGCGCTATGATTAGGTCTC @ Pos 293
+
+[LAVA::Validator] Checking Primer: GAGGAGCGCTATGATTAGGTC @ Pos 291
+REVERSE REJECTED           - PosRC: 198 -> GenomPos: 301, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 293 -> GenomPos: 206, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 291 -> GenomPos: 208, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|57|71| | OK:0 DEG:0 REJ:57|459 it/s|0
+
+[LAVA::Validator] Checking Primer: ATCCGCGAACGACAATCTTAT @ Pos 200
+
+[LAVA::Validator] Checking Primer: TTAATGTAATCCGCGAACGACAATC @ Pos 192
+
+[LAVA::Validator] Checking Primer: TAGAAGTAGTCACGTGGTTGC @ Pos 228
+REVERSE REJECTED           - PosRC: 200 -> GenomPos: 299, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 192 -> GenomPos: 307, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 228 -> GenomPos: 271, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|60|71| | OK:0 DEG:0 REJ:60|462 it/s|0
+
+[LAVA::Validator] Checking Primer: TAATGTAATCCGCGAACGACA @ Pos 193
+
+[LAVA::Validator] Checking Primer: CCGCTTACCACAACGATGTT @ Pos 170
+
+[LAVA::Validator] Checking Primer: GAAGTAGTCACGTGGTTGCC @ Pos 230
+REVERSE REJECTED           - PosRC: 193 -> GenomPos: 306, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 170 -> GenomPos: 329, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 230 -> GenomPos: 269, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|63|71| | OK:0 DEG:0 REJ:63|470 it/s|0
+
+[LAVA::Validator] Checking Primer: AATCCGCGAACGACAATCTT @ Pos 199
+
+[LAVA::Validator] Checking Primer: GGTCTTGAAGGCATGCACAT @ Pos 316
+
+[LAVA::Validator] Checking Primer: AGAAGTAGTCACGTGGTTGC @ Pos 229
+REVERSE REJECTED           - PosRC: 199 -> GenomPos: 300, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 316 -> GenomPos: 183, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 229 -> GenomPos: 270, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|66|71| | OK:0 DEG:0 REJ:66|478 it/s|0
+
+[LAVA::Validator] Checking Primer: GAACGACAATCTTATAGGTTCGTAGA @ Pos 206
+
+[LAVA::Validator] Checking Primer: TGTAATCCGCGAACGACAAT @ Pos 196
+
+[LAVA::Validator] Checking Primer: ATGTAATCCGCGAACGACAA @ Pos 195
+REVERSE REJECTED           - PosRC: 206 -> GenomPos: 293, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 196 -> GenomPos: 303, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 195 -> GenomPos: 304, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|69|71| | OK:0 DEG:0 REJ:69|475 it/s|0
+
+[LAVA::Validator] Checking Primer: AATGTAATCCGCGAACGACA @ Pos 194
+
+[LAVA::Validator] Checking Primer: GTAATCCGCGAACGACAATCTTATAG @ Pos 197
+REVERSE REJECTED           - PosRC: 194 -> GenomPos: 305, Couv: 10.0% < 80%
+REVERSE REJECTED           - PosRC: 197 -> GenomPos: 302, Couv: 10.0% < 80%
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|71|71| | OK:0 DEG:0 REJ:71|474 it/s|0
+[LAVA-PROGRESS] Validation Inner Reverse (B1c)|71|71||474 it/s|0
+  [NativeReverse] Resultats / Results:
+    - Strictes / Strict: 0
+    - Degenerees / Degenerate: 0
+    - Rejetees / Rejected: 71
+    - Total valide / Total validated: 0/71
+
+  Generated "0" inner native reverse primers
+[FIXED PRIMER WINDOW] Filtrage LOOP terminé / LOOP filtering done:
+  F3:    0 -> 0 | B3:    0 -> 0
+  F2:    0 -> 0 | B2:    0 -> 0
+  F1c:   0 -> 0 | B1c:   0 -> 0
+  FLOOP: 0 -> 0 | BLOOP: 0 -> 0
+
+=== Injection des amorces fixees / Fixed Primer Injection ===
+
+[FIXED PRIMER] Traitement de l'amorce fixee : TYPE=F3 SEQ=ATGCATGCATGCATGCATGC
+[FIXED PRIMER] Processing fixed primer: TYPE=F3 SEQ=ATGCATGCATGCATGCATGC
+[FIXED PRIMER] Sequence trouvee a la position fournie 0 (brin +).
+[FIXED PRIMER] Sequence found at supplied position 0 (+ strand).
+[FIXED PRIMER] Lancement du Branch and Bound IUPAC pour ameliorer la couverture...
+[FIXED PRIMER] Running Branch and Bound IUPAC to improve coverage...
+
+[LAVA::Validator] Checking Primer: ATGCATGCATGCATGCATGC @ Pos 0
+[FIXED PRIMER] Couverture apres B&B : 100.0% >= seuil 80.0% -> ACCEPTEE normalement.
+[FIXED PRIMER] Coverage after B&B: 100.0% >= threshold 80.0% -> ACCEPTED normally.
+[FIXED PRIMER] Amorce injectee : TYPE=F3 POS=0 STRAND=plus SEQ=ATGCATGCATGCATGCATGC COUV=100.0% FORCE=0
+[FIXED PRIMER] Primer injected : TYPE=F3 POS=0 STRAND=plus SEQ=ATGCATGCATGCATGCATGC COVER=100.0% FORCED=0
+=== Injection terminee / Fixed Primer Injection done ===
+
+Analyzing outer forward primers
+Analyzing outer reverse primers
+Analyzing loop "forward" primers
+Analyzing loop "back" primers
+Analyzing middle forward primers
+Analyzing middle reverse primers
+Analyzing inner forward primers
+Analyzing inner reverse primers
+Sorting primer sets
+Enumerating signatures
+Building Master Primer Lists (The Big Merge)...
+ 1->1)
+Master Lists Counts:
+  Inner F: 0, R: 0
+  Loop F: 0, R: 0
+  Middle F: 0, R: 0
+  Outer F: 1, R: 0
+Generating Sigmoid Penalties (Core.pm)...
+Scanning Forward Primer Combinations...
+  [Forward] 0 combinaisons Forward trouvees sur 0 amorces F1c.
+No valid forward primer combinations found.

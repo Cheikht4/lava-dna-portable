@@ -1,0 +1,10 @@
+ANALYSE DES COMBINAISONS DE SIGNATURES
+=====================================
+
+Nombre total de signatures: 1
+Nombre total de séquences: 40
+
+COMBINAISONS 1 par 1:
+==============================
+ 1. Sig1(95.0%/P14.4): 38 séquences (95.00%)
+
