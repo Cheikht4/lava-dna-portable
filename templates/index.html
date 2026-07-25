@@ -397,27 +397,27 @@
                                     <div class="row g-3">
                                         <div class="col-md-3">
                                             <label class="form-label small">{{ 'max_tm_diff'|t }}</label>
-                                            <input type="number" step="0.1" class="form-control form-control-sm"
+                                            <input type="number" min="0" step="0.1" class="form-control form-control-sm"
                                                 name="max_tm_diff" value="{{ params.max_tm_diff }}">
                                         </div>
                                         <div class="col-md-3">
                                             <label class="form-label small">{{ 'dna_conc'|t }}</label>
-                                            <input type="number" class="form-control form-control-sm" name="dna_conc"
+                                            <input type="number" min="0" class="form-control form-control-sm" name="dna_conc"
                                                 value="{{ params.dna_conc }}">
                                         </div>
                                         <div class="col-md-3">
                                             <label class="form-label small">{{ 'dntp_conc'|t }}</label>
-                                            <input type="number" step="0.1" class="form-control form-control-sm"
+                                            <input type="number" min="0" step="0.1" class="form-control form-control-sm"
                                                 name="dntp_conc" value="{{ params.dntp_conc }}">
                                         </div>
                                         <div class="col-md-3">
                                             <label class="form-label small">{{ 'salt_mono'|t }}</label>
-                                            <input type="number" class="form-control form-control-sm"
+                                            <input type="number" min="0" class="form-control form-control-sm"
                                                 name="salt_monovalent" value="{{ params.salt_monovalent }}">
                                         </div>
                                         <div class="col-md-3">
                                             <label class="form-label small">{{ 'salt_div'|t }}</label>
-                                            <input type="number" step="0.1" class="form-control form-control-sm"
+                                            <input type="number" min="0" step="0.1" class="form-control form-control-sm"
                                                 name="salt_divalent" value="{{ params.salt_divalent }}">
                                         </div>
                                     </div>
@@ -429,17 +429,17 @@
                                     <div class="row g-3">
                                         <div class="col-md-4">
                                             <label class="form-label small">{{ 'max_dist_outer_middle'|t }}</label>
-                                            <input type="number" class="form-control form-control-sm"
+                                            <input type="number" min="0" class="form-control form-control-sm"
                                                 name="max_dist_outer_middle" value="{{ params.max_dist_outer_middle }}">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small">{{ 'max_dist_middle_inner'|t }}</label>
-                                            <input type="number" class="form-control form-control-sm"
+                                            <input type="number" min="0" class="form-control form-control-sm"
                                                 name="max_dist_middle_inner" value="{{ params.max_dist_middle_inner }}">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small">{{ 'max_overlap'|t }} (% max)</label>
-                                            <input type="number" class="form-control form-control-sm"
+                                            <input type="number" min="0" class="form-control form-control-sm"
                                                 name="max_overlap_percent" value="{{ params.max_overlap_percent }}">
                                         </div>
                                         <div class="col-md-12 mt-2">
@@ -473,38 +473,38 @@
                                     <div class="row g-3">
                                         <div class="col-md-4">
                                             <label class="form-label small">{{ 'entropy_threshold'|t }}</label>
-                                            <input type="number" step="0.1" class="form-control form-control-sm"
+                                            <input type="number" min="0" step="0.1" class="form-control form-control-sm"
                                                 name="entropy_threshold" value="{{ params.entropy_threshold }}">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small">{{ 'max_poly_bases'|t }}</label>
-                                            <input type="number" class="form-control form-control-sm"
+                                            <input type="number" min="0" class="form-control form-control-sm"
                                                 name="max_poly_bases" value="{{ params.max_poly_bases }}">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small">{{ 'max_total_degenerate_bases'|t }}</label>
-                                            <input type="number" class="form-control form-control-sm"
+                                            <input type="number" min="0" class="form-control form-control-sm"
                                                 name="max_total_degenerate_bases" value="{{ params.max_total_degenerate_bases }}">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small">{{ 'max_consecutive_degenerate_bases'|t }}</label>
-                                            <input type="number" class="form-control form-control-sm"
+                                            <input type="number" min="0" class="form-control form-control-sm"
                                                 name="max_consecutive_degenerate_bases"
                                                 value="{{ params.max_consecutive_degenerate_bases }}">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small">{{ 'max_3prime_degenerate_bases'|t }}</label>
-                                            <input type="number" class="form-control form-control-sm"
+                                            <input type="number" min="0" class="form-control form-control-sm"
                                                 name="max_3prime_degenerate_bases" value="{{ params.max_3prime_degenerate_bases }}">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small">{{ 'max_tolerated_mismatches'|t }}</label>
-                                            <input type="number" class="form-control form-control-sm"
+                                            <input type="number" min="0" class="form-control form-control-sm"
                                                 name="max_tolerated_mismatches" value="{{ params.max_tolerated_mismatches }}">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label small">{{ 'three_prime_zone'|t }}</label>
-                                            <input type="number" class="form-control form-control-sm"
+                                            <input type="number" min="0" class="form-control form-control-sm"
                                                 name="three_prime_zone_size" value="{{ params.three_prime_zone_size }}">
                                         </div>
                                     </div>

@@ -2036,3 +2036,21 @@ Bien que, du point de vue thermodynamique, les amorces internes se lient au brin
 
 **Impact attendu :** 
 La barre de progression en temps réel (LAVA-PROGRESS) affichée sur l'interface web Flask indiquera désormais "Inner Forward (F1)" et "Inner Reverse (B1)", alignant l'expérience utilisateur sur les standards de publication scientifique LAMP, sans casser le moteur thermodynamique sous-jacent.
+
+---
+
+### Date/Étape : 2026-07-25 - Correction des inputs numériques négatifs sur l'interface
+
+**Fichiers impactés :** 
+- `templates/index.html`
+
+**Nature du changement :** Interface / Bug Fix.
+
+**Explication technique :** 
+Ajout de l'attribut HTML `min="0"` sur tous les champs de formulaire `<input type="number">` qui ne possédaient pas déjà de contrainte de valeur minimale. 
+
+**Justification biologique :** 
+Les paramètres saisis par l'utilisateur (longueurs d'amorces, taux de couverture, température de fusion `Tm`, nombre de mismatches autorisés) sont intrinsèquement positifs ou nuls. Permettre des valeurs négatives n'a pas de sens physique (par exemple, une longueur d'amorce négative) et entraînait un comportement instable.
+
+**Impact attendu :** 
+L'interface HTML empêchera nativement l'utilisateur de cliquer sur la flèche du bas pour descendre en dessous de zéro, prévenant ainsi les erreurs de saisie accidentelles avant même la soumission du formulaire, et garantissant l'intégrité des paramètres.
