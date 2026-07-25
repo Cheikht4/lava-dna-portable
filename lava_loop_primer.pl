@@ -1084,11 +1084,11 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   print "Enumerating inner forward primers\n";
   my @innerForwardPrimers = ();
   if ($isFixedType{"F1C"}) {
-    print "Skipping inner forward (F1C) enumeration because it is fixed.\n";
+    print "Skipping inner forward (F1) enumeration because it is fixed.\n";
   } else {
     @innerForwardPrimers = getOligosWithMismatchTolerance($innerEnumerator, $inputMSA,
                                                           $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
-                                                          $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency, "Inner Forward (F1c)");
+                                                          $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency, "Inner Forward (F1)");
 
     print "  Generated \"" . scalar(@innerForwardPrimers) . "\" inner primers\n";
   }
@@ -1106,13 +1106,13 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   print "Enumerating inner NATIVE reverse primers (Option B)\n";
   my @innerReversePrimers = ();
   if ($isFixedType{"B1C"}) {
-    print "Skipping inner reverse (B1C) enumeration because it is fixed.\n";
+    print "Skipping inner reverse (B1) enumeration because it is fixed.\n";
   } else {
     @innerReversePrimers = buildNativeReversePool(
       $innerEnumerator, $inputMSA,
       $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
       $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
-      \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp, "Inner Reverse (B1c)"
+      \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp, "Inner Reverse (B1)"
     );
     print "  Generated \"" . scalar(@innerReversePrimers) . "\" inner native reverse primers\n";
   }
@@ -1168,7 +1168,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                                      $before_rev_outer,  scalar(@outerReversePrimers));
     printf("  F2:    %d -> %d | B2:    %d -> %d\n", $before_fwd_middle, scalar(@middleForwardPrimers),
                                                      $before_rev_middle, scalar(@middleReversePrimers));
-    printf("  F1c:   %d -> %d | B1c:   %d -> %d\n", $before_fwd_inner,  scalar(@innerForwardPrimers),
+    printf("  F1:   %d -> %d | B1:   %d -> %d\n", $before_fwd_inner,  scalar(@innerForwardPrimers),
                                                      $before_rev_inner,  scalar(@innerReversePrimers));
     printf("  FLOOP: %d -> %d | BLOOP: %d -> %d\n", $before_floop, scalar(@loopForwardPrimers),
                                                      $before_bloop, scalar(@loopBackPrimers));
@@ -1747,7 +1747,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 
   
   # Finaliser la barre Forward / Finalize Forward bar
-  print "  [Forward] $forwardSetCount combinaisons Forward trouvees sur $innerForwardCount amorces F1c.\n";
+  print "  [Forward] $forwardSetCount combinaisons Forward trouvees sur $innerForwardCount amorces F1.\n";
 
   # Check if anything found
   if($forwardSetCount == 0) {
@@ -2040,7 +2040,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 
   
   # Finaliser la barre Reverse / Finalize Reverse bar
-  print "  [Reverse] $reverseSetCount combinaisons Reverse trouvees sur $innerReverseCount amorces B1c.\n";
+  print "  [Reverse] $reverseSetCount combinaisons Reverse trouvees sur $innerReverseCount amorces B1.\n";
 
   if($reverseSetCount == 0) {
       print "No valid reverse primer combinations found.\n";

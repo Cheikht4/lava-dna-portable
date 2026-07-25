@@ -2017,3 +2017,22 @@ Contrainte : Respect total de l equivalence stricte (zero regression) et du non-
   2. Ajout de l'option `--fixed_primer_optimize` (0 ou 1, par défaut 1). Lorsqu'elle est désactivée (0), le pipeline calcule tout de même la couverture via `checkPrimerMismatchTolerance` pour assurer l'exactitude de `compatible_seq_ids`, mais ignore la séquence dégénérée produite par le B&B, conservant l'amorce originale inchangée et forçant son inclusion.
 - **Justification biologique** : Une amorce sur le brin antisens était décalée dans la fenêtre génomique, faussant l'évaluation de sa couverture sur l'alignement et provoquant une dégénérescence excessive inutile par le B&B. L'option d'optimisation offre aux utilisateurs la garantie de conserver des séquences d'amorces certifiées en paillasse sans altération algorithmique, tout en bénéficiant du rapport de couverture.
 - **Impact attendu** : Rendu fidèle des coordonnées des amorces Reverse fixées, couverture précise de ces amorces, et possibilité d'injecter des amorces validées empiriquement sans risque de dégénérescence non désirée.
+
+---
+
+### Date/Étape : 2026-07-25 - Renommage UI des amorces internes (F1C/B1C vers F1/B1)
+
+**Fichiers impactés :** 
+- `lava_loop_primer.pl`
+- `lava_stem_primer.pl`
+
+**Nature du changement :** Architecture / Interface.
+
+**Explication technique :** 
+Remplacement des chaînes de caractères "F1c", "B1c", "F1C" et "B1C" par "F1" et "B1" dans tous les messages imprimés émis vers STDOUT, notamment ceux passés à la fonction `checkPrimerMismatchTolerance`. Les clés internes des structures de données (`%isFixedType{"F1C"}`, `@all_types`) ont été conservées intactes pour garantir la rétrocompatibilité des fichiers de paramètres existants.
+
+**Justification biologique :** 
+Bien que, du point de vue thermodynamique, les amorces internes se lient au brin complémentaire (d'où l'appellation F1c/B1c signifiant "Complement"), la convention standard en biologie moléculaire pour le design LAMP désigne les paires par F1/B1. Exposer la nomenclature "c" sur l'interface (via la barre de progression) générait une confusion cognitive chez les chercheurs qui pouvaient interpréter "F1c" comme un type d'amorce distinct.
+
+**Impact attendu :** 
+La barre de progression en temps réel (LAVA-PROGRESS) affichée sur l'interface web Flask indiquera désormais "Inner Forward (F1)" et "Inner Reverse (B1)", alignant l'expérience utilisateur sur les standards de publication scientifique LAMP, sans casser le moteur thermodynamique sous-jacent.

@@ -1087,11 +1087,11 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   print "Enumerating inner forward primers\n";
   my @innerForwardPrimers = ();
   if ($isFixedType{"F1C"}) {
-    print "Skipping inner forward (F1C) enumeration because it is fixed.\n";
+    print "Skipping inner forward (F1) enumeration because it is fixed.\n";
   } else {
     @innerForwardPrimers = getOligosWithMismatchTolerance($innerEnumerator, $inputMSA,
                                                           $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
-                                                          $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency, "Inner Forward (F1c)");
+                                                          $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency, "Inner Forward (F1)");
 
     print "  Generated \"" . scalar(@innerForwardPrimers) . "\" inner primers\n";
   }
@@ -1100,13 +1100,13 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   print "Enumerating inner NATIVE reverse primers (Option B)\n";
   my @innerReversePrimers = ();
   if ($isFixedType{"B1C"}) {
-    print "Skipping inner reverse (B1C) enumeration because it is fixed.\n";
+    print "Skipping inner reverse (B1) enumeration because it is fixed.\n";
   } else {
     @innerReversePrimers = buildNativeReversePool(
       $innerEnumerator, $inputMSA,
       $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
       $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
-      \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp, "Inner Reverse (B1c)"
+      \&checkPrimerMismatchTolerance, \&isIUPACCompatible, \&rev_comp, "Inner Reverse (B1)"
     );
     print "  Generated \"" . scalar(@innerReversePrimers) . "\" inner native reverse primers\n";
   }
@@ -1160,7 +1160,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                                      $before_rev_outer,  scalar(@outerReversePrimers));
     printf("  F2:    %d -> %d | B2:    %d -> %d\n", $before_fwd_middle, scalar(@middleForwardPrimers),
                                                      $before_rev_middle, scalar(@middleReversePrimers));
-    printf("  F1c:   %d -> %d | B1c:   %d -> %d\n", $before_fwd_inner,  scalar(@innerForwardPrimers),
+    printf("  F1:   %d -> %d | B1:   %d -> %d\n", $before_fwd_inner,  scalar(@innerForwardPrimers),
                                                      $before_rev_inner,  scalar(@innerReversePrimers));
     printf("  FSTEM: %d -> %d | BSTEM: %d -> %d\n", $before_fwd_stem, scalar(@stemForwardPrimers),
                                                      $before_rev_stem, scalar(@stemBackPrimers));
@@ -1518,7 +1518,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $_sig_fwd_t0   = time();
     my $_sig_fwd_done = 0;
     my $_sig_fwd_hits = 0;
-    print STDERR "  Recherche combinatoire Stem Forward: $innerForwardCount amorces F1c...\n";
+    print STDERR "  Recherche combinatoire Stem Forward: $innerForwardCount amorces F1...\n";
 
     my $pm_fwd = LLNL::LAVA::ForkManager->new($options{"threads"});
     my $num_fwd_chunks = $pm_fwd->{max_processes} * 12;
@@ -1782,7 +1782,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 
 
     printf(STDERR "\r%-80s\n", "") if $_LAVA_IS_TTY;
-    print "  [Stem Fwd] $forwardSetCount combinaisons Forward trouvees sur $innerForwardCount amorces F1c.\n";
+    print "  [Stem Fwd] $forwardSetCount combinaisons Forward trouvees sur $innerForwardCount amorces F1.\n";
 
     # Stop trying if no forward primer sets were found
     if($forwardSetCount == 0)
@@ -1815,7 +1815,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $_sig_rev_t0   = time();
     my $_sig_rev_done = 0;
     my $_sig_rev_hits = 0;
-    print STDERR "  Recherche combinatoire Stem Reverse: $innerReverseCount amorces B1c...\n";
+    print STDERR "  Recherche combinatoire Stem Reverse: $innerReverseCount amorces B1...\n";
 
     my $pm_rev = LLNL::LAVA::ForkManager->new($options{"threads"});
     my $num_rev_chunks = $pm_rev->{max_processes} * 12;
@@ -2079,7 +2079,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 
 
     printf(STDERR "\r%-80s\n", "") if $_LAVA_IS_TTY;
-    print "  [Stem Rev] $_sig_rev_hits combinaisons Reverse trouvees sur $innerReverseCount amorces B1c.\n";
+    print "  [Stem Rev] $_sig_rev_hits combinaisons Reverse trouvees sur $innerReverseCount amorces B1.\n";
 
 
     ## Stop trying if no reverse primer sets were found (probably an un-needed optimization)
