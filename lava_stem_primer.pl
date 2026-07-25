@@ -229,11 +229,13 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       # --- AMORCES FIXEES (peut etre repete plusieurs fois) ---
       # --- FIXED PRIMERS (can be repeated multiple times) ---
       "fixed_primer=s" => \@{$options{"fixed_primer"}},
+      "fixed_primer_optimize=i" => \$options{"fixed_primer_optimize"},
     );
 
   my %optionDefaults =
     (
       "fixed_primer" => [],  # Tableau d'amorces fixees / Array of fixed primers
+      "fixed_primer_optimize" => 1, # Optimisation active par defaut
       "signature_max_length" => 400,
       "outer_primer_target_length" => 20,
       "outer_primer_min_length" => 18,

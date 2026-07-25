@@ -216,12 +216,14 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       # --- AMORCES FIXEES (peut etre repete plusieurs fois) ---
       # --- FIXED PRIMERS (can be repeated multiple times) ---
       "fixed_primer=s" => \@{$options{"fixed_primer"}},
+      "fixed_primer_optimize=i" => \$options{"fixed_primer_optimize"},
     );
 
   my %optionDefaults =
     (
       "threads" => "auto",
       "fixed_primer" => [],  # Tableau d'amorces fixees / Array of fixed primers
+      "fixed_primer_optimize" => 1,
       "signature_max_length" => 320,
       "outer_primer_target_length" => 20,
       "outer_primer_min_length" => 18,
@@ -1181,7 +1183,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       $inputMSA, \@fixedPrimerSpecs,
       $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
       $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen,
-      $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency
+      $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
+      $options{"fixed_primer_optimize"}
     );
     # Fusionner les amorces fixees dans chaque pool / Merge fixed primers into each pool
     unshift @outerForwardPrimers,  @{ $fixed_results_r->{"F3"}    // [] };

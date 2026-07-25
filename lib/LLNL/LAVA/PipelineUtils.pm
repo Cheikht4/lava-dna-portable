@@ -2158,7 +2158,10 @@ sub injectFixedPrimers {
   my ($alignment, $fixed_specs_ref,
       $min_match_percent, $min_iupac_percent, $min_primer_coverage,
       $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen,
-      $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency) = @_;
+      $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
+      $fixed_primer_optimize) = @_;
+      
+  $fixed_primer_optimize //= 1; # Par defaut, on optimise
 
   my %result;  # { "F2" => [@oligos], ... }
 
@@ -2231,8 +2234,8 @@ sub injectFixedPrimers {
 
     # --- Etape 2 : Branch and Bound IUPAC (meme circuit que les amorces normales) ---
     # --- Step 2: Branch and Bound IUPAC (same circuit as normal primers) ---
-    print "[FIXED PRIMER] Lancement du Branch and Bound IUPAC pour ameliorer la couverture...\n";
-    print "[FIXED PRIMER] Running Branch and Bound IUPAC to improve coverage...\n";
+    print "[FIXED PRIMER] Validation de l'amorce et calcul de couverture...\n";
+    print "[FIXED PRIMER] Validating primer and calculating coverage...\n";
 
     my ($final_sequence, $coverage_percent, $is_degenerate, $compatible_seq_ids) =
       checkPrimerMismatchTolerance(
@@ -2247,6 +2250,14 @@ sub injectFixedPrimers {
     $final_sequence   = $primer_seq     if !defined $final_sequence || $final_sequence eq "";
     $compatible_seq_ids //= [];
     $coverage_percent //= 0.0;
+
+    # Chantier 2: Application de l'option fixed_primer_optimize
+    if (!$fixed_primer_optimize) {
+        $final_sequence = $primer_seq;
+        print "[FIXED PRIMER] Mode sans optimisation : sequence conservee telle quelle, couverture mesuree = $coverage_percent% (".scalar(@$compatible_seq_ids)." sequences).\n";
+    } else {
+        print "[FIXED PRIMER] Mode optimisation (Branch and Bound IUPAC) : sequence $final_sequence, couverture mesuree = $coverage_percent% (".scalar(@$compatible_seq_ids)." sequences).\n";
+    }
 
     my $coverage_forced = ($coverage_percent < $min_primer_coverage) ? 1 : 0;
 
@@ -2264,9 +2275,14 @@ sub injectFixedPrimers {
 
     # --- Etape 3 : creation de l objet Oligo compatible avec le reste du pipeline ---
     # --- Step 3: create an Oligo object compatible with the rest of the pipeline ---
+    # Conformite stricte LAVA (2026) :
+    # Si le brin est minus, la convention du moteur LAVA attend l'extremite DROITE 
+    # de l'amorce sur l'alignement de reference (voir buildNativeReversePool l.588)
+    my $final_location = ($strand eq "minus") ? ($position + length($primer_seq) - 1) : $position;
+    
     my $fixed_oligo = LLNL::LAVA::Oligo->new({
       "sequence" => $final_sequence,
-      "location" => $position,
+      "location" => $final_location,
       "strand"   => $strand,
     });
 
@@ -2289,9 +2305,9 @@ sub injectFixedPrimers {
     $fixed_oligo->setTag("primer3_tm",             $real_tm);
 
     printf("[FIXED PRIMER] Amorce injectee : TYPE=%s POS=%d STRAND=%s SEQ=%s COUV=%.1f%% FORCE=%d\n",
-           $primer_type, $position, $strand, $final_sequence, $coverage_percent, $coverage_forced);
+           $primer_type, $final_location, $strand, $final_sequence, $coverage_percent, $coverage_forced);
     printf("[FIXED PRIMER] Primer injected : TYPE=%s POS=%d STRAND=%s SEQ=%s COVER=%.1f%% FORCED=%d\n",
-           $primer_type, $position, $strand, $final_sequence, $coverage_percent, $coverage_forced);
+           $primer_type, $final_location, $strand, $final_sequence, $coverage_percent, $coverage_forced);
 
     $result{$primer_type} //= [];
     push @{$result{$primer_type}}, $fixed_oligo;
