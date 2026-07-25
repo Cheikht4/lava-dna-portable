@@ -1867,3 +1867,24 @@ Un outil de diagnostic se doit d'être irréprochable sur ses filtres d'inclusio
 - Les signatures à trop faible couverture (<70%) sont désormais rejetées drastiquement (sauf paramétrage explicite de l'utilisateur).
 - Les compteurs "[Stem Rev] N combinaisons" affichent le nombre réel de combinaisons trouvées.
 - Validation des 7/7 tests de non-régression "canary" pour la sortie officielle de la v1.0.
+
+Date/Etape : Optimisation Branch & Bound et Repartition Chunks (Juillet 2026)
+
+Fichiers impactes : lava_loop_primer.pl, lava_stem_primer.pl
+
+Nature du changement : Algorithmique
+
+Explication technique : Implementation d une approche Branch and Bound (B&B) pour elaguer les branches combinatoires sous-optimales grace a des Sparse Tables (RMQ) et une recherche binaire des index de depart. Ajout d une repartition round-robin des chunks pour equiper la charge des processus ForkManager, et un systeme d emission de progression intra-chunk via fichier partage.
+
+Justification biologique : La recherche exhaustive de toutes les combinaisons possibles etait extremement couteuse en temps (plusieurs heures pour des grandes fenetres), sans aucune plus-value biologique puisqu un seul candidat est conserve par amorce interne. L elagage B&B garantit un resultat final strictement identique tout en divisant drastiquement le temps d execution, accelerant ainsi le design d amorces LAMP.
+
+Impact attendu : Les temps de calcul des phases Forward et Reverse seront reduits de facon drastique. La barre de progression LAVA-PROGRESS sera fluide meme sur de larges fenetres. Le resultat .primers et .all_signatures sera garanti sans regression.
+
+Contrainte : Respect total de l equivalence stricte (zero regression) et du non-usage de tirets cadratins.
+
+### Date/Étape : 2026-07-25 - Finalisation du Branch & Bound (Scope & Compilation)
+- **Fichiers impactés** : `apply_optimizations.py`, `lava_loop_primer.pl`, `lava_stem_primer.pl`
+- **Nature du changement** : [Architecture / Bug Fix]
+- **Explication technique** : Les variables `%chunk_infos` et `%chunk_penalties` étaient hors de portée lors du passage de l'injection regex en raison d'une mauvaise capture de groupe et d'un excès d'accolades. La révision du scope Perl a permis d'aligner correctement les accolades de fin de boucles imbriquées `Outer` et `Middle` avec l'émission intra-chunk de progression (en CSV) garantissant le bon passage de références au module `Parallel::ForkManager` via `$pm_fwd->finish()`. L'élagage compte désormais le saut exact d'index générés par `binary_search`.
+- **Justification biologique** : Maintenir l'intégrité de l'état asynchrone permet de conserver un mapping parfait entre les scores de pénalité thermodynamique asymétrique calculés via les RMQ et le candidat Primer3 retenu pour l'amplification.
+- **Impact attendu** : Plus aucune erreur de compilation Perl (syntax OK) ni d'accolades orphelines. Le programme passe l'étape combinatoire tout en produisant rigoureusement la même sortie que l'original, mais avec des milliers de sous-arbres évités dynamiquement.
