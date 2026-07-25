@@ -1497,7 +1497,25 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     my $forwardSetCount = 0;
 
     print "Scanning Forward Primer Combinations...\n";
-    my $_sig_fwd_t0   = time();
+    
+  # --- B&B Initialization Forward ---
+  my $min_val_f = sub { my $m = $_[0]; for(@_) { $m = $_ if $_ < $m } return $m; };
+  my $minS_stemToMiddle_F = @$innerToMiddlePenalties_r ? $min_val_f->(@$innerToMiddlePenalties_r) * $innerToMiddlePenaltyWeight : 0;
+  my $minS_middleToOuter_F = @$middleToOuterPenalties_r ? $min_val_f->(@$middleToOuterPenalties_r) * $middleToOuterPenaltyWeight : 0;
+  my $rmq_middle_f = build_rmq($masterMiddleF_data_r, 2);
+  my $rmq_outer_f  = build_rmq($masterOuterF_data_r, 2);
+  my $min_P_outer_F = @$masterOuterF_data_r ? query_rmq($rmq_outer_f, 0, scalar(@$masterOuterF_data_r)-1) * $outerPenaltyWeight : 0;
+  
+  my $_sig_fwd_pruned = 0;
+  my $_sig_fwd_evaluated = 0;
+  my $fwd_prog_file = "$options{'output_file'}_fwd_prog_$$.txt";
+  if (open my $fh, '>', $fwd_prog_file) {
+      for (1..30) { print $fh "0,0,0,0
+"; } 
+      close $fh;
+  }
+  
+  my $_sig_fwd_t0   = time();
     my $_sig_fwd_done = 0;
     my $_sig_fwd_hits = 0;
     print STDERR "  Recherche combinatoire Stem Forward: $innerForwardCount amorces F1c...\n";
@@ -1508,7 +1526,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     $num_fwd_chunks = $innerForwardCount if $num_fwd_chunks > $innerForwardCount;
     $num_fwd_chunks = 1 if $num_fwd_chunks < 1;
     my $fwd_chunk_size = int(($innerForwardCount + $num_fwd_chunks - 1) / $num_fwd_chunks);
-    $fwd_chunk_size = 1 if $fwd_chunk_size < 1;
+  $fwd_chunk_size = 1 if $fwd_chunk_size < 1;
 
     $pm_fwd->run_on_finish(sub {
         my ($pid, $exit_code, $id, $exit_signal, $core_dump, $data_ref) = @_;
@@ -1522,31 +1540,22 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
             }
             $_sig_fwd_hits += $data_ref->{hits} || 0;
             $_sig_fwd_done += $data_ref->{done} || 0;
-            if ($_LAVA_IS_TTY || 1) {
-                my $elapsed = time() - $_sig_fwd_t0 + 0.001;
-                my $eta = ($_sig_fwd_done < $innerForwardCount)
-                          ? int(($innerForwardCount - $_sig_fwd_done) / ($_sig_fwd_done / $elapsed))
-                          : 0;
-                my $rate = $_sig_fwd_done / $elapsed;
-                printf("[LAVA-PROGRESS] Signatures Stem Forward|%d|%d|Sig: %d|%.1f it/s|%d\n",
-                       $_sig_fwd_done, $innerForwardCount, $_sig_fwd_hits, $rate, $eta);
-                my $old_h = select(STDOUT); $| = 1; select($old_h);
-            }
+          $_sig_fwd_pruned += $data_ref->{pruned} || 0;
+          $_sig_fwd_evaluated += $data_ref->{evaluated} || 0;
         }
     });
 
-    for (my $chunk_start = 0; $chunk_start < $innerForwardCount; $chunk_start += $fwd_chunk_size) {
-        my $chunk_end = $chunk_start + $fwd_chunk_size - 1;
-        $chunk_end = $innerForwardCount - 1 if $chunk_end >= $innerForwardCount;
-        
-        $pm_fwd->start($chunk_start) and next;
-        
-        my %chunk_infos = ();
-        my %chunk_penalties = ();
-        my $chunk_hits = 0;
-        my $chunk_done = 0;
-        
-        for(my $innerIndex = $chunk_start; $innerIndex <= $chunk_end; $innerIndex++)
+    for (my $chunk_id = 0; $chunk_id < $num_fwd_chunks; $chunk_id++) {
+      $pm_fwd->start($chunk_id) and next;
+      
+      my %chunk_infos = ();
+      my %chunk_penalties = ();
+      my $chunk_hits = 0;
+      my $chunk_done = 0;
+      my $chunk_pruned = 0;
+      my $chunk_evaluated = 0;
+      
+      for(my $innerIndex = $chunk_id; $innerIndex < $innerForwardCount; $innerIndex += $num_fwd_chunks)
         {
             $chunk_done++;
             my $innerInfo = $innerForwardSubset_r->[$innerIndex];
@@ -1717,16 +1726,57 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                 } # End forward outer iteration
               } # End forward middle iteration
             } # End forward STEM iteration
-        } # End forward inner chunk loop
-        
-        $pm_fwd->finish(0, {
-            infos => \%chunk_infos,
-            penalties => \%chunk_penalties,
-            hits => $chunk_hits,
-            done => $chunk_done,
-        });
-    } # End chunks
-    $pm_fwd->wait_all_children();
+          
+          # Intra-chunk progress reporting
+          $chunk_done++;
+          if ($chunk_done % 5 == 0 || $chunk_done == $fwd_chunk_size) {
+              if (open(my $fh, '>>', $fwd_prog_file)) {
+                  flock($fh, 2);
+                  print $fh "$chunk_done,$chunk_hits,$chunk_pruned,$chunk_evaluated
+";
+                  close($fh);
+                  
+                  if (open(my $fh_read, '<', $fwd_prog_file)) {
+                      my $total_done = 0;
+                      my $total_hits = 0;
+                      while(<$fh_read>) { 
+                          chomp; 
+                          next unless $_;
+                          my ($d, $h) = split /,/, $_;
+                          $total_done += $d;
+                          $total_hits += $h;
+                      }
+                      close($fh_read);
+                      
+                      if ($_LAVA_IS_TTY || 1) {
+                          my $elapsed = time() - $_sig_fwd_t0 + 0.001;
+                          my $eta = ($total_done < $innerForwardCount) ? int(($innerForwardCount - $total_done) / ($total_done / $elapsed)) : 0;
+                          my $rate = $total_done / $elapsed;
+                          printf("[LAVA-PROGRESS] Signatures Forward|%d|%d|Sig: %d|%.1f it/s|%d", $total_done, $innerForwardCount, $total_hits, $rate, $eta);
+                          my $old_h = select(STDOUT); $| = 1; select($old_h);
+                      }
+                  }
+              }
+          }
+} # End forward inner chunk loop
+      
+      $pm_fwd->finish(0, {
+          infos => \%chunk_infos,
+          penalties => \%chunk_penalties,
+          hits => $chunk_hits,
+          done => $chunk_done,
+          pruned => $chunk_pruned,
+          evaluated => $chunk_evaluated,
+      });
+  } # End chunks
+  $pm_fwd->wait_all_children();
+  unlink $fwd_prog_file if -e $fwd_prog_file;
+  
+  if ($_sig_fwd_evaluated > 0) {
+      my $pct = ($_sig_fwd_pruned / $_sig_fwd_evaluated) * 100;
+      printf("  [Forward B&B] Elagage: %.2f%% (%d / %d branches evaluees)\n", $pct, $_sig_fwd_pruned, $_sig_fwd_evaluated);
+  }
+
 
     printf(STDERR "\r%-80s\n", "") if $_LAVA_IS_TTY;
     print "  [Stem Fwd] $forwardSetCount combinaisons Forward trouvees sur $innerForwardCount amorces F1c.\n";
@@ -1744,7 +1794,24 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     my @bestReversePenalties = ();
     my $reverseSetCount = 0;
 
-    my $_sig_rev_t0   = time();
+    
+  # --- B&B Initialization Reverse ---
+  my $minS_stemToMiddle_R = @$innerToMiddlePenalties_r ? $min_val_f->(@$innerToMiddlePenalties_r) * $innerToMiddlePenaltyWeight : 0;
+  my $minS_middleToOuter_R = @$middleToOuterPenalties_r ? $min_val_f->(@$middleToOuterPenalties_r) * $middleToOuterPenaltyWeight : 0;
+  my $rmq_middle_r = build_rmq($masterMiddleR_data_r, 2);
+  my $rmq_outer_r  = build_rmq($masterOuterR_data_r, 2);
+  my $min_P_outer_R = @$masterOuterR_data_r ? query_rmq($rmq_outer_r, 0, scalar(@$masterOuterR_data_r)-1) * $outerPenaltyWeight : 0;
+  
+  my $_sig_rev_pruned = 0;
+  my $_sig_rev_evaluated = 0;
+  my $rev_prog_file = "$options{'output_file'}_rev_prog_$$.txt";
+  if (open my $fh, '>', $rev_prog_file) {
+      for (1..30) { print $fh "0,0,0,0
+"; }
+      close $fh;
+  }
+  
+  my $_sig_rev_t0   = time();
     my $_sig_rev_done = 0;
     my $_sig_rev_hits = 0;
     print STDERR "  Recherche combinatoire Stem Reverse: $innerReverseCount amorces B1c...\n";
@@ -1753,7 +1820,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     my $num_rev_chunks = $pm_rev->{max_processes} * 12;
     $num_rev_chunks = 30 if $num_rev_chunks < 30;
     $num_rev_chunks = $innerReverseCount if $num_rev_chunks > $innerReverseCount;
-    my $rev_chunk_size = int(($innerReverseCount + $num_rev_chunks - 1) / $num_rev_chunks);
+  $num_rev_chunks = 1 if $num_rev_chunks < 1;
+  my $rev_chunk_size = int(($innerReverseCount + $num_rev_chunks - 1) / $num_rev_chunks);
     $rev_chunk_size = 1 if $rev_chunk_size < 1;
 
     $pm_rev->run_on_finish(sub {
@@ -1768,31 +1836,22 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
             }
             $_sig_rev_hits += $data_ref->{hits} || 0;
             $_sig_rev_done += $data_ref->{done} || 0;
-            if ($_LAVA_IS_TTY || 1) {
-                my $elapsed = time() - $_sig_rev_t0 + 0.001;
-                my $eta = ($_sig_rev_done < $innerReverseCount)
-                          ? int(($innerReverseCount - $_sig_rev_done) / ($_sig_rev_done / $elapsed))
-                          : 0;
-                my $rate = $_sig_rev_done / $elapsed;
-                printf("[LAVA-PROGRESS] Signatures Stem Reverse|%d|%d|Sig: %d|%.1f it/s|%d\n",
-                       $_sig_rev_done, $innerReverseCount, $_sig_rev_hits, $rate, $eta);
-                my $old_h = select(STDOUT); $| = 1; select($old_h);
-            }
+          $_sig_rev_pruned += $data_ref->{pruned} || 0;
+          $_sig_rev_evaluated += $data_ref->{evaluated} || 0;
         }
     });
 
-    for (my $chunk_start = 0; $chunk_start < $innerReverseCount; $chunk_start += $rev_chunk_size) {
-        my $chunk_end = $chunk_start + $rev_chunk_size - 1;
-        $chunk_end = $innerReverseCount - 1 if $chunk_end >= $innerReverseCount;
-        
-        $pm_rev->start($chunk_start) and next;
-        
-        my %chunk_infos = ();
-        my %chunk_penalties = ();
-        my $chunk_hits = 0;
-        my $chunk_done = 0;
-        
-        for(my $innerIndex = $chunk_start; $innerIndex <= $chunk_end; $innerIndex++)
+    for (my $chunk_id = 0; $chunk_id < $num_rev_chunks; $chunk_id++) {
+      $pm_rev->start($chunk_id) and next;
+      
+      my %chunk_infos = ();
+      my %chunk_penalties = ();
+      my $chunk_hits = 0;
+      my $chunk_done = 0;
+      my $chunk_pruned = 0;
+      my $chunk_evaluated = 0;
+      
+      for(my $innerIndex = $chunk_id; $innerIndex < $innerReverseCount; $innerIndex += $num_rev_chunks)
         {
             $chunk_done++;
             my $innerInfo = $innerReverseSubset_r->[$innerIndex];
@@ -1963,16 +2022,57 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                 } # End reverse outer iteration
               } # End reverse middle iteration
             } # End reverse STEM iteration
-        } # End reverse inner chunk loop
-        
-        $pm_rev->finish(0, {
-            infos => \%chunk_infos,
-            penalties => \%chunk_penalties,
-            hits => $chunk_hits,
-            done => $chunk_done,
-        });
-    } # End chunks
-    $pm_rev->wait_all_children();
+          
+          # Intra-chunk progress reporting
+          $chunk_done++;
+          if ($chunk_done % 5 == 0 || $chunk_done == $rev_chunk_size) {
+              if (open(my $fh, '>>', $rev_prog_file)) {
+                  flock($fh, 2);
+                  print $fh "$chunk_done,$chunk_hits,$chunk_pruned,$chunk_evaluated
+";
+                  close($fh);
+                  
+                  if (open(my $fh_read, '<', $rev_prog_file)) {
+                      my $total_done = 0;
+                      my $total_hits = 0;
+                      while(<$fh_read>) { 
+                          chomp; 
+                          next unless $_;
+                          my ($d, $h) = split /,/, $_;
+                          $total_done += $d;
+                          $total_hits += $h;
+                      }
+                      close($fh_read);
+                      
+                      if ($_LAVA_IS_TTY || 1) {
+                          my $elapsed = time() - $_sig_rev_t0 + 0.001;
+                          my $eta = ($total_done < $innerReverseCount) ? int(($innerReverseCount - $total_done) / ($total_done / $elapsed)) : 0;
+                          my $rate = $total_done / $elapsed;
+                          printf("[LAVA-PROGRESS] Signatures Reverse|%d|%d|Sig: %d|%.1f it/s|%d", $total_done, $innerReverseCount, $total_hits, $rate, $eta);
+                          my $old_h = select(STDOUT); $| = 1; select($old_h);
+                      }
+                  }
+              }
+          }
+} # End reverse inner chunk loop
+      
+      $pm_rev->finish(0, {
+          infos => \%chunk_infos,
+          penalties => \%chunk_penalties,
+          hits => $chunk_hits,
+          done => $chunk_done,
+          pruned => $chunk_pruned,
+          evaluated => $chunk_evaluated,
+      });
+  } # End chunks
+  $pm_rev->wait_all_children();
+  unlink $rev_prog_file if -e $rev_prog_file;
+  
+  if ($_sig_rev_evaluated > 0) {
+      my $pct = ($_sig_rev_pruned / $_sig_rev_evaluated) * 100;
+      printf("  [Reverse B&B] Elagage: %.2f%% (%d / %d branches evaluees)\n", $pct, $_sig_rev_pruned, $_sig_rev_evaluated);
+  }
+
 
     printf(STDERR "\r%-80s\n", "") if $_LAVA_IS_TTY;
     print "  [Stem Rev] $_sig_rev_hits combinaisons Reverse trouvees sur $innerReverseCount amorces B1c.\n";
@@ -2612,3 +2712,73 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 # lib/LLNL/LAVA/PipelineUtils.pm
 # Shared utility functions are now in: lib/LLNL/LAVA/PipelineUtils.pm
 
+
+# --- Branch & Bound Helpers ---
+sub build_rmq {
+    my ($data_r, $col_idx) = @_;
+    my $n = scalar(@$data_r);
+    return [] if $n == 0;
+    my $log_n = int(log($n) / log(2)) + 1;
+    my @st;
+    for my $i (0 .. $n - 1) {
+        $st[$i][0] = $data_r->[$i]->[$col_idx];
+    }
+    for my $j (1 .. $log_n) {
+        my $len = 1 << ($j - 1);
+        for my $i (0 .. $n - 1) {
+            if ($i + $len < $n) {
+                my $a = $st[$i][$j - 1];
+                my $b = $st[$i + $len][$j - 1];
+                $st[$i][$j] = ($a < $b) ? $a : $b;
+            } else {
+                $st[$i][$j] = $st[$i][$j - 1];
+            }
+        }
+    }
+    return \@st;
+}
+
+sub query_rmq {
+    my ($st_r, $L, $R) = @_;
+    return 1000000 if (!defined $st_r || scalar(@$st_r) == 0 || $L > $R || $L < 0);
+    $R = scalar(@$st_r) - 1 if $R >= scalar(@$st_r);
+    my $j = int(log($R - $L + 1) / log(2));
+    my $len = 1 << $j;
+    my $a = $st_r->[$L][$j];
+    my $b = $st_r->[$R - $len + 1][$j];
+    return ($a < $b) ? $a : $b;
+}
+
+sub binary_search_first_ge {
+    my ($data_r, $target_loc) = @_;
+    my $L = 0;
+    my $R = scalar(@$data_r) - 1;
+    my $ans = -1;
+    while ($L <= $R) {
+        my $mid = $L + (($R - $L) >> 1);
+        if ($data_r->[$mid]->[0] >= $target_loc) {
+            $ans = $mid;
+            $R = $mid - 1;
+        } else {
+            $L = $mid + 1;
+        }
+    }
+    return $ans;
+}
+
+sub binary_search_last_le {
+    my ($data_r, $target_loc) = @_;
+    my $L = 0;
+    my $R = scalar(@$data_r) - 1;
+    my $ans = -1;
+    while ($L <= $R) {
+        my $mid = $L + (($R - $L) >> 1);
+        if ($data_r->[$mid]->[0] <= $target_loc) {
+            $ans = $mid;
+            $L = $mid + 1;
+        } else {
+            $R = $mid - 1;
+        }
+    }
+    return $ans;
+}
