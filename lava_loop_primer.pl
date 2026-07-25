@@ -1577,7 +1577,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   last if ($loopLocation > $loopEndAt);
 
                   # --- DYNAMIC THERMAL FILTER (Inner vs Loop) ---
-                  next if (abs($innerTm - $loopTm) > $maxTmDiff && !($innerInfo->getTag("is_fixed") || $loopInfo->getTag("is_fixed")));
+                  next if (abs($innerTm - $loopTm) > $maxTmDiff && !($innerInfo->hasTag("is_fixed") || $loopInfo->hasTag("is_fixed")));
               }
               
               # 3.2 Calculate Search Bounds for Middle Primer (F2) (Structure: F3-F2-LF-F1c)
@@ -1619,9 +1619,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           if ($includeLoopPrimers) {
                               next if ($middleLocation + $middleLength + $minPrimerSpacing > $loopLocation - $loopLength + 1);
                               next if ($middleLocation + $middleLength + $loopMinGap > $innerLocation);
-                              next if (abs($loopTm - $midTm) > $maxTmDiff && !($loopInfo->getTag("is_fixed") || $middleInfo->getTag("is_fixed")));
+                              next if (abs($loopTm - $midTm) > $maxTmDiff && !($loopInfo->hasTag("is_fixed") || $middleInfo->hasTag("is_fixed")));
                           } else {
-                              next if (abs($innerTm - $midTm) > $maxTmDiff && !($innerInfo->getTag("is_fixed") || $middleInfo->getTag("is_fixed")));
+                              next if (abs($innerTm - $midTm) > $maxTmDiff && !($innerInfo->hasTag("is_fixed") || $middleInfo->hasTag("is_fixed")));
                           }
                           
                           my $outerStartAt = $searchStartAt;
@@ -1647,7 +1647,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       my ($outerLocation, $outerLength, $outerPenalty, $outTm) = @{$masterOuterF_data_r->[$k]};
                                       
                                       next if ($outerLocation + $outerLength + $minPrimerSpacing > $middleLocation);
-                                      next if (abs($midTm - $outTm) > $maxTmDiff && !($middleInfo->getTag("is_fixed") || $outerInfo->getTag("is_fixed")));
+                                      next if (abs($midTm - $outTm) > $maxTmDiff && !($middleInfo->hasTag("is_fixed") || $outerInfo->hasTag("is_fixed")));
                                       
                                       my $middleToOuterDistance = $middleLocation - ($outerLocation + $outerLength);
                                       my $spacingPenalty = 0;
@@ -1716,7 +1716,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           my $elapsed = time() - $_sig_fwd_t0 + 0.001;
                           my $eta = ($total_done < $innerForwardCount) ? int(($innerForwardCount - $total_done) / ($total_done / $elapsed)) : 0;
                           my $rate = $total_done / $elapsed;
-                          printf("[LAVA-PROGRESS] Signatures Forward|%d|%d|Sig: %d|%.1f it/s|%d", $total_done, $innerForwardCount, $total_hits, $rate, $eta);
+                          printf("[LAVA-PROGRESS] Signatures Forward|%d|%d|Sig: %d|%.1f it/s|%d
+", $total_done, $innerForwardCount, $total_hits, $rate, $eta);
                           my $old_h = select(STDOUT); $| = 1; select($old_h);
                       }
                   }
@@ -1909,9 +1910,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           if ($includeLoopPrimers) {
                               next if ($middleLocation - $minPrimerSpacing < $loopLocation + $loopLength - 1);
                               next if ($middleLocation - $loopMinGap < $innerLocation + $innerLength);
-                              next if (abs($loopTm - $midTm) > $maxTmDiff && !($loopInfo->getTag("is_fixed") || $middleInfo->getTag("is_fixed")));
+                              next if (abs($loopTm - $midTm) > $maxTmDiff && !($loopInfo->hasTag("is_fixed") || $middleInfo->hasTag("is_fixed")));
                           } else {
-                              next if (abs($innerTm - $midTm) > $maxTmDiff && !($innerInfo->getTag("is_fixed") || $middleInfo->getTag("is_fixed")));
+                              next if (abs($innerTm - $midTm) > $maxTmDiff && !($innerInfo->hasTag("is_fixed") || $middleInfo->hasTag("is_fixed")));
                           }
                           
                           my $outerStartAt = $middleLocation + $minPrimerSpacing;
@@ -2008,7 +2009,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           my $elapsed = time() - $_sig_rev_t0 + 0.001;
                           my $eta = ($total_done < $innerReverseCount) ? int(($innerReverseCount - $total_done) / ($total_done / $elapsed)) : 0;
                           my $rate = $total_done / $elapsed;
-                          printf("[LAVA-PROGRESS] Signatures Reverse|%d|%d|Sig: %d|%.1f it/s|%d", $total_done, $innerReverseCount, $total_hits, $rate, $eta);
+                          printf("[LAVA-PROGRESS] Signatures Reverse|%d|%d|Sig: %d|%.1f it/s|%d
+", $total_done, $innerReverseCount, $total_hits, $rate, $eta);
                           my $old_h = select(STDOUT); $| = 1; select($old_h);
                       }
                   }

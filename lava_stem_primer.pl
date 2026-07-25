@@ -1752,7 +1752,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           my $elapsed = time() - $_sig_fwd_t0 + 0.001;
                           my $eta = ($total_done < $innerForwardCount) ? int(($innerForwardCount - $total_done) / ($total_done / $elapsed)) : 0;
                           my $rate = $total_done / $elapsed;
-                          printf("[LAVA-PROGRESS] Signatures Forward|%d|%d|Sig: %d|%.1f it/s|%d", $total_done, $innerForwardCount, $total_hits, $rate, $eta);
+                          printf("[LAVA-PROGRESS] Signatures Forward|%d|%d|Sig: %d|%.1f it/s|%d
+", $total_done, $innerForwardCount, $total_hits, $rate, $eta);
                           my $old_h = select(STDOUT); $| = 1; select($old_h);
                       }
                   }
@@ -2048,7 +2049,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           my $elapsed = time() - $_sig_rev_t0 + 0.001;
                           my $eta = ($total_done < $innerReverseCount) ? int(($innerReverseCount - $total_done) / ($total_done / $elapsed)) : 0;
                           my $rate = $total_done / $elapsed;
-                          printf("[LAVA-PROGRESS] Signatures Reverse|%d|%d|Sig: %d|%.1f it/s|%d", $total_done, $innerReverseCount, $total_hits, $rate, $eta);
+                          printf("[LAVA-PROGRESS] Signatures Reverse|%d|%d|Sig: %d|%.1f it/s|%d
+", $total_done, $innerReverseCount, $total_hits, $rate, $eta);
                           my $old_h = select(STDOUT); $| = 1; select($old_h);
                       }
                   }
