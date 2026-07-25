@@ -98,6 +98,8 @@ TRANSLATIONS = {
         'three_prime_zone': 'Zone 3\' (bases)',
         'max_dist_outer_middle': 'Dist. Max Outer-Middle',
         'max_dist_middle_inner': 'Dist. Max Middle-Inner',
+        'fixed_primer_strict': 'Mode Strict',
+        'fixed_primer_strict_desc': 'Désactiver l\'optimisation B&B (conserve la séquence exacte)',
         'penalty_plateau': 'Plateau de Pénalité (0.1-0.5)',
         'penalty_slope': 'Pente Sigmoïde (0.05-0.5)',
         'stem_orientation': 'Orientation STEM',
@@ -306,6 +308,8 @@ TRANSLATIONS = {
         'three_prime_zone': '3\' Zone (bases)',
         'max_dist_outer_middle': 'Max Dist. Outer-Middle',
         'max_dist_middle_inner': 'Max Dist. Middle-Inner',
+        'fixed_primer_strict': 'Strict Mode',
+        'fixed_primer_strict_desc': 'Disable B&B optimization (keeps exact sequence)',
         'penalty_plateau': 'Penalty Plateau (0.1-0.5)',
         'penalty_slope': 'Sigmoid Slope (0.05-0.5)',
         # Clés manquantes EN / Missing EN keys
@@ -1136,6 +1140,8 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
             'window_size', 'max_per_window',
             # Parallélisation multi-cœurs / Multi-core parallelization
             'threads',
+            # Fixed primers options
+            'fixed_primer_optimize',
         }
 
         # Paramètres spécifiques à LOOP
@@ -1441,9 +1447,11 @@ def execute_lava():
         session['params']['fixed_primers'] = "\n".join(fp_list)
     elif 'fixed_primers' in session['params']:
         del session['params']['fixed_primers']
+        
+    session['params']['fixed_primer_optimize'] = 0 if request.form.get('fixed_primer_strict') == '1' else 1
     
     for key, value in request.form.items():
-        if key not in ['script_type', 'lamp_mode', 'output_name', 'fp_type[]', 'fp_seq[]', 'fp_pos[]']:
+        if key not in ['script_type', 'lamp_mode', 'output_name', 'fp_type[]', 'fp_seq[]', 'fp_pos[]', 'fixed_primer_strict']:
             if key in ['include_stem_primers', 'include_loop_primers']:
                 session['params'][key] = value == 'on'
             else:

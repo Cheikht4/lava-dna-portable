@@ -605,6 +605,14 @@
                         <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addFixedPrimerRow()">
                             <i class="fas fa-plus me-1"></i> {{ 'add_fixed_primer'|t }}
                         </button>
+                        
+                        <!-- Checkbox for Strict Mode -->
+                        <div class="form-check mt-3 border-top pt-2">
+                            <input class="form-check-input" type="checkbox" name="fixed_primer_strict" id="fixed_primer_strict" value="1">
+                            <label class="form-check-label" for="fixed_primer_strict">
+                                <strong>{{ 'fixed_primer_strict'|t }}</strong> - {{ 'fixed_primer_strict_desc'|t }}
+                            </label>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn btn-warning btn-lg">

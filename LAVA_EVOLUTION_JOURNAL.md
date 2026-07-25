@@ -2054,3 +2054,22 @@ Les paramètres saisis par l'utilisateur (longueurs d'amorces, taux de couvertur
 
 **Impact attendu :** 
 L'interface HTML empêchera nativement l'utilisateur de cliquer sur la flèche du bas pour descendre en dessous de zéro, prévenant ainsi les erreurs de saisie accidentelles avant même la soumission du formulaire, et garantissant l'intégrité des paramètres.
+
+---
+
+### Date/Étape : 2026-07-25 - Ajout de la case à cocher Mode Strict pour amorces fixées
+
+**Fichiers impactés :** 
+- `lava_flask_app.py`
+- `templates/index.html`
+
+**Nature du changement :** Interface / Feature.
+
+**Explication technique :** 
+Ajout d'une case à cocher `fixed_primer_strict` dans la section des amorces fixées (front-end) et de sa logique de traitement dans Flask. Si cochée (Strict), la valeur `--fixed_primer_optimize 0` est passée au script Perl. Si décochée, l'optimisation est permise (`1`). L'internationalisation (Français/Anglais) a été implémentée dans le dictionnaire `_translations`.
+
+**Justification biologique :** 
+Les utilisateurs ont besoin de contrôler le comportement du Branch & Bound (B&B) sur les amorces qu'ils imposent. Parfois, une amorce est validée en laboratoire de façon "stricte" (on refuse toute modification dégénérée même si la couverture chute). À l'inverse, l'utilisateur peut souhaiter "améliorer" son amorce fixée via les codes IUPAC pour couvrir plus de variants. Cette case redonne le contrôle expérimental à l'utilisateur.
+
+**Impact attendu :** 
+La section "Amorces Fixées" de l'interface dispose désormais d'une case explicite "Mode Strict" (traduite en FR/EN). L'utilisateur n'a plus besoin d'ajouter manuellement un argument de ligne de commande : l'expérience est entièrement intégrée.
