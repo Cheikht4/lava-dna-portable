@@ -81,11 +81,23 @@ use Getopt::Long;
 sub penaltyAt {
     my ($table_r, $distance, $label) = @_;
     if ($distance < 0) {
-        warn "[PENALTY GUARD] distance negative ($distance) sur $label -> penalite max appliquee\n";
+        # warn "[PENALTY GUARD] distance negative ($distance) sur $label -> penalite max appliquee\n";
         return 100;
     }
     return $table_r->[$distance] // 100;
 }
+
+sub clamp_tm_target {
+    my ($target_ref, $min_val, $max_val, $param_prefix) = @_;
+    if ($$target_ref < $min_val) {
+        printf STDERR "AVERTISSEMENT : --%s_target_tm (%.1f) hors de la plage demandée [%.1f, %.1f]. Le Tm cible est ajusté à %.1f.\n", $param_prefix, $$target_ref, $min_val, $max_val, $min_val;
+        $$target_ref = $min_val;
+    } elsif ($$target_ref > $max_val) {
+        printf STDERR "AVERTISSEMENT : --%s_target_tm (%.1f) hors de la plage demandée [%.1f, %.1f]. Le Tm cible est ajusté à %.1f.\n", $param_prefix, $$target_ref, $min_val, $max_val, $max_val;
+        $$target_ref = $max_val;
+    }
+}
+
 
 
 use Bio::SimpleAlign;
@@ -531,17 +543,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $outerPrimerMinTM =
     optionWithDefault($options_r, "outer_primer_min_tm", 
       ($outerPrimerTargetTM - 1.0));
-  if($outerPrimerMinTM > $outerPrimerTargetTM)
-  {
-    $outerPrimerMinTM = $outerPrimerTargetTM;
-  }
   my $outerPrimerMaxTM =
     optionWithDefault($options_r, "outer_primer_max_tm", 
       ($outerPrimerTargetTM + 1.0));
-  if($outerPrimerMaxTM < $outerPrimerTargetTM)
-  {
-    $outerPrimerMaxTM = $outerPrimerTargetTM;
-  }
+  clamp_tm_target(\$outerPrimerTargetTM, $outerPrimerMinTM, $outerPrimerMaxTM, "outer_primer");
 
   my $stemPrimerTargetLength =
     optionWithDefault($options_r, "stem_primer_target_length", 
@@ -567,17 +572,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $stemPrimerMinTM =
     optionWithDefault($options_r, "stem_primer_min_tm", 
       ($stemPrimerTargetTM - 1.0));
-  if($stemPrimerMinTM > $stemPrimerTargetTM)
-  {
-    $stemPrimerMinTM = $stemPrimerTargetTM;
-  }
   my $stemPrimerMaxTM =
     optionWithDefault($options_r, "stem_primer_max_tm", 
       ($stemPrimerTargetTM + 1.0));
-  if($stemPrimerMaxTM < $stemPrimerTargetTM)
-  {
-    $stemPrimerMaxTM = $stemPrimerTargetTM;
-  }
+  clamp_tm_target(\$stemPrimerTargetTM, $stemPrimerMinTM, $stemPrimerMaxTM, "stem_primer");
 
 
   my $middlePrimerTargetLength =
@@ -604,17 +602,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $middlePrimerMinTM =
     optionWithDefault($options_r, "middle_primer_min_tm", 
       ($middlePrimerTargetTM - 1.0));
-  if($middlePrimerMinTM > $middlePrimerTargetTM)
-  {
-    $middlePrimerMinTM = $middlePrimerTargetTM;
-  }
   my $middlePrimerMaxTM =
     optionWithDefault($options_r, "middle_primer_max_tm", 
       ($middlePrimerTargetTM + 1.0));
-  if($middlePrimerMaxTM < $middlePrimerTargetTM)
-  {
-    $middlePrimerMaxTM = $middlePrimerTargetTM;
-  }
+  clamp_tm_target(\$middlePrimerTargetTM, $middlePrimerMinTM, $middlePrimerMaxTM, "middle_primer");
 
   my $innerPrimerTargetLength =
     optionWithDefault($options_r, "inner_primer_target_length", 
@@ -640,17 +631,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $innerPrimerMinTM =
     optionWithDefault($options_r, "inner_primer_min_tm", 
       ($innerPrimerTargetTM - 1.0));
-  if($innerPrimerMinTM > $innerPrimerTargetTM)
-  {
-    $innerPrimerMinTM = $innerPrimerTargetTM;
-  }
   my $innerPrimerMaxTM =
     optionWithDefault($options_r, "inner_primer_max_tm", 
       ($innerPrimerTargetTM + 1.0));
-  if($innerPrimerMaxTM < $innerPrimerTargetTM)
-  {
-    $innerPrimerMaxTM = $innerPrimerTargetTM;
-  }
+  clamp_tm_target(\$innerPrimerTargetTM, $innerPrimerMinTM, $innerPrimerMaxTM, "inner_primer");
 
   my $maxPolyBases = 
     optionWithDefault($options_r, "max_poly_bases", 
