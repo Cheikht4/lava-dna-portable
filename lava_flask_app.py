@@ -678,6 +678,7 @@ def get_default_params():
         'max_poly_bases': 2,
         'min_signatures_for_success': 1,
         'max_overlap_percent': 0,
+        'resolve_overlap_by': 'penalty',
         'stem_orientation': 0,
         'threads': 'auto',
         # Reduction spatiale par fenetre / Spatial window reduction
