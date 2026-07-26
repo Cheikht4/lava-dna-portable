@@ -1170,11 +1170,20 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   # --- INJECT FIXED PRIMERS into the corresponding pools ---
   if (@fixedPrimerSpecs) {
     print "\n=== Injection des amorces fixees / Fixed Primer Injection ===\n";
+    my %target_tms = (
+      "F3" => $outerPrimerTargetTM, "B3" => $outerPrimerTargetTM,
+      "F2" => $middlePrimerTargetTM, "B2" => $middlePrimerTargetTM,
+      "F1C" => $innerPrimerTargetTM, "B1C" => $innerPrimerTargetTM,
+      "FSTEM" => $stemPrimerTargetTM, "BSTEM" => $stemPrimerTargetTM
+    );
+    
     my $fixed_results_r = injectFixedPrimers(
       $inputMSA, \@fixedPrimerSpecs,
       $primerMinMatchPercent, $primerIupacMinPercent, $minPrimerCoverage,
       $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen,
-      $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency
+      $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
+      $options_r->{"fixed_primer_optimize"},
+      \%target_tms
     );
     # Fusionner les amorces fixees dans chaque pool / Merge fixed primers into each pool
     unshift @outerForwardPrimers,   @{ $fixed_results_r->{"F3"}    // [] };

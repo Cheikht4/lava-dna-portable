@@ -2073,3 +2073,23 @@ Les utilisateurs ont besoin de contrôler le comportement du Branch & Bound (B&B
 
 **Impact attendu :** 
 La section "Amorces Fixées" de l'interface dispose désormais d'une case explicite "Mode Strict" (traduite en FR/EN). L'utilisateur n'a plus besoin d'ajouter manuellement un argument de ligne de commande : l'expérience est entièrement intégrée.
+
+---
+
+### Date/Étape : 2026-07-26 - Calcul de la pénalité Tm pour les amorces fixées
+
+**Fichiers impactés :** 
+- `lib/LLNL/LAVA/PipelineUtils.pm`
+- `lava_loop_primer.pl`
+- `lava_stem_primer.pl`
+
+**Nature du changement :** Thermodynamique / Bug Fix.
+
+**Explication technique :** 
+Jusqu'à présent, les amorces injectées manuellement (fixées) se voyaient attribuer une `primer3_penalty` codée en dur à `0.0`, car elles contournent le moteur Primer3. Désormais, un dictionnaire `%target_tms` contenant le `TargetTM` spécifique à chaque type d'amorce (Inner, Middle, Outer, Loop, Stem) est passé à `injectFixedPrimers`. La pénalité est calculée comme la différence absolue : `abs(real_tm - target_tm)`.
+
+**Justification biologique :** 
+Bien qu'une amorce soit "fixée" et imposée par l'utilisateur, forcer sa pénalité thermodynamique à `0.0` biaisait l'évaluation globale de la signature. Une signature contenant l'amorce fixée se voyait injustement favorisée par rapport à une signature 100% native découverte par l'algorithme, masquant potentiellement des combinaisons thermodynamiquement plus stables. Ce calcul rétablit une compétition équitable.
+
+**Impact attendu :** 
+Les amorces fixées afficheront une vraie valeur dans les rapports (ex: `Thm[I:0.3]`). Le score global (`penalty`) des signatures contenant des amorces fixées sera plus réaliste et directement comparable aux résultats standard, sans biaiser le tri final des candidats.

@@ -2159,7 +2159,8 @@ sub injectFixedPrimers {
       $min_match_percent, $min_iupac_percent, $min_primer_coverage,
       $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen,
       $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
-      $fixed_primer_optimize) = @_;
+      $fixed_primer_optimize,
+      $target_tms_ref) = @_;
       
   $fixed_primer_optimize //= 1; # Par defaut, on optimise
 
@@ -2300,14 +2301,18 @@ sub injectFixedPrimers {
     $fixed_oligo->setTag("fixed_original_seq",     $primer_seq);
     
     # LAVA 2026: Eviter les crashs dans analyzeAll, mais avec VRAI Tm
-    $fixed_oligo->setTag("primer3_penalty",        0);
     my $real_tm = $calc_tm->($final_sequence, $primer_type);
     $fixed_oligo->setTag("primer3_tm",             $real_tm);
 
-    printf("[FIXED PRIMER] Amorce injectee : TYPE=%s POS=%d STRAND=%s SEQ=%s COUV=%.1f%% FORCE=%d\n",
-           $primer_type, $final_location, $strand, $final_sequence, $coverage_percent, $coverage_forced);
-    printf("[FIXED PRIMER] Primer injected : TYPE=%s POS=%d STRAND=%s SEQ=%s COVER=%.1f%% FORCED=%d\n",
-           $primer_type, $final_location, $strand, $final_sequence, $coverage_percent, $coverage_forced);
+    # Calcul de la pénalité Tm pour permettre une comparaison équitable avec les amorces générées / Calculate Tm penalty for fair comparison
+    my $target_tm = (defined $target_tms_ref && defined $target_tms_ref->{$primer_type}) ? $target_tms_ref->{$primer_type} : 60.0;
+    my $tm_penalty = abs($real_tm - $target_tm);
+    $fixed_oligo->setTag("primer3_penalty",        $tm_penalty);
+
+    printf("[FIXED PRIMER] Amorce injectee : TYPE=%s POS=%d STRAND=%s SEQ=%s COUV=%.1f%% FORCE=%d TM=%.1f PEN=%.2f\n",
+           $primer_type, $final_location, $strand, $final_sequence, $coverage_percent, $coverage_forced, $real_tm, $tm_penalty);
+    printf("[FIXED PRIMER] Primer injected : TYPE=%s POS=%d STRAND=%s SEQ=%s COVER=%.1f%% FORCED=%d TM=%.1f PEN=%.2f\n",
+           $primer_type, $final_location, $strand, $final_sequence, $coverage_percent, $coverage_forced, $real_tm, $tm_penalty);
 
     $result{$primer_type} //= [];
     push @{$result{$primer_type}}, $fixed_oligo;
