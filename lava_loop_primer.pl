@@ -1180,10 +1180,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   if (@fixedPrimerSpecs) {
     print "\n=== Injection des amorces fixees / Fixed Primer Injection ===\n";
     my %target_tms = (
-      "F3" => $outerPrimerTargetTm, "B3" => $outerPrimerTargetTm,
-      "F2" => $middlePrimerTargetTm, "B2" => $middlePrimerTargetTm,
-      "F1C" => $innerPrimerTargetTm, "B1C" => $innerPrimerTargetTm,
-      "FLOOP" => $loopPrimerTargetTm, "BLOOP" => $loopPrimerTargetTm
+      "F3" => $outerPrimerTargetTM, "B3" => $outerPrimerTargetTM,
+      "F2" => $middlePrimerTargetTM, "B2" => $middlePrimerTargetTM,
+      "F1C" => $innerPrimerTargetTM, "B1C" => $innerPrimerTargetTM,
+      "FLOOP" => $loopPrimerTargetTM, "BLOOP" => $loopPrimerTargetTM
     );
     
     my $fixed_results_r = injectFixedPrimers(
