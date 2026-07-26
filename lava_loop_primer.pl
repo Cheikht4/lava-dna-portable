@@ -70,6 +70,15 @@ use lib 'lib';
 
 use Getopt::Long;
 
+sub penaltyAt {
+    my ($table_r, $distance, $label) = @_;
+    if ($distance < 0) {
+        warn "[PENALTY GUARD] distance negative ($distance) sur $label -> penalite max appliquee\n";
+        return 100;
+    }
+    return $table_r->[$distance] // 100;
+}
+
 
 use Bio::SimpleAlign;
 use Bio::AlignIO;
@@ -1614,7 +1623,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   my $innerToLoopDistance = $includeLoopPrimers ? $innerLocation - ($loopLocation + 1) : 0;
                   my $base_penalty = ($innerPenalty * $innerPenaltyWeight) + 
                                      ($includeLoopPrimers ? $loopPenalty * $loopPenaltyWeight : 0) + 
-                                     ($includeLoopPrimers ? $innerToLoopPenalties_r->[$innerToLoopDistance] * $innerToLoopPenaltyWeight : 0);
+                                     ($includeLoopPrimers ? penaltyAt($innerToLoopPenalties_r, $innerToLoopDistance, 'innerToLoop') * $innerToLoopPenaltyWeight : 0);
                   my $min_S_to_mid = $includeLoopPrimers ? $minS_loopToMiddle_F : $minS_innerToMiddle_F;
                   
                   if ($base_penalty + $min_P_mid_range + $min_P_outer_F + $min_S_to_mid + $minS_middleToOuter_F >= $bestSetPenalty) {
@@ -1643,8 +1652,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           if ($o_start != -1 && $o_end != -1 && $o_start <= $o_end) {
                               my $min_P_out_range = query_rmq($rmq_outer_f, $o_start, $o_end) * $outerPenaltyWeight;
                               my $part_penalty = $base_penalty + ($middlePenalty * $middlePenaltyWeight) + 
-                                                 ($includeLoopPrimers ? $loopToMiddlePenalties_r->[$loopToMiddleDistance] * $loopToMiddlePenaltyWeight 
-                                                                      : $innerToMiddlePenalties_r->[$innerToMiddleDistance] * $innerToMiddlePenaltyWeight);
+                                                 ($includeLoopPrimers ? penaltyAt($loopToMiddlePenalties_r, $loopToMiddleDistance, 'loopToMiddle') * $loopToMiddlePenaltyWeight 
+                                                                      : penaltyAt($innerToMiddlePenalties_r, $innerToMiddleDistance, 'innerToMiddle') * $innerToMiddlePenaltyWeight);
                               
                               if ($part_penalty + $min_P_out_range + $minS_middleToOuter_F >= $bestSetPenalty) {
                                   $chunk_pruned += ($o_end - $o_start + 1);
@@ -1664,23 +1673,23 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       my $detailStr = "";
                                       
                                       if ($includeLoopPrimers) {
-                                          $spacingPenalty = ($innerToLoopPenalties_r->[$innerToLoopDistance] * $innerToLoopPenaltyWeight) +
-                                                            ($loopToMiddlePenalties_r->[$loopToMiddleDistance] * $loopToMiddlePenaltyWeight) +
-                                                            ($middleToOuterPenalties_r->[$middleToOuterDistance] * $middleToOuterPenaltyWeight);
+                                          $spacingPenalty = (penaltyAt($innerToLoopPenalties_r, $innerToLoopDistance, 'innerToLoop') * $innerToLoopPenaltyWeight) +
+                                                            (penaltyAt($loopToMiddlePenalties_r, $loopToMiddleDistance, 'loopToMiddle') * $loopToMiddlePenaltyWeight) +
+                                                            (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight);
                                           $primer3Penalty = $innerPenalty * $innerPenaltyWeight + $loopPenalty * $loopPenaltyWeight + $middlePenalty * $middlePenaltyWeight + $outerPenalty * $outerPenaltyWeight;
                                           $detailStr = sprintf("Spc[I_L:%.1f L_M:%.1f M_O:%.1f] Thm[I:%.1f L:%.1f M:%.1f O:%.1f]", 
-                                                ($innerToLoopPenalties_r->[$innerToLoopDistance] * $innerToLoopPenaltyWeight),
-                                                ($loopToMiddlePenalties_r->[$loopToMiddleDistance] * $loopToMiddlePenaltyWeight),
-                                                ($middleToOuterPenalties_r->[$middleToOuterDistance] * $middleToOuterPenaltyWeight),
+                                                (penaltyAt($innerToLoopPenalties_r, $innerToLoopDistance, 'innerToLoop') * $innerToLoopPenaltyWeight),
+                                                (penaltyAt($loopToMiddlePenalties_r, $loopToMiddleDistance, 'loopToMiddle') * $loopToMiddlePenaltyWeight),
+                                                (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight),
                                                 ($innerPenalty * $innerPenaltyWeight), ($loopPenalty * $loopPenaltyWeight),
                                                 ($middlePenalty * $middlePenaltyWeight), ($outerPenalty * $outerPenaltyWeight));
                                       } else {
-                                          $spacingPenalty = ($innerToMiddlePenalties_r->[$innerToMiddleDistance] * $innerToMiddlePenaltyWeight) +
-                                                            ($middleToOuterPenalties_r->[$middleToOuterDistance] * $middleToOuterPenaltyWeight);
+                                          $spacingPenalty = (penaltyAt($innerToMiddlePenalties_r, $innerToMiddleDistance, 'innerToMiddle') * $innerToMiddlePenaltyWeight) +
+                                                            (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight);
                                           $primer3Penalty = $innerPenalty * $innerPenaltyWeight + $middlePenalty * $middlePenaltyWeight + $outerPenalty * $outerPenaltyWeight;
                                           $detailStr = sprintf("Spc[I_M:%.1f M_O:%.1f] Thm[I:%.1f M:%.1f O:%.1f]", 
-                                                ($innerToMiddlePenalties_r->[$innerToMiddleDistance] * $innerToMiddlePenaltyWeight),
-                                                ($middleToOuterPenalties_r->[$middleToOuterDistance] * $middleToOuterPenaltyWeight),
+                                                (penaltyAt($innerToMiddlePenalties_r, $innerToMiddleDistance, 'innerToMiddle') * $innerToMiddlePenaltyWeight),
+                                                (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight),
                                                 ($innerPenalty * $innerPenaltyWeight), ($middlePenalty * $middlePenaltyWeight), ($outerPenalty * $outerPenaltyWeight));
                                       }
                                       
@@ -1905,7 +1914,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   my $innerToLoopDistance = $includeLoopPrimers ? $loopLocation - ($innerLocation + 1) : 0;
                   my $base_penalty = ($innerPenalty * $innerPenaltyWeight) + 
                                      ($includeLoopPrimers ? $loopPenalty * $loopPenaltyWeight : 0) + 
-                                     ($includeLoopPrimers ? $innerToLoopPenalties_r->[$innerToLoopDistance] * $innerToLoopPenaltyWeight : 0);
+                                     ($includeLoopPrimers ? penaltyAt($innerToLoopPenalties_r, $innerToLoopDistance, 'innerToLoop') * $innerToLoopPenaltyWeight : 0);
                   my $min_S_to_mid = $includeLoopPrimers ? $minS_loopToMiddle_R : $minS_innerToMiddle_R;
                   
                   if ($base_penalty + $min_P_mid_range + $min_P_outer_R + $min_S_to_mid + $minS_middleToOuter_R >= $bestSetPenalty) {
@@ -1935,8 +1944,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           if ($o_start != -1 && $o_end != -1 && $o_start <= $o_end) {
                               my $min_P_out_range = query_rmq($rmq_outer_r, $o_start, $o_end) * $outerPenaltyWeight;
                               my $part_penalty = $base_penalty + ($middlePenalty * $middlePenaltyWeight) + 
-                                                 ($includeLoopPrimers ? $loopToMiddlePenalties_r->[$loopToMiddleDistance] * $loopToMiddlePenaltyWeight 
-                                                                      : $innerToMiddlePenalties_r->[$innerToMiddleDistance] * $innerToMiddlePenaltyWeight);
+                                                 ($includeLoopPrimers ? penaltyAt($loopToMiddlePenalties_r, $loopToMiddleDistance, 'loopToMiddle') * $loopToMiddlePenaltyWeight 
+                                                                      : penaltyAt($innerToMiddlePenalties_r, $innerToMiddleDistance, 'innerToMiddle') * $innerToMiddlePenaltyWeight);
                               
                               if ($part_penalty + $min_P_out_range + $minS_middleToOuter_R >= $bestSetPenalty) {
                                   $chunk_pruned += ($o_end - $o_start + 1);
@@ -1957,23 +1966,23 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       my $detailStr = "";
                                       
                                       if ($includeLoopPrimers) {
-                                          $spacingPenalty = ($innerToLoopPenalties_r->[$innerToLoopDistance] * $innerToLoopPenaltyWeight) +
-                                                            ($loopToMiddlePenalties_r->[$loopToMiddleDistance] * $loopToMiddlePenaltyWeight) +
-                                                            ($middleToOuterPenalties_r->[$middleToOuterDistance] * $middleToOuterPenaltyWeight);
+                                          $spacingPenalty = (penaltyAt($innerToLoopPenalties_r, $innerToLoopDistance, 'innerToLoop') * $innerToLoopPenaltyWeight) +
+                                                            (penaltyAt($loopToMiddlePenalties_r, $loopToMiddleDistance, 'loopToMiddle') * $loopToMiddlePenaltyWeight) +
+                                                            (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight);
                                           $primer3Penalty = $innerPenalty * $innerPenaltyWeight + $loopPenalty * $loopPenaltyWeight + $middlePenalty * $middlePenaltyWeight + $outerPenalty * $outerPenaltyWeight;
                                           $detailStr = sprintf("Spc[I_L:%.1f L_M:%.1f M_O:%.1f] Thm[I:%.1f L:%.1f M:%.1f O:%.1f]", 
-                                                ($innerToLoopPenalties_r->[$innerToLoopDistance] * $innerToLoopPenaltyWeight),
-                                                ($loopToMiddlePenalties_r->[$loopToMiddleDistance] * $loopToMiddlePenaltyWeight),
-                                                ($middleToOuterPenalties_r->[$middleToOuterDistance] * $middleToOuterPenaltyWeight),
+                                                (penaltyAt($innerToLoopPenalties_r, $innerToLoopDistance, 'innerToLoop') * $innerToLoopPenaltyWeight),
+                                                (penaltyAt($loopToMiddlePenalties_r, $loopToMiddleDistance, 'loopToMiddle') * $loopToMiddlePenaltyWeight),
+                                                (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight),
                                                 ($innerPenalty * $innerPenaltyWeight), ($loopPenalty * $loopPenaltyWeight),
                                                 ($middlePenalty * $middlePenaltyWeight), ($outerPenalty * $outerPenaltyWeight));
                                       } else {
-                                          $spacingPenalty = ($innerToMiddlePenalties_r->[$innerToMiddleDistance] * $innerToMiddlePenaltyWeight) +
-                                                            ($middleToOuterPenalties_r->[$middleToOuterDistance] * $middleToOuterPenaltyWeight);
+                                          $spacingPenalty = (penaltyAt($innerToMiddlePenalties_r, $innerToMiddleDistance, 'innerToMiddle') * $innerToMiddlePenaltyWeight) +
+                                                            (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight);
                                           $primer3Penalty = $innerPenalty * $innerPenaltyWeight + $middlePenalty * $middlePenaltyWeight + $outerPenalty * $outerPenaltyWeight;
                                           $detailStr = sprintf("Spc[I_M:%.1f M_O:%.1f] Thm[I:%.1f M:%.1f O:%.1f]", 
-                                                ($innerToMiddlePenalties_r->[$innerToMiddleDistance] * $innerToMiddlePenaltyWeight),
-                                                ($middleToOuterPenalties_r->[$middleToOuterDistance] * $middleToOuterPenaltyWeight),
+                                                (penaltyAt($innerToMiddlePenalties_r, $innerToMiddleDistance, 'innerToMiddle') * $innerToMiddlePenaltyWeight),
+                                                (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight),
                                                 ($innerPenalty * $innerPenaltyWeight), ($middlePenalty * $middlePenaltyWeight), ($outerPenalty * $outerPenaltyWeight));
                                       }
                                       
