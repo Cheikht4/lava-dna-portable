@@ -79,6 +79,7 @@
             <div class="card-body">
                 <input type="file" id="params_file_input" accept=".txt,.params.txt,.json" style="display: none;" onchange="uploadParamsFile(this)">
                 <form action="{{ url_for('update_params') }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                     <!-- Type de script -->
                     <div class="param-section">
