@@ -156,6 +156,7 @@ lava-dna-interface/
 ### **Types de primers**
 - **🧬 STEM** : Primers d'ancrage avec espacement automatique
 - **🔄 LOOP** : Primers de boucle avec paramètres configurables
+- **⚓ Amorces Fixées (Fixed Primers)** : Injection d'amorces pré-validées, avec ou sans optimisation thermodynamique B&B (Mode Strict).
 
 ## 📊 **Fichiers de sortie**
 
