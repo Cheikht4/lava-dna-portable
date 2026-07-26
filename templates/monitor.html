@@ -42,6 +42,7 @@
                     
                     {% if execution.status in ['running', 'starting'] %}
                     <form method="post" action="{{ url_for('stop_execution', execution_id=execution.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-danger" onclick="return confirm('{{ 'stop_confirm'|t }}')">
                             <i class="fas fa-stop me-2"></i>{{ 'stop_btn'|t }}
                         </button>
@@ -222,6 +223,7 @@
             </div>
             <div class="card-body">
                 <form id="download-form" action="/download-selected/{{ execution.id }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="row mb-3">
                         <div class="col">
                             <div class="form-check">

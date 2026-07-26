@@ -111,6 +111,7 @@
                                 
                                 {% if execution.status in ['running', 'starting'] %}
                                 <form method="post" action="{{ url_for('stop_execution', execution_id=execution_id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn btn-danger btn-sm" 
                                             onclick="return confirm('{{ 'stop_confirm'|t }}')">
                                         <i class="fas fa-stop me-1"></i>{{ 'stop_btn'|t }}

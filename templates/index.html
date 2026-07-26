@@ -596,6 +596,7 @@
             <div class="card-body">
                 {% if session.uploaded_file %}
                 <form action="{{ url_for('execute_lava') }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <!-- Champ caché pour transmettre le script_type -->
                     <input type="hidden" name="script_type" value="{{ params.script_type }}">
                     <!-- Champ caché pour transmettre le mode LAMP (classic/enriched) -->
