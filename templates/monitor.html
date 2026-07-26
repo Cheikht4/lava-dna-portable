@@ -569,7 +569,7 @@ function refreshStatus() {
             }
             
             // Gérer l'auto-refresh
-            if (data.status === 'running' || data.status === 'starting') {
+            if (data.status === 'running' || data.status === 'starting' || data.status === 'queued') {
                 if (!refreshInterval) {
                     refreshInterval = setInterval(refreshStatus, 2000);
                 }
@@ -594,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentStatus = "{{ execution.status }}";
     updateStatusBadge(currentStatus);
     
-    if (currentStatus === 'running' || currentStatus === 'starting') {
+    if (currentStatus === 'running' || currentStatus === 'starting' || currentStatus === 'queued') {
         refreshInterval = setInterval(refreshStatus, 2000);
     }
     
