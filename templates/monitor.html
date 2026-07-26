@@ -364,6 +364,10 @@ function updateStatusBadge(status) {
 }
 
 function refreshStatus() {
+    if (refreshInterval) {
+        clearTimeout(refreshInterval);
+        refreshInterval = null;
+    }
     const refreshBtn = document.getElementById('refresh-btn');
     const originalText = refreshBtn.innerHTML;
     refreshBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i>${i18n.refreshing}`;
@@ -570,14 +574,8 @@ function refreshStatus() {
             
             // Gérer l'auto-refresh
             if (data.status === 'running' || data.status === 'starting' || data.status === 'queued') {
-                if (!refreshInterval) {
-                    refreshInterval = setInterval(refreshStatus, 2000);
-                }
-            } else {
-                if (refreshInterval) {
-                    clearInterval(refreshInterval);
-                    refreshInterval = null;
-                }
+                const interval = (data.status === 'queued') ? 10000 : 2000;
+                refreshInterval = setTimeout(refreshStatus, interval);
             }
         })
         .catch(error => {
@@ -595,17 +593,14 @@ document.addEventListener('DOMContentLoaded', function() {
     updateStatusBadge(currentStatus);
     
     if (currentStatus === 'running' || currentStatus === 'starting' || currentStatus === 'queued') {
-        refreshInterval = setInterval(refreshStatus, 2000);
+        refreshInterval = setTimeout(refreshStatus, 1000);
     }
-    
-    // Première actualisation
-    setTimeout(refreshStatus, 1000);
 });
 
 // Nettoyer l'interval quand on quitte la page
 window.addEventListener('beforeunload', function() {
     if (refreshInterval) {
-        clearInterval(refreshInterval);
+        clearTimeout(refreshInterval);
     }
 });
 </script>
