@@ -835,9 +835,9 @@ def upload_file():
                 elif current_len != first_len:
                     is_valid_alignment = False
 
-            if seq_count < 2:
+            if seq_count < 1:
                 os.remove(filepath)
-                flash("Le fichier fourni ne contient qu'une seule séquence ou est vide. Veuillez fournir un alignement multiple.", 'error')
+                flash("Le fichier fourni est vide. Veuillez fournir une séquence ou un alignement valide.", 'error')
                 return redirect(url_for('index'))
                 
             if not is_valid_alignment:
