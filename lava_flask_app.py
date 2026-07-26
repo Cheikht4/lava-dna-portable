@@ -1540,15 +1540,23 @@ def execute_lava():
     with executions_lock:
         max_queued = int(os.environ.get('MAX_QUEUED_JOBS', 30))
         max_user = int(os.environ.get('MAX_USER_QUEUED_JOBS', 2))
+        max_ip = int(os.environ.get('MAX_IP_QUEUED_JOBS', 3))
         current_user_id = session.get('user_id')
         current_ip = request.remote_addr or 'unknown'
 
-        # Le quota visiteur inclut queued, starting et running, par IP et par Session
-        running_user = sum(1 for e in running_executions.values() if (e.get('owner_id') == current_user_id or e.get('user_id') == current_user_id or e.get('ip') == current_ip) and e.get('status') in ['queued', 'starting', 'running'])
+        # Le quota de session
+        running_user = sum(1 for e in running_executions.values() if (e.get('owner_id') == current_user_id or e.get('user_id') == current_user_id) and e.get('status') in ['queued', 'starting', 'running'])
+        # Le quota d'IP (distinct, un peu plus permissif)
+        running_ip = sum(1 for e in running_executions.values() if e.get('ip') == current_ip and e.get('status') in ['queued', 'starting', 'running'])
+        
         running_global = sum(1 for e in running_executions.values() if e.get('status') in ['queued', 'starting', 'running'])
 
         if running_user >= max_user:
             flash(f"Vous avez déjà {running_user} calculs en attente ou en cours. Attendez leur fin pour en lancer un nouveau.", "warning")
+            return redirect(url_for('list_executions'))
+
+        if running_ip >= max_ip:
+            flash(f"Trop de calculs simultanés depuis votre adresse IP ({running_ip}). Attendez leur fin pour en lancer un nouveau.", "warning")
             return redirect(url_for('list_executions'))
 
         if running_global >= max_queued:
@@ -2077,11 +2085,12 @@ def background_data_cleanup():
                 if not ip_request_history[ip]:
                     ip_request_history.pop(ip, None)
 
-            to_remove = []
-            for exec_id, exec_data in list(running_executions.items()):
-                if exec_data.get('status') in ['starting', 'running']:
-                    continue
-                end_time_str = exec_data.get('end_time')
+            with executions_lock:
+                to_remove = []
+                for exec_id, exec_data in list(running_executions.items()):
+                    if exec_data.get('status') in ['starting', 'running']:
+                        continue
+                    end_time_str = exec_data.get('end_time')
                 if end_time_str:
                     try:
                         end_time = datetime.strptime(end_time_str, '%Y-%m-%d %H:%M:%S')
@@ -2142,16 +2151,19 @@ def background_job_scheduler():
                     queued_jobs = [e for e in running_executions.values() if e.get('status') == 'queued']
                     if queued_jobs:
                         queued_jobs.sort(key=lambda x: x.get('queued_time', now))
-                        oldest_job = queued_jobs[0]
-                        if (now - oldest_job['queued_time']).total_seconds() >= min_queue_sec:
-                            oldest_job['status'] = 'starting'
-                            thread = threading.Thread(
-                                target=execute_lava_background,
-                                args=(oldest_job['id'], oldest_job['script_type'], 
-                                      oldest_job['input_file'], oldest_job['output_name'], oldest_job['params'])
-                            )
-                            thread.daemon = True
-                            thread.start()
+                        for oldest_job in queued_jobs:
+                            if running_count >= max_concurrent:
+                                break
+                            if (now - oldest_job['queued_time']).total_seconds() >= min_queue_sec:
+                                oldest_job['status'] = 'starting'
+                                thread = threading.Thread(
+                                    target=execute_lava_background,
+                                    args=(oldest_job['id'], oldest_job['script_type'], 
+                                          oldest_job['input_file'], oldest_job['output_name'], oldest_job['params'])
+                                )
+                                thread.daemon = True
+                                thread.start()
+                                running_count += 1
         except Exception as e:
             print(f"Erreur ordonnanceur: {e}")
 
