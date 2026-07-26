@@ -70,13 +70,32 @@ use lib 'lib';
 
 use Getopt::Long;
 
+our $penalty_guard_innerToLoop_neg = 0;
+our $penalty_guard_innerToLoop_oob = 0;
+our $penalty_guard_loopToMiddle_neg = 0;
+our $penalty_guard_loopToMiddle_oob = 0;
+our $penalty_guard_innerToMiddle_neg = 0;
+our $penalty_guard_innerToMiddle_oob = 0;
+our $penalty_guard_middleToOuter_neg = 0;
+our $penalty_guard_middleToOuter_oob = 0;
+
 sub penaltyAt {
     my ($table_r, $distance, $label) = @_;
     if ($distance < 0) {
-        # warn "[PENALTY GUARD] distance negative ($distance) sur $label -> penalite max appliquee\n";
+        if ($label eq 'loopToMiddle') { $penalty_guard_loopToMiddle_neg++; }
+        elsif ($label eq 'innerToLoop') { $penalty_guard_innerToLoop_neg++; }
+        elsif ($label eq 'innerToMiddle') { $penalty_guard_innerToMiddle_neg++; }
+        elsif ($label eq 'middleToOuter') { $penalty_guard_middleToOuter_neg++; }
         return 100;
     }
-    return $table_r->[$distance] // 100;
+    if (!defined $table_r->[$distance]) {
+        if ($label eq 'loopToMiddle') { $penalty_guard_loopToMiddle_oob++; }
+        elsif ($label eq 'innerToLoop') { $penalty_guard_innerToLoop_oob++; }
+        elsif ($label eq 'innerToMiddle') { $penalty_guard_innerToMiddle_oob++; }
+        elsif ($label eq 'middleToOuter') { $penalty_guard_middleToOuter_oob++; }
+        return 100;
+    }
+    return $table_r->[$distance];
 }
 
 sub clamp_tm_target {
@@ -1512,6 +1531,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $_fwd_min_delta_tm_inner_middle = 999;
   my $_fwd_min_delta_tm_middle_outer = 999;
   my $_fwd_min_span_needed = 999999;
+  
+  my %_fwd_pen_guards;
   my $fwd_prog_dir = "$options_r->{'output_file'}_fwd_prog_$$";
   $fwd_prog_dir = "$options_r->{'output_file'}_fwd_prog_$$" if ref($options_r);
   use File::Path qw(make_path remove_tree);
@@ -1564,6 +1585,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               } elsif ($k eq 'min_span_needed') {
                   $_fwd_min_span_needed = $data_ref->{$k} if $data_ref->{$k} < $_fwd_min_span_needed;
               }
+          }
+          foreach my $k (qw(innerToLoop loopToMiddle innerToMiddle middleToOuter)) {
+              $_fwd_pen_guards{"${k}_neg"} += $data_ref->{pen_guards}->{"${k}_neg"} || 0;
+              $_fwd_pen_guards{"${k}_oob"} += $data_ref->{pen_guards}->{"${k}_oob"} || 0;
           }
       }
   });
@@ -1637,7 +1662,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               
               # 3.2 Calculate Search Bounds for Middle Primer (F2) (Structure: F3-F2-LF-F1c)
               my $middleStartAt = $searchStartAt;
-              my $middleEndAt = $loopLocation - $loopLength - $minPrimerSpacing;
+              my $middleEndAt = $loopLocation - $loopLength - $minPrimerSpacing + $middlePrimerMaxLength - 1;
               
               # Ensure Middle isn't too close to Inner (respecting loop gap or standard gap)
               # [restauré depuis a6098f5 : le refactor 55328b2 avait supprime cette contrainte]
@@ -1658,9 +1683,14 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               if ($m_start != -1 && $m_end != -1 && $m_start <= $m_end) {
                   my $min_P_mid_range = query_rmq($rmq_middle_f, $m_start, $m_end) * $middlePenaltyWeight;
                   my $innerToLoopDistance = $includeLoopPrimers ? $innerLocation - ($loopLocation + 1) : 0;
+                  
+                  my $pen_innerToLoop = penaltyAt($innerToLoopPenalties_r, $innerToLoopDistance, 'innerToLoop');
+                  if ($pen_innerToLoop < 0) { $penalty_guard_innerToLoop_neg++; }
+                  if ($pen_innerToLoop == 9999) { $penalty_guard_innerToLoop_oob++; }
+                  
                   my $base_penalty = ($innerPenalty * $innerPenaltyWeight) + 
                                      ($includeLoopPrimers ? $loopPenalty * $loopPenaltyWeight : 0) + 
-                                     ($includeLoopPrimers ? penaltyAt($innerToLoopPenalties_r, $innerToLoopDistance, 'innerToLoop') * $innerToLoopPenaltyWeight : 0);
+                                     ($includeLoopPrimers ? $pen_innerToLoop * $innerToLoopPenaltyWeight : 0);
                   my $min_S_to_mid = $includeLoopPrimers ? $minS_loopToMiddle_F : $minS_innerToMiddle_F;
                   
                   if ($base_penalty + $min_P_mid_range + $min_P_outer_F + $min_S_to_mid + $minS_middleToOuter_F >= $bestSetPenalty) {
@@ -1672,7 +1702,12 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           my ($middleLocation, $middleLength, $middlePenalty, $midTm) = @{$masterMiddleF_data_r->[$j]};
                           
                           if ($includeLoopPrimers) {
-                              my $needed = ($middleLocation + $middleLength + $minPrimerSpacing) - ($loopLocation - $loopLength + 1);
+                              my $loopToMiddleDistance = ($loopLocation - $loopLength + 1) - ($middleLocation + $middleLength);
+                              if ($loopToMiddleDistance < 0) {
+                                  $chunk_rej_spacing++;
+                                  next;
+                              }
+                              my $needed = $minPrimerSpacing - $loopToMiddleDistance;
                               if ($needed > 0) {
                                   my $span = ($innerLocation + $innerLength) - $middleLocation + $needed;
                                   $chunk_min_span_needed = $span if $span < $chunk_min_span_needed;
@@ -1687,6 +1722,18 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                   next;
                               }
                           } else {
+                              my $innerToMiddleDistance = $innerLocation - ($middleLocation + $middleLength);
+                              if ($innerToMiddleDistance < 0) {
+                                  $chunk_rej_spacing++;
+                                  next;
+                              }
+                              my $needed = $minPrimerSpacing - $innerToMiddleDistance;
+                              if ($needed > 0) {
+                                  my $span = ($innerLocation + $innerLength) - $middleLocation + $needed;
+                                  $chunk_min_span_needed = $span if $span < $chunk_min_span_needed;
+                                  $chunk_rej_spacing++;
+                                  next;
+                              }
                               my $diffIM = abs($innerTm - $midTm);
                               if ($diffIM > $maxTmDiff && !($innerInfo->hasTag("is_fixed") || $middleInfo->hasTag("is_fixed"))) {
                                   $chunk_min_delta_tm_inner_middle = $diffIM if $diffIM < $chunk_min_delta_tm_inner_middle;
@@ -1696,7 +1743,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           }
                           
                           my $outerStartAt = $searchStartAt;
-                          my $outerEndAt = $middleLocation - 1 - $minPrimerSpacing;
+                          my $outerEndAt = $middleLocation - 1 - $minPrimerSpacing + $outerPrimerMaxLength;
                           my $loopToMiddleDistance = $includeLoopPrimers ? ($loopLocation - $loopLength + 1) - ($middleLocation + $middleLength) : 0;
                           my $innerToMiddleDistance = $innerLocation - ($middleLocation + $middleLength);
                           
@@ -1704,9 +1751,13 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           my $o_end = binary_search_last_le($masterOuterF_data_r, $outerEndAt);
                           if ($o_start != -1 && $o_end != -1 && $o_start <= $o_end) {
                               my $min_P_out_range = query_rmq($rmq_outer_f, $o_start, $o_end) * $outerPenaltyWeight;
+                              
+                              my $pen_mid = $includeLoopPrimers ? penaltyAt($loopToMiddlePenalties_r, $loopToMiddleDistance, 'loopToMiddle') : penaltyAt($innerToMiddlePenalties_r, $innerToMiddleDistance, 'innerToMiddle');
+                              if ($pen_mid < 0) { if($includeLoopPrimers) { $penalty_guard_loopToMiddle_neg++; } else { $penalty_guard_innerToMiddle_neg++; } }
+                              if ($pen_mid == 9999) { if($includeLoopPrimers) { $penalty_guard_loopToMiddle_oob++; } else { $penalty_guard_innerToMiddle_oob++; } }
+
                               my $part_penalty = $base_penalty + ($middlePenalty * $middlePenaltyWeight) + 
-                                                 ($includeLoopPrimers ? penaltyAt($loopToMiddlePenalties_r, $loopToMiddleDistance, 'loopToMiddle') * $loopToMiddlePenaltyWeight 
-                                                                      : penaltyAt($innerToMiddlePenalties_r, $innerToMiddleDistance, 'innerToMiddle') * $innerToMiddlePenaltyWeight);
+                                                 ($pen_mid * ($includeLoopPrimers ? $loopToMiddlePenaltyWeight : $innerToMiddlePenaltyWeight));
                               
                               if ($part_penalty + $min_P_out_range + $minS_middleToOuter_F >= $bestSetPenalty) {
                                   $chunk_pruned += ($o_end - $o_start + 1);
@@ -1717,7 +1768,12 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       my $outerInfo = $masterOuterF_r->[$k];
                                       my ($outerLocation, $outerLength, $outerPenalty, $outTm) = @{$masterOuterF_data_r->[$k]};
                                       
-                                      my $needed = ($outerLocation + $outerLength + $minPrimerSpacing) - $middleLocation;
+                                      my $middleToOuterDistance = $middleLocation - ($outerLocation + $outerLength);
+                                      if ($middleToOuterDistance < 0) {
+                                          $chunk_rej_spacing++;
+                                          next;
+                                      }
+                                      my $needed = $minPrimerSpacing - $middleToOuterDistance;
                                       if ($needed > 0) {
                                           my $span = ($innerLocation + $innerLength) - $outerLocation + $needed;
                                           $chunk_min_span_needed = $span if $span < $chunk_min_span_needed;
@@ -1731,29 +1787,24 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                           next;
                                       }
                                       
-                                      my $middleToOuterDistance = $middleLocation - ($outerLocation + $outerLength);
-                                      my $spacingPenalty = 0;
-                                      my $primer3Penalty = 0;
-                                      my $detailStr = "";
+                                      my $pen_out = penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter');
+                                      if ($pen_out < 0) { $penalty_guard_middleToOuter_neg++; }
+                                      if ($pen_out == 9999) { $penalty_guard_middleToOuter_oob++; }
                                       
+                                      my $spacingPenalty = ($includeLoopPrimers ? $pen_innerToLoop * $innerToLoopPenaltyWeight : 0) +
+                                                           ($pen_mid * ($includeLoopPrimers ? $loopToMiddlePenaltyWeight : $innerToMiddlePenaltyWeight)) +
+                                                           ($pen_out * $middleToOuterPenaltyWeight);
+                                      
+                                      my $primer3Penalty = $innerPenalty * $innerPenaltyWeight + ($includeLoopPrimers ? $loopPenalty * $loopPenaltyWeight : 0) + $middlePenalty * $middlePenaltyWeight + $outerPenalty * $outerPenaltyWeight;
+                                      
+                                      my $detailStr = "";
                                       if ($includeLoopPrimers) {
-                                          $spacingPenalty = (penaltyAt($innerToLoopPenalties_r, $innerToLoopDistance, 'innerToLoop') * $innerToLoopPenaltyWeight) +
-                                                            (penaltyAt($loopToMiddlePenalties_r, $loopToMiddleDistance, 'loopToMiddle') * $loopToMiddlePenaltyWeight) +
-                                                            (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight);
-                                          $primer3Penalty = $innerPenalty * $innerPenaltyWeight + $loopPenalty * $loopPenaltyWeight + $middlePenalty * $middlePenaltyWeight + $outerPenalty * $outerPenaltyWeight;
                                           $detailStr = sprintf("Spc[I_L:%.1f L_M:%.1f M_O:%.1f] Thm[I:%.1f L:%.1f M:%.1f O:%.1f]", 
-                                                (penaltyAt($innerToLoopPenalties_r, $innerToLoopDistance, 'innerToLoop') * $innerToLoopPenaltyWeight),
-                                                (penaltyAt($loopToMiddlePenalties_r, $loopToMiddleDistance, 'loopToMiddle') * $loopToMiddlePenaltyWeight),
-                                                (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight),
-                                                ($innerPenalty * $innerPenaltyWeight), ($loopPenalty * $loopPenaltyWeight),
-                                                ($middlePenalty * $middlePenaltyWeight), ($outerPenalty * $outerPenaltyWeight));
+                                                ($pen_innerToLoop * $innerToLoopPenaltyWeight), ($pen_mid * $loopToMiddlePenaltyWeight), ($pen_out * $middleToOuterPenaltyWeight),
+                                                ($innerPenalty * $innerPenaltyWeight), ($loopPenalty * $loopPenaltyWeight), ($middlePenalty * $middlePenaltyWeight), ($outerPenalty * $outerPenaltyWeight));
                                       } else {
-                                          $spacingPenalty = (penaltyAt($innerToMiddlePenalties_r, $innerToMiddleDistance, 'innerToMiddle') * $innerToMiddlePenaltyWeight) +
-                                                            (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight);
-                                          $primer3Penalty = $innerPenalty * $innerPenaltyWeight + $middlePenalty * $middlePenaltyWeight + $outerPenalty * $outerPenaltyWeight;
                                           $detailStr = sprintf("Spc[I_M:%.1f M_O:%.1f] Thm[I:%.1f M:%.1f O:%.1f]", 
-                                                (penaltyAt($innerToMiddlePenalties_r, $innerToMiddleDistance, 'innerToMiddle') * $innerToMiddlePenaltyWeight),
-                                                (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight),
+                                                ($pen_mid * $innerToMiddlePenaltyWeight), ($pen_out * $middleToOuterPenaltyWeight),
                                                 ($innerPenalty * $innerPenaltyWeight), ($middlePenalty * $middlePenaltyWeight), ($outerPenalty * $outerPenaltyWeight));
                                       }
                                       
@@ -1827,27 +1878,38 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           min_tm_inner_middle => $chunk_min_delta_tm_inner_middle,
           min_tm_middle_outer => $chunk_min_delta_tm_middle_outer,
           min_span_needed => $chunk_min_span_needed,
-          rej_geometry => $chunk_rej_geometry,
-          rej_spacing => $chunk_rej_spacing,
-          rej_loopgap => $chunk_rej_loopgap,
-          rej_tm_inner_loop => $chunk_rej_tm_inner_loop,
-          rej_tm_loop_middle => $chunk_rej_tm_loop_middle,
-          rej_tm_inner_middle => $chunk_rej_tm_inner_middle,
-          rej_tm_middle_outer => $chunk_rej_tm_middle_outer,
-          min_tm_inner_loop => $chunk_min_delta_tm_inner_loop,
-          min_tm_loop_middle => $chunk_min_delta_tm_loop_middle,
-          min_tm_inner_middle => $chunk_min_delta_tm_inner_middle,
-          min_tm_middle_outer => $chunk_min_delta_tm_middle_outer,
-          min_span_needed => $chunk_min_span_needed,
+          pen_guards => {
+              innerToLoop_neg => $penalty_guard_innerToLoop_neg,
+              innerToLoop_oob => $penalty_guard_innerToLoop_oob,
+              loopToMiddle_neg => $penalty_guard_loopToMiddle_neg,
+              loopToMiddle_oob => $penalty_guard_loopToMiddle_oob,
+              innerToMiddle_neg => $penalty_guard_innerToMiddle_neg,
+              innerToMiddle_oob => $penalty_guard_innerToMiddle_oob,
+              middleToOuter_neg => $penalty_guard_middleToOuter_neg,
+              middleToOuter_oob => $penalty_guard_middleToOuter_oob,
+          }
       });
   } # End chunks
   $pm_fwd->wait_all_children();
   use File::Path qw(remove_tree);
   remove_tree($fwd_prog_dir) if -d $fwd_prog_dir;
   
-  if ($_sig_fwd_evaluated > 0) {
-      my $pct = ($_sig_fwd_pruned / $_sig_fwd_evaluated) * 100;
-      # printf("  [Forward B&B] Elagage: %.2f%% (%d / %d branches evaluees)\n", $pct, $_sig_fwd_pruned, $_sig_fwd_evaluated);
+  if ($_sig_fwd_pruned + $_sig_fwd_evaluated > 0) {
+      my $pct = ($_sig_fwd_pruned / ($_sig_fwd_pruned + $_sig_fwd_evaluated)) * 100;
+      print sprintf("    [Forward B&B] Elagage: %.2f%%\n", $pct);
+  }
+
+  my @guard_msgs = ();
+  foreach my $k (qw(innerToLoop loopToMiddle innerToMiddle middleToOuter)) {
+      if ($_fwd_pen_guards{"${k}_neg"}) {
+          push @guard_msgs, "$k(neg: $_fwd_pen_guards{\"${k}_neg\"})";
+      }
+      if ($_fwd_pen_guards{"${k}_oob"}) {
+          push @guard_msgs, "$k(oob: $_fwd_pen_guards{\"${k}_oob\"})";
+      }
+  }
+  if (@guard_msgs) {
+      print "    [PENALTY GUARD] Declenchements Forward : " . join(", ", @guard_msgs) . "\n";
   }
 
   
@@ -1921,6 +1983,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $_rev_min_delta_tm_inner_middle = 999;
   my $_rev_min_delta_tm_middle_outer = 999;
   my $_rev_min_span_needed = 999999;
+  
+  my %_rev_pen_guards;
   my $rev_prog_dir = "$options_r->{'output_file'}_rev_prog_$$";
   $rev_prog_dir = "$options_r->{'output_file'}_rev_prog_$$" if ref($options_r);
   use File::Path qw(make_path remove_tree);
@@ -1974,6 +2038,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   $_rev_min_span_needed = $data_ref->{$k} if $data_ref->{$k} < $_rev_min_span_needed;
               }
           }
+          foreach my $k (qw(innerToLoop loopToMiddle innerToMiddle middleToOuter)) {
+              $_rev_pen_guards{"${k}_neg"} += $data_ref->{pen_guards}->{"${k}_neg"} || 0;
+              $_rev_pen_guards{"${k}_oob"} += $data_ref->{pen_guards}->{"${k}_oob"} || 0;
+          }
       }
   });
 
@@ -1998,6 +2066,14 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       my $chunk_min_delta_tm_inner_middle = 999;
       my $chunk_min_delta_tm_middle_outer = 999;
       my $chunk_min_span_needed = 999999;
+      my $penalty_guard_innerToLoop_neg = 0;
+      my $penalty_guard_innerToLoop_oob = 0;
+      my $penalty_guard_loopToMiddle_neg = 0;
+      my $penalty_guard_loopToMiddle_oob = 0;
+      my $penalty_guard_innerToMiddle_neg = 0;
+      my $penalty_guard_innerToMiddle_oob = 0;
+      my $penalty_guard_middleToOuter_neg = 0;
+      my $penalty_guard_middleToOuter_oob = 0;
       
       for(my $innerIndex = $chunk_id; $innerIndex < $innerReverseCount; $innerIndex += $num_rev_chunks)
       {
@@ -2037,7 +2113,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               }
               
               # 4.2 Calculate Search Bounds for Middle Primer (Reverse)
-              my $middleStartAt = $loopLocation + $loopLength + $minPrimerSpacing;
+              my $middleStartAt = $loopLocation + $loopLength + $minPrimerSpacing - $middlePrimerMaxLength + 1;
               # [restauré depuis a6098f5 : contrainte loopMinGap/inner supprimee par 55328b2]
               if ($includeLoopPrimers) {
                   my $altMiddleStartAt = $innerLocation + ($loopMinGap + 1);
@@ -2056,9 +2132,14 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               if ($m_start != -1 && $m_end != -1 && $m_start <= $m_end) {
                   my $min_P_mid_range = query_rmq($rmq_middle_r, $m_start, $m_end) * $middlePenaltyWeight;
                   my $innerToLoopDistance = $includeLoopPrimers ? $loopLocation - ($innerLocation + 1) : 0;
+                  
+                  my $pen_innerToLoop = penaltyAt($innerToLoopPenalties_r, $innerToLoopDistance, 'innerToLoop');
+                  if ($pen_innerToLoop < 0) { $penalty_guard_innerToLoop_neg++; }
+                  if ($pen_innerToLoop == 9999) { $penalty_guard_innerToLoop_oob++; }
+                  
                   my $base_penalty = ($innerPenalty * $innerPenaltyWeight) + 
                                      ($includeLoopPrimers ? $loopPenalty * $loopPenaltyWeight : 0) + 
-                                     ($includeLoopPrimers ? penaltyAt($innerToLoopPenalties_r, $innerToLoopDistance, 'innerToLoop') * $innerToLoopPenaltyWeight : 0);
+                                     ($includeLoopPrimers ? $pen_innerToLoop * $innerToLoopPenaltyWeight : 0);
                   my $min_S_to_mid = $includeLoopPrimers ? $minS_loopToMiddle_R : $minS_innerToMiddle_R;
                   
                   if ($base_penalty + $min_P_mid_range + $min_P_outer_R + $min_S_to_mid + $minS_middleToOuter_R >= $bestSetPenalty) {
@@ -2070,7 +2151,12 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           my ($middleLocation, $middleLength, $middlePenalty, $midTm) = @{$masterMiddleR_data_r->[$j]};
                           
                           if ($includeLoopPrimers) {
-                              my $needed = ($loopLocation + $loopLength - 1) - ($middleLocation - $minPrimerSpacing);
+                              my $loopToMiddleDistance = ($middleLocation - $middleLength + 1) - ($loopLocation + $loopLength);
+                              if ($loopToMiddleDistance < 0) {
+                                  $chunk_rej_spacing++;
+                                  next;
+                              }
+                              my $needed = $minPrimerSpacing - $loopToMiddleDistance;
                               if ($needed > 0) {
                                   my $span = $middleLocation - ($innerLocation - $innerLength) + $needed;
                                   $chunk_min_span_needed = $span if $span < $chunk_min_span_needed;
@@ -2085,6 +2171,18 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                   next;
                               }
                           } else {
+                              my $innerToMiddleDistance = ($middleLocation - $middleLength) - $innerLocation;
+                              if ($innerToMiddleDistance < 0) {
+                                  $chunk_rej_spacing++;
+                                  next;
+                              }
+                              my $needed = $minPrimerSpacing - $innerToMiddleDistance;
+                              if ($needed > 0) {
+                                  my $span = $middleLocation - ($innerLocation - $innerLength) + $needed;
+                                  $chunk_min_span_needed = $span if $span < $chunk_min_span_needed;
+                                  $chunk_rej_spacing++;
+                                  next;
+                              }
                               my $diffIM = abs($innerTm - $midTm);
                               if ($diffIM > $maxTmDiff && !($innerInfo->hasTag("is_fixed") || $middleInfo->hasTag("is_fixed"))) {
                                   $chunk_min_delta_tm_inner_middle = $diffIM if $diffIM < $chunk_min_delta_tm_inner_middle;
@@ -2093,7 +2191,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                               }
                           }
                           
-                          my $outerStartAt = $middleLocation + $minPrimerSpacing;
+                          my $outerStartAt = $middleLocation + $minPrimerSpacing - $outerPrimerMaxLength + 1;
                           my $outerEndAt = $searchEndAt;
                           
                           my $loopToMiddleDistance = $includeLoopPrimers ? ($middleLocation - $middleLength + 1) - ($loopLocation + $loopLength) : 0;
@@ -2103,9 +2201,13 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           my $o_end = binary_search_last_le($masterOuterR_data_r, $outerEndAt);
                           if ($o_start != -1 && $o_end != -1 && $o_start <= $o_end) {
                               my $min_P_out_range = query_rmq($rmq_outer_r, $o_start, $o_end) * $outerPenaltyWeight;
+                              
+                              my $pen_mid = $includeLoopPrimers ? penaltyAt($loopToMiddlePenalties_r, $loopToMiddleDistance, 'loopToMiddle') : penaltyAt($innerToMiddlePenalties_r, $innerToMiddleDistance, 'innerToMiddle');
+                              if ($pen_mid < 0) { if($includeLoopPrimers) { $penalty_guard_loopToMiddle_neg++; } else { $penalty_guard_innerToMiddle_neg++; } }
+                              if ($pen_mid == 9999) { if($includeLoopPrimers) { $penalty_guard_loopToMiddle_oob++; } else { $penalty_guard_innerToMiddle_oob++; } }
+
                               my $part_penalty = $base_penalty + ($middlePenalty * $middlePenaltyWeight) + 
-                                                 ($includeLoopPrimers ? penaltyAt($loopToMiddlePenalties_r, $loopToMiddleDistance, 'loopToMiddle') * $loopToMiddlePenaltyWeight 
-                                                                      : penaltyAt($innerToMiddlePenalties_r, $innerToMiddleDistance, 'innerToMiddle') * $innerToMiddlePenaltyWeight);
+                                                 ($pen_mid * ($includeLoopPrimers ? $loopToMiddlePenaltyWeight : $innerToMiddlePenaltyWeight));
                               
                               if ($part_penalty + $min_P_out_range + $minS_middleToOuter_R >= $bestSetPenalty) {
                                   $chunk_pruned += ($o_end - $o_start + 1);
@@ -2116,8 +2218,13 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       my $outerInfo = $masterOuterR_r->[$k];
                                       my ($outerLocation, $outerLength, $outerPenalty, $outTm) = @{$masterOuterR_data_r->[$k]};
                                       
-                                      my $needed = $middleLocation - ($outerLocation - $outerLength + 1 - $minPrimerSpacing);
-                                      if ($needed >= 0) {
+                                      my $middleToOuterDistance = ($outerLocation - $outerLength + 1) - $middleLocation;
+                                      if ($middleToOuterDistance < 0) {
+                                          $chunk_rej_spacing++;
+                                          next;
+                                      }
+                                      my $needed = $minPrimerSpacing - $middleToOuterDistance;
+                                      if ($needed > 0) {
                                           my $span = $outerLocation - ($innerLocation - $innerLength) + $needed;
                                           $chunk_min_span_needed = $span if $span < $chunk_min_span_needed;
                                           $chunk_rej_spacing++;
@@ -2131,29 +2238,24 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       }
                                       
                                       my $middleToOuterDistance = ($outerLocation - $outerLength) - $middleLocation;
+                                      my $pen_out = penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter');
+                                      if ($pen_out < 0) { $penalty_guard_middleToOuter_neg++; }
+                                      if ($pen_out == 9999) { $penalty_guard_middleToOuter_oob++; }
                                       
-                                      my $spacingPenalty = 0;
-                                      my $primer3Penalty = 0;
+                                      my $spacingPenalty = ($includeLoopPrimers ? $pen_innerToLoop * $innerToLoopPenaltyWeight : 0) +
+                                                           ($pen_mid * ($includeLoopPrimers ? $loopToMiddlePenaltyWeight : $innerToMiddlePenaltyWeight)) +
+                                                           ($pen_out * $middleToOuterPenaltyWeight);
+                                      
+                                      my $primer3Penalty = $innerPenalty * $innerPenaltyWeight + ($includeLoopPrimers ? $loopPenalty * $loopPenaltyWeight : 0) + $middlePenalty * $middlePenaltyWeight + $outerPenalty * $outerPenaltyWeight;
+                                      
                                       my $detailStr = "";
-                                      
                                       if ($includeLoopPrimers) {
-                                          $spacingPenalty = (penaltyAt($innerToLoopPenalties_r, $innerToLoopDistance, 'innerToLoop') * $innerToLoopPenaltyWeight) +
-                                                            (penaltyAt($loopToMiddlePenalties_r, $loopToMiddleDistance, 'loopToMiddle') * $loopToMiddlePenaltyWeight) +
-                                                            (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight);
-                                          $primer3Penalty = $innerPenalty * $innerPenaltyWeight + $loopPenalty * $loopPenaltyWeight + $middlePenalty * $middlePenaltyWeight + $outerPenalty * $outerPenaltyWeight;
                                           $detailStr = sprintf("Spc[I_L:%.1f L_M:%.1f M_O:%.1f] Thm[I:%.1f L:%.1f M:%.1f O:%.1f]", 
-                                                (penaltyAt($innerToLoopPenalties_r, $innerToLoopDistance, 'innerToLoop') * $innerToLoopPenaltyWeight),
-                                                (penaltyAt($loopToMiddlePenalties_r, $loopToMiddleDistance, 'loopToMiddle') * $loopToMiddlePenaltyWeight),
-                                                (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight),
-                                                ($innerPenalty * $innerPenaltyWeight), ($loopPenalty * $loopPenaltyWeight),
-                                                ($middlePenalty * $middlePenaltyWeight), ($outerPenalty * $outerPenaltyWeight));
+                                                ($pen_innerToLoop * $innerToLoopPenaltyWeight), ($pen_mid * $loopToMiddlePenaltyWeight), ($pen_out * $middleToOuterPenaltyWeight),
+                                                ($innerPenalty * $innerPenaltyWeight), ($loopPenalty * $loopPenaltyWeight), ($middlePenalty * $middlePenaltyWeight), ($outerPenalty * $outerPenaltyWeight));
                                       } else {
-                                          $spacingPenalty = (penaltyAt($innerToMiddlePenalties_r, $innerToMiddleDistance, 'innerToMiddle') * $innerToMiddlePenaltyWeight) +
-                                                            (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight);
-                                          $primer3Penalty = $innerPenalty * $innerPenaltyWeight + $middlePenalty * $middlePenaltyWeight + $outerPenalty * $outerPenaltyWeight;
                                           $detailStr = sprintf("Spc[I_M:%.1f M_O:%.1f] Thm[I:%.1f M:%.1f O:%.1f]", 
-                                                (penaltyAt($innerToMiddlePenalties_r, $innerToMiddleDistance, 'innerToMiddle') * $innerToMiddlePenaltyWeight),
-                                                (penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter') * $middleToOuterPenaltyWeight),
+                                                ($pen_mid * $innerToMiddlePenaltyWeight), ($pen_out * $middleToOuterPenaltyWeight),
                                                 ($innerPenalty * $innerPenaltyWeight), ($middlePenalty * $middlePenaltyWeight), ($outerPenalty * $outerPenaltyWeight));
                                       }
                                       
@@ -2227,15 +2329,38 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           min_tm_inner_middle => $chunk_min_delta_tm_inner_middle,
           min_tm_middle_outer => $chunk_min_delta_tm_middle_outer,
           min_span_needed => $chunk_min_span_needed,
+          pen_guards => {
+              innerToLoop_neg => $penalty_guard_innerToLoop_neg,
+              innerToLoop_oob => $penalty_guard_innerToLoop_oob,
+              loopToMiddle_neg => $penalty_guard_loopToMiddle_neg,
+              loopToMiddle_oob => $penalty_guard_loopToMiddle_oob,
+              innerToMiddle_neg => $penalty_guard_innerToMiddle_neg,
+              innerToMiddle_oob => $penalty_guard_innerToMiddle_oob,
+              middleToOuter_neg => $penalty_guard_middleToOuter_neg,
+              middleToOuter_oob => $penalty_guard_middleToOuter_oob,
+          }
       });
   } # End chunks
   $pm_rev->wait_all_children();
   use File::Path qw(remove_tree);
   remove_tree($rev_prog_dir) if -d $rev_prog_dir;
   
-  if ($_sig_rev_evaluated > 0) {
-      my $pct = ($_sig_rev_pruned / $_sig_rev_evaluated) * 100;
-      # printf("  [Reverse B&B] Elagage: %.2f%% (%d / %d branches evaluees)\n", $pct, $_sig_rev_pruned, $_sig_rev_evaluated);
+  if ($_sig_rev_pruned + $_sig_rev_evaluated > 0) {
+      my $pct = ($_sig_rev_pruned / ($_sig_rev_pruned + $_sig_rev_evaluated)) * 100;
+      print sprintf("    [Reverse B&B] Elagage: %.2f%%\n", $pct);
+  }
+
+  my @guard_msgs = ();
+  foreach my $k (qw(innerToLoop loopToMiddle innerToMiddle middleToOuter)) {
+      if ($_rev_pen_guards{"${k}_neg"}) {
+          push @guard_msgs, "$k(neg: $_rev_pen_guards{\"${k}_neg\"})";
+      }
+      if ($_rev_pen_guards{"${k}_oob"}) {
+          push @guard_msgs, "$k(oob: $_rev_pen_guards{\"${k}_oob\"})";
+      }
+  }
+  if (@guard_msgs) {
+      print "    [PENALTY GUARD] Declenchements Reverse : " . join(", ", @guard_msgs) . "\n";
   }
 
   

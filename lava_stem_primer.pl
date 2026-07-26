@@ -78,13 +78,32 @@ use lib 'lib';
 
 use Getopt::Long;
 
+our $penalty_guard_innerToInner_neg = 0;
+our $penalty_guard_innerToInner_oob = 0;
+our $penalty_guard_innerToStem_neg = 0;
+our $penalty_guard_innerToStem_oob = 0;
+our $penalty_guard_innerToMiddle_neg = 0;
+our $penalty_guard_innerToMiddle_oob = 0;
+our $penalty_guard_middleToOuter_neg = 0;
+our $penalty_guard_middleToOuter_oob = 0;
+
 sub penaltyAt {
     my ($table_r, $distance, $label) = @_;
     if ($distance < 0) {
-        # warn "[PENALTY GUARD] distance negative ($distance) sur $label -> penalite max appliquee\n";
+        if ($label eq 'innerToInner') { $penalty_guard_innerToInner_neg++; }
+        elsif ($label eq 'innerToStem') { $penalty_guard_innerToStem_neg++; }
+        elsif ($label eq 'innerToMiddle') { $penalty_guard_innerToMiddle_neg++; }
+        elsif ($label eq 'middleToOuter') { $penalty_guard_middleToOuter_neg++; }
         return 100;
     }
-    return $table_r->[$distance] // 100;
+    if (!defined $table_r->[$distance]) {
+        if ($label eq 'innerToInner') { $penalty_guard_innerToInner_oob++; }
+        elsif ($label eq 'innerToStem') { $penalty_guard_innerToStem_oob++; }
+        elsif ($label eq 'innerToMiddle') { $penalty_guard_innerToMiddle_oob++; }
+        elsif ($label eq 'middleToOuter') { $penalty_guard_middleToOuter_oob++; }
+        return 100;
+    }
+    return $table_r->[$distance];
 }
 
 sub clamp_tm_target {
@@ -1525,6 +1544,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $_fwd_min_delta_tm_inner_middle = 999;
   my $_fwd_min_delta_tm_middle_outer = 999;
   my $_fwd_min_span_needed = 999999;
+  my %_fwd_pen_guards = (innerToInner_neg => 0, innerToInner_oob => 0, innerToStem_neg => 0, innerToStem_oob => 0, innerToMiddle_neg => 0, innerToMiddle_oob => 0, middleToOuter_neg => 0, middleToOuter_oob => 0);
   my $fwd_prog_dir = "$options{'output_file'}_fwd_prog_$$";
   $fwd_prog_dir = "$options_r->{'output_file'}_fwd_prog_$$" if ref($options_r);
   use File::Path qw(make_path remove_tree);
@@ -1580,6 +1600,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                     $_fwd_min_span_needed = $data_ref->{$k} if $data_ref->{$k} < $_fwd_min_span_needed;
                 }
             }
+            foreach my $k (qw(innerToInner innerToStem innerToMiddle middleToOuter)) {
+                $_fwd_pen_guards{"${k}_neg"} += $data_ref->{pen_guards}->{"${k}_neg"} || 0;
+                $_fwd_pen_guards{"${k}_oob"} += $data_ref->{pen_guards}->{"${k}_oob"} || 0;
+            }
         }
     });
 
@@ -1604,6 +1628,14 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       my $chunk_min_delta_tm_inner_middle = 999;
       my $chunk_min_delta_tm_middle_outer = 999;
       my $chunk_min_span_needed = 999999;
+      my $penalty_guard_innerToInner_neg = 0;
+      my $penalty_guard_innerToInner_oob = 0;
+      my $penalty_guard_innerToStem_neg = 0;
+      my $penalty_guard_innerToStem_oob = 0;
+      my $penalty_guard_innerToMiddle_neg = 0;
+      my $penalty_guard_innerToMiddle_oob = 0;
+      my $penalty_guard_middleToOuter_neg = 0;
+      my $penalty_guard_middleToOuter_oob = 0;
 
       
       for(my $innerIndex = $chunk_id; $innerIndex < $innerForwardCount; $innerIndex += $num_fwd_chunks)
@@ -1680,7 +1712,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               }
 
               my $middleStartAt = $searchStartAt;
-              my $middleEndAt = $innerLocation - 1 - $minPrimerSpacing;
+              my $middleEndAt = $innerLocation - 1 - $minPrimerSpacing + $middlePrimerMaxLength;
               if($middleEndAt < 0) { $middleEndAt = 0; }
 
               for(my $j = 0; $j < $middleForwardCount; $j++)
@@ -1717,7 +1749,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                 }
 
                 my $outerStartAt = $searchStartAt;
-                my $outerEndAt = $middleLocation - 1 - $minPrimerSpacing;
+                my $outerEndAt = $middleLocation - 1 - $minPrimerSpacing + $outerPrimerMaxLength;
 
                 my $innerToMiddleDistance = $innerLocation - ($middleLocation + $middleLength);
                 if($innerToMiddleDistance < 0) { $innerToMiddleDistance = 0; }
@@ -1875,7 +1907,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   remove_tree($fwd_prog_dir) if -d $fwd_prog_dir;
   
   if ($_sig_fwd_evaluated > 0) {
-      my $pct = ($_sig_fwd_pruned / $_sig_fwd_evaluated) * 100;
+      my $pct = ($_sig_fwd_pruned / ($_sig_fwd_pruned + $_sig_fwd_evaluated)) * 100;
       printf("  [Forward B&B] Elagage: %.2f%% (%d / %d branches evaluees)\n", $pct, $_sig_fwd_pruned, $_sig_fwd_evaluated);
   }
 
@@ -1918,6 +1950,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $_rev_min_delta_tm_inner_middle = 999;
   my $_rev_min_delta_tm_middle_outer = 999;
   my $_rev_min_span_needed = 999999;
+  my %_rev_pen_guards = (innerToInner_neg => 0, innerToInner_oob => 0, innerToStem_neg => 0, innerToStem_oob => 0, innerToMiddle_neg => 0, innerToMiddle_oob => 0, middleToOuter_neg => 0, middleToOuter_oob => 0);
   my $rev_prog_dir = "$options{'output_file'}_rev_prog_$$";
   $rev_prog_dir = "$options_r->{'output_file'}_rev_prog_$$" if ref($options_r);
   use File::Path qw(make_path remove_tree);
@@ -1973,6 +2006,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                     $_rev_min_span_needed = $data_ref->{$k} if $data_ref->{$k} < $_rev_min_span_needed;
                 }
             }
+            foreach my $k (qw(innerToInner innerToStem innerToMiddle middleToOuter)) {
+                $_rev_pen_guards{"${k}_neg"} += $data_ref->{pen_guards}->{"${k}_neg"} || 0;
+                $_rev_pen_guards{"${k}_oob"} += $data_ref->{pen_guards}->{"${k}_oob"} || 0;
+            }
         }
     });
 
@@ -1997,6 +2034,14 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       my $chunk_min_delta_tm_inner_middle = 999;
       my $chunk_min_delta_tm_middle_outer = 999;
       my $chunk_min_span_needed = 999999;
+      my $penalty_guard_innerToInner_neg = 0;
+      my $penalty_guard_innerToInner_oob = 0;
+      my $penalty_guard_innerToStem_neg = 0;
+      my $penalty_guard_innerToStem_oob = 0;
+      my $penalty_guard_innerToMiddle_neg = 0;
+      my $penalty_guard_innerToMiddle_oob = 0;
+      my $penalty_guard_middleToOuter_neg = 0;
+      my $penalty_guard_middleToOuter_oob = 0;
       
       for(my $innerIndex = $chunk_id; $innerIndex < $innerReverseCount; $innerIndex += $num_rev_chunks)
         {
