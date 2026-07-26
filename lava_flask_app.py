@@ -680,7 +680,7 @@ def get_default_params():
         'max_overlap_percent': 0.0,
         'resolve_overlap_by': 'coverage',
         'stem_orientation': 0,
-        'threads': 9,
+        'threads': 'auto',
         # Reduction spatiale par fenetre / Spatial window reduction
         'window_size': 5,        # 0 = desactive, ex: 5 = fenetre de 5nt
         'max_per_window': 3,     # 0 = desactive, ex: 3 = 3 candidats max par fenetre
