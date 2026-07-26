@@ -1877,7 +1877,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
         $_fwd_rej_geometry, $_fwd_rej_spacing, $_fwd_rej_loopgap,
         $_fwd_rej_tm_inner_loop, $_fwd_rej_tm_loop_middle, $_fwd_rej_tm_inner_middle, $_fwd_rej_tm_middle_outer,
         $_fwd_min_delta_tm_inner_loop, $_fwd_min_delta_tm_loop_middle, $_fwd_min_delta_tm_inner_middle, $_fwd_min_delta_tm_middle_outer,
-        $_fwd_min_span_needed, $signatureMaxLength, $maxTmDiff);
+        $_fwd_min_span_needed, $signatureMaxLength, $maxTmDiff, $options_r);
       exit 0;
   }
 
@@ -2264,7 +2264,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
         $_rev_rej_geometry, $_rev_rej_spacing, $_rev_rej_loopgap,
         $_rev_rej_tm_inner_loop, $_rev_rej_tm_loop_middle, $_rev_rej_tm_inner_middle, $_rev_rej_tm_middle_outer,
         $_rev_min_delta_tm_inner_loop, $_rev_min_delta_tm_loop_middle, $_rev_min_delta_tm_inner_middle, $_rev_min_delta_tm_middle_outer,
-        $_rev_min_span_needed, $signatureMaxLength, $maxTmDiff);
+        $_rev_min_span_needed, $signatureMaxLength, $maxTmDiff, $options_r);
       exit 0;
   }
 
@@ -2934,9 +2934,9 @@ sub print_zero_signature_diagnostic {
         $rej_geometry, $rej_spacing, $rej_loopgap, 
         $rej_tm_inner_loop, $rej_tm_loop_middle, $rej_tm_inner_middle, $rej_tm_middle_outer,
         $min_tm_inner_loop, $min_tm_loop_middle, $min_tm_inner_middle, $min_tm_middle_outer,
-        $min_span_needed, $signatureMaxLength, $maxTmDiff) = @_;
+        $min_span_needed, $signatureMaxLength, $maxTmDiff, $opts_r) = @_;
 
-    my $outBase = $main::options_r->{'output_file'} // "lava_run";
+    my $outBase = defined $opts_r->{'output_file'} ? $opts_r->{'output_file'} : "lava_run";
     my $diagFile = "${outBase}_diagnostic.txt";
     open(my $dfh, '>', $diagFile) or warn "Cannot open $diagFile\n";
     
@@ -2952,9 +2952,9 @@ sub print_zero_signature_diagnostic {
         $msg .= "Le problème se situe avant l'assemblage : vos séquences sont probablement trop\n";
         $msg .= "divergentes dans cette région, ou les contraintes sont trop strictes.\n\n";
         $msg .= "Pistes de résolution :\n";
-        $msg .= "  - Abaisser --min_primer_coverage (actuel : " . ($main::options_r->{'min_primer_coverage'}//100) . "%)\n";
-        $msg .= "  - Augmenter --max_total_degenerate_bases (actuel : " . ($main::options_r->{'max_total_degenerate_bases'}//0) . ")\n";
-        $msg .= "  - Augmenter --max_tolerated_mismatches (actuel : " . ($main::options_r->{'max_tolerated_mismatches'}//0) . ")\n";
+        $msg .= "  - Abaisser --min_primer_coverage (actuel : " . (defined $opts_r->{'min_primer_coverage'} ? $opts_r->{'min_primer_coverage'} : 100) . "%)\n";
+        $msg .= "  - Augmenter --max_total_degenerate_bases (actuel : " . (defined $opts_r->{'max_total_degenerate_bases'} ? $opts_r->{'max_total_degenerate_bases'} : 0) . ")\n";
+        $msg .= "  - Augmenter --max_tolerated_mismatches (actuel : " . (defined $opts_r->{'max_tolerated_mismatches'} ? $opts_r->{'max_tolerated_mismatches'} : 0) . ")\n";
         $msg .= "  - Élargir la plage de Tm (tm_min, tm_max) des amorces individuelles.\n";
     } else {
         $msg .= "[CAS 2] PROBLÈME D'ASSEMBLAGE : Incompatibilité des contraintes.\n";
@@ -2981,8 +2981,8 @@ sub print_zero_signature_diagnostic {
             $msg .= "-> Cause principale : $primary->{name} ($pct% des rejets)\n";
             
             if ($primary->{type} eq 'tm') {
-                $msg .= "   - Meilleur écart atteignable : " . sprintf("%.1f", $primary->{min}) . " °C.\n";
-                $msg .= "   - Votre limite --max_tm_diff est : $maxTmDiff °C.\n";
+                $msg .= "   - Meilleur écart atteignable : " . sprintf("%.2f", $primary->{min}) . " °C.\n";
+                $msg .= "   - Votre limite --max_tm_diff est : " . sprintf("%.2f", $maxTmDiff) . " °C.\n";
                 my $suggest = int($primary->{min} + 1.5);
                 if ($suggest > 10) {
                     $msg .= "   => SUGGESTION : Les séquences sont très divergentes. Une valeur > 10 °C n'est pas recommandée.\n";
@@ -3005,7 +3005,7 @@ sub print_zero_signature_diagnostic {
                 my $pct2 = sprintf("%.1f", ($sec->{rej} / $total_rej) * 100);
                 $msg .= "\n-> Cause secondaire : $sec->{name} ($pct2% des rejets)\n";
                 if ($sec->{type} eq 'tm') {
-                    $msg .= "   - Meilleur écart atteignable : " . sprintf("%.1f", $sec->{min}) . " °C.\n";
+                    $msg .= "   - Meilleur écart atteignable : " . sprintf("%.2f", $sec->{min}) . " °C.\n";
                 } elsif ($sec->{type} eq 'span') {
                     $msg .= "   - Empan minimal nécessaire : $sec->{min} nt.\n";
                 }
