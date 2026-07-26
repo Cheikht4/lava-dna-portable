@@ -660,30 +660,30 @@ def get_text(key):
 def get_default_params():
     """Paramètres par défaut pour LAVA"""
     return {
-        'script_type': 'STEM',
-        'lamp_mode': 'classic',  # Par défaut mode classique
+        'script_type': 'LOOP',
+        'lamp_mode': 'enriched',  # Par défaut mode enriched
         'signature_max_length': 400,
-        'max_primer_gen': 5000,
-        'primer_min_match_percent': 80,
-        'primer_iupac_min_percent': 90,
-        'min_primer_coverage': 80,
+        'max_primer_gen': 10000,
+        'primer_min_match_percent': 70.0,
+        'primer_iupac_min_percent': 80.0,
+        'min_primer_coverage': 70.0,
 
-        'min_base_frequency': 0.05,
+        'min_base_frequency': 0.2,
         'entropy_threshold': 1.5,
-        'max_total_degenerate_bases': 2,
-        'max_consecutive_degenerate_bases': 2,
-        'max_3prime_degenerate_bases': 2,
-        'max_tolerated_mismatches': 0,
-        'three_prime_zone_size': 5,
-        'max_poly_bases': 2,
-        'min_signatures_for_success': 1,
-        'max_overlap_percent': 0,
-        'resolve_overlap_by': 'penalty',
+        'max_total_degenerate_bases': 3,
+        'max_consecutive_degenerate_bases': 1,
+        'max_3prime_degenerate_bases': 0,
+        'max_tolerated_mismatches': 2,
+        'three_prime_zone_size': 3,
+        'max_poly_bases': 5,
+        'min_signatures_for_success': 40,
+        'max_overlap_percent': 0.0,
+        'resolve_overlap_by': 'coverage',
         'stem_orientation': 0,
-        'threads': 'auto',
+        'threads': 9,
         # Reduction spatiale par fenetre / Spatial window reduction
-        'window_size': 0,        # 0 = desactive, ex: 5 = fenetre de 5nt
-        'max_per_window': 0,     # 0 = desactive, ex: 3 = 3 candidats max par fenetre
+        'window_size': 5,        # 0 = desactive, ex: 5 = fenetre de 5nt
+        'max_per_window': 3,     # 0 = desactive, ex: 3 = 3 candidats max par fenetre
         
         # Thermodynamics & Conditions
         'max_tm_diff': 5.0,
@@ -699,23 +699,23 @@ def get_default_params():
         'penalty_slope': 0.15,
         
         # Outer primers
-        'outer_primer_target_length': 20,
-        'outer_primer_min_length': 18,
+        'outer_primer_target_length': 18,
+        'outer_primer_min_length': 15,
         'outer_primer_max_length': 22,
         'outer_primer_target_tm': 58.0,
         'outer_primer_min_tm': 57.0,
         'outer_primer_max_tm': 59.0,
         
         # Middle primers
-        'middle_primer_target_length': 20,
-        'middle_primer_min_length': 18,
+        'middle_primer_target_length': 18,
+        'middle_primer_min_length': 15,
         'middle_primer_max_length': 22,
         'middle_primer_target_tm': 60.0,
         'middle_primer_min_tm': 59.0,
         'middle_primer_max_tm': 65.0,
         
         # Inner primers
-        'inner_primer_target_length': 20,
+        'inner_primer_target_length': 18,
         'inner_primer_min_length': 15,
         'inner_primer_max_length': 22,
         'inner_primer_target_tm': 60.0,
@@ -723,21 +723,21 @@ def get_default_params():
         'inner_primer_max_tm': 65.0,
         
         # STEM/LOOP specific
-        'stem_primer_target_length': 20,
-        'stem_primer_min_length': 18,
+        'stem_primer_target_length': 18,
+        'stem_primer_min_length': 15,
         'stem_primer_max_length': 22,
         'stem_primer_target_tm': 60.0,
         'stem_primer_min_tm': 59.0,
-        'stem_primer_max_tm': 61.0,
+        'stem_primer_max_tm': 65.0,
         'include_stem_primers': True,
         
-        'loop_primer_target_length': 20,
-        'loop_primer_min_length': 18,
+        'loop_primer_target_length': 18,
+        'loop_primer_min_length': 15,
         'loop_primer_max_length': 22,
         'loop_primer_target_tm': 60.0,
         'loop_primer_min_tm': 59.0,
-        'loop_primer_max_tm': 61.0,
-        'loop_min_gap': 25,
+        'loop_primer_max_tm': 65.0,
+        'loop_min_gap': 20,
         'include_loop_primers': True
     }
 
