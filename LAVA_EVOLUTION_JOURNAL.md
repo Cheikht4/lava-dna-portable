@@ -2107,3 +2107,16 @@ Les amorces fixées afficheront une vraie valeur dans les rapports (ex: `Thm[I:0
 **Explication technique** : L'implémentation du test d'équivalence stricte. Le test canary génère des signatures (`.primers`, `.all_signatures`, `.dash`) puis fait un `strict_diff` ligne par ligne contre des références prouvées (baselines). Les tests non-déterministes (`_amplified.fasta`) sont validés sur leur volumétrie. Ajout du flag environnemental `LAVA_UPDATE_BASELINE=1` permettant la regénération contrôlée des fichiers de référence en cas d'évolution volontaire de l'algorithme.
 **Justification biologique** : Tout changement dans la thermodynamique du moteur (ex: l'ajout du Branch & Bound ou de l'entropie) doit garantir une non-régression absolue sur des agents pathogènes de référence comme le Rotavirus. Sans comparaison des séquences ATGC générées à la lettre près, une altération silencieuse pourrait fausser un design d'amorces sans faire planter le programme.
 **Impact attendu** : Sécurité absolue lors de la publication scientifique. Toute modification future de la cinétique d'hybridation fera échouer le CI si elle modifie les amorces sortantes non prévues.
+
+Date/Étape : 26 Juillet 2026 - Transformation en Service Public LAVA-DNA
+Fichiers impactés : lava_flask_app.py, templates/index.html, templates/monitor.html, deployment/lava-dna.service, deployment/gunicorn_config.py, deployment/nginx_lava.conf, requirements_flask.txt, README.md
+Nature du changement : Architecture / Sécurité
+Explication technique : 
+- Mise en place d une file d attente FIFO asynchrone (job scheduler) dans le processus Flask qui empêche le rejet massif de requêtes.
+- Application d un plafond strict de threads CPU (MAX_THREADS_PER_RUN=8).
+- Ajout de la validation structurale (alignement et taille) du FASTA avec limitation stricte à 4000 séquences et 15000 nucléotides lors de l upload.
+- Intégration de os.killpg pour permettre l abandon propre des jobs et de leurs processus enfants Perl via un groupe de processus lors du dépassement du MAX_RUNTIME_SECONDS d une heure.
+- Extraction de la clé Flask SECRET_KEY dans un fichier environnement local et activation de CSRFProtect et ProxyFix.
+Justification biologique : 
+L application LAVA devenant publique, il est impératif que le modèle de concurrence ne surcharge pas le serveur qui exécute les calculs complexes thermodynamiques et combinatoires des amorces LAMP, tout en filtrant les requêtes excessives (dépassements de plafonds d alignement).
+Impact attendu : Le serveur sera protégé contre les DoS liés aux jobs de grande envergure, les fichiers FASTA immenses seront rejetés immédiatement, et les utilisateurs verront leur position dans une file d attente plutôt que de se faire rejeter leur requête.

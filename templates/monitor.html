@@ -374,7 +374,13 @@ function refreshStatus() {
         .then(response => response.json())
         .then(data => {
             // Mettre à jour le statut
-            updateStatusBadge(data.status);
+            if (data.status === 'queued' && data.queue_position) {
+                const badge = document.getElementById('status-badge');
+                badge.textContent = `${i18n.status_queued || "En file d'attente"} - Position ${data.queue_position}`;
+                badge.className = 'badge bg-info';
+            } else {
+                updateStatusBadge(data.status);
+            }
             
             // Mettre à jour les informations
             document.getElementById('total-lines').textContent = data.total_lines || 0;

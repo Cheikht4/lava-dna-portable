@@ -11,11 +11,14 @@ Group=lavauser
 WorkingDirectory=/opt/lava-dna
 Environment=PATH=/opt/lava-dna/venv/bin
 Environment=FLASK_ENV=production
-Environment=SECRET_KEY=remplacer-par-une-cle-secrete-aleatoire-statique
+EnvironmentFile=/etc/lava-dna/lava.env
 Environment=ALLOW_SELF_SHUTDOWN=False
 Environment=MAX_CONCURRENT_RUNS=5
 Environment=MAX_USER_CONCURRENT_RUNS=2
 Environment=DATA_RETENTION_HOURS=48
+Environment=MAX_THREADS_PER_RUN=8
+Environment=MIN_QUEUE_SECONDS=30
+Environment=MAX_RUNTIME_SECONDS=3600
 ExecStart=/opt/lava-dna/venv/bin/gunicorn --config /opt/lava-dna/deployment/gunicorn_config.py lava_flask_app:app
 ExecReload=/bin/kill -s HUP $MAINPID
 Restart=on-failure

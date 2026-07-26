@@ -3,3 +3,4 @@
 # Separate file mentioned in README for web interface installation only
 flask==3.0.3
 werkzeug==3.0.3
+Flask-WTF==1.2.1

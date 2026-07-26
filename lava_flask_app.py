@@ -16,7 +16,8 @@ from jinja2 import pass_context
 from werkzeug.utils import secure_filename
 import json
 import re
-
+from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_wtf.csrf import CSRFProtect
 
 # Dictionnaire de traductions
 TRANSLATIONS = {
@@ -25,7 +26,7 @@ TRANSLATIONS = {
         'subtitle': 'LAMP primer design',
         'upload_title': '1. Upload du fichier FASTA',
         'upload_label': 'Fichier de séquences FASTA :',
-        'upload_formats': 'Formats acceptés : .fas, .fasta, .fa, .txt (1GB max)',
+        'upload_formats': 'Formats acceptés : .fas, .fasta, .fa, .txt (100MB max)',
         'upload_current': 'Fichier actuel :',
         'upload_button': 'Uploader',
         'config_title': '2. Configuration des paramètres LAVA',
@@ -152,7 +153,7 @@ TRANSLATIONS = {
         'stem_desc': 'Primers avec structure tige-boucle',
         'loop_desc': 'Primers en boucle simple',
         'accepted_formats': 'Formats acceptés',
-        'file_size_max': 'Taille max : 1GB',
+        'file_size_max': 'Taille max : 100MB',
         'parameters': 'Paramètres',
         'adjust_needs': 'Ajustez selon vos besoins',
         'default_values': 'Les valeurs par défaut conviennent généralement',
@@ -222,14 +223,21 @@ TRANSLATIONS = {
         'view_btn': "Voir",
         'stop_btn': "Stop",
         'results_btn': "Résultats",
-        'footer_text': 'LAVA_Virus Flask - LAMP primer design'
+        'footer_text': 'LAVA_Virus Flask - LAMP primer design',
+        'public_service_title': "Service Public Anonyme",
+        'public_service_purge': "Les données et résultats sont supprimés automatiquement après 48h.",
+        'public_service_privacy': "Aucune garantie de confidentialité. Pour des données sensibles, utilisez la version en ligne de commande.",
+        'public_service_limits': "Limites : 4000 séquences max, 15000 nt max.",
+        'public_service_timeout': "Durée maximale d'exécution : 1 heure.",
+        'public_service_cli': "Version CLI / Locale",
+        'status_queued': "En file d'attente"
     },
     'en': {
         'title': 'LAVA_Virus',
         'subtitle': 'LAMP primer design',
         'upload_title': '1. FASTA File Upload',
         'upload_label': 'FASTA sequence file:',
-        'upload_formats': 'Accepted formats: .fas, .fasta, .fa, .txt (1GB max)',
+        'upload_formats': 'Accepted formats: .fas, .fasta, .fa, .txt (100MB max)',
         'upload_current': 'Current file:',
         'upload_button': 'Upload',
         'config_title': '2. LAVA Parameters Configuration',
@@ -359,7 +367,7 @@ TRANSLATIONS = {
         'stem_desc': 'Primers with stem-loop structure',
         'loop_desc': 'Simple loop primers',
         'accepted_formats': 'Accepted formats',
-        'file_size_max': 'Max size: 1GB',
+        'file_size_max': 'Max size: 100MB',
         'parameters': 'Parameters',
         'adjust_needs': 'Adjust according to your needs',
         'default_values': 'Default values generally work well',
@@ -429,7 +437,14 @@ TRANSLATIONS = {
         'view_btn': "View",
         'stop_btn': "Stop",
         'results_btn': "Results",
-        'footer_text': 'LAVA_Virus Flask - LAMP primer design'
+        'footer_text': 'LAVA_Virus Flask - LAMP primer design',
+        'public_service_title': "Anonymous Public Service",
+        'public_service_purge': "Data and results are automatically deleted after 48h.",
+        'public_service_privacy': "No confidentiality guarantee. For sensitive data, use the command line version.",
+        'public_service_limits': "Limits: max 4000 sequences, max 15000 nt.",
+        'public_service_timeout': "Maximum execution time: 1 hour.",
+        'public_service_cli': "CLI / Local version",
+        'status_queued': "Pending"
     }
 }
 
@@ -441,7 +456,9 @@ if not secret_key:
         raise RuntimeError("ERREUR CRITIQUE DE SECURITE : Variable d'environnement SECRET_KEY obligatoire en mode production.")
     secret_key = os.urandom(24)
 app.secret_key = secret_key
-app.config['MAX_CONTENT_LENGTH'] = 1 * 1024 * 1024 * 1024  # 1GB max file size
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size
+csrf = CSRFProtect(app)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 # Securisation des cookies de session (Priorite 2)
 app.config.update(
@@ -474,7 +491,7 @@ def check_execution_ownership(execution_id):
         abort(404)
     execution = running_executions[execution_id]
     owner_id = execution.get('owner_id')
-    if owner_id and owner_id != session.get('user_id'):
+    if not owner_id or owner_id != session.get('user_id'):
         from flask import abort
         abort(403)
 
@@ -574,8 +591,8 @@ def _validate_and_cap_threads(val):
     Validates and caps requested CPU threads to prevent DoS and core oversubscription."""
     cpu_count = os.cpu_count() or 4
     
-    # Plafond administrateur (par défaut: tous les cœurs sauf 1 pour le système, min 1)
-    default_admin_cap = max(1, cpu_count - 1)
+    # Plafond administrateur (par défaut: 8 ou cpu_count, sécurisé)
+    default_admin_cap = min(8, max(1, cpu_count))
     try:
         admin_cap = int(os.environ.get('MAX_THREADS_PER_RUN', default_admin_cap))
     except (ValueError, TypeError):
@@ -783,6 +800,60 @@ def upload_file():
         unique_filename = f"{timestamp}_{filename}"
         filepath = os.path.join(UPLOAD_FOLDER, unique_filename)
         file.save(filepath)
+        
+        # Validation FASTA (Limites et Alignement)
+        try:
+            seq_count = 0
+            first_len = -1
+            current_len = 0
+            is_valid_alignment = True
+            max_seqs = 4000
+            max_len = 15000
+            
+            with open(filepath, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    if line.startswith('>'):
+                        if seq_count > 0:
+                            if first_len == -1:
+                                first_len = current_len
+                            elif current_len != first_len:
+                                is_valid_alignment = False
+                                break
+                        seq_count += 1
+                        current_len = 0
+                    else:
+                        current_len += len(line)
+            
+            # Check last sequence
+            if seq_count > 0:
+                if first_len == -1:
+                    first_len = current_len
+                elif current_len != first_len:
+                    is_valid_alignment = False
+
+            if seq_count < 2:
+                os.remove(filepath)
+                flash("Le fichier fourni ne contient qu'une seule séquence ou est vide. Veuillez fournir un alignement multiple.", 'error')
+                return redirect(url_for('index'))
+                
+            if not is_valid_alignment:
+                os.remove(filepath)
+                flash(get_text('error_input_not_aligned'), 'error')
+                return redirect(url_for('index'))
+                
+            if seq_count > max_seqs or first_len > max_len:
+                os.remove(filepath)
+                flash(f"Votre alignement contient {seq_count} séquences de {first_len} nt, au-delà des limites du service en ligne ({max_seqs} séquences, {max_len} nt). Pour un jeu de cette taille, utilisez la version en ligne de commande : https://github.com/Cheikht4/LAVA-Virus", 'error')
+                return redirect(url_for('index'))
+                
+        except Exception as e:
+            if os.path.exists(filepath):
+                os.remove(filepath)
+            flash("Erreur lors de la lecture du fichier FASTA.", 'error')
+            return redirect(url_for('index'))
         
         session['uploaded_file'] = filepath
         session['uploaded_filename'] = filename
@@ -1226,7 +1297,8 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
             cwd=os.getcwd(),
             env=env,
             bufsize=1,
-            universal_newlines=True
+            universal_newlines=True,
+            preexec_fn=os.setsid  # Créer un groupe de processus pour tuer les enfants (ForkManager) proprement
         )
         
         running_executions[execution_id]['process'] = process
@@ -1466,44 +1538,39 @@ def execute_lava():
     
     # Vérification des quotas de concurrence et enregistrement initial sous verrou (atomique)
     with executions_lock:
-        max_global = int(os.environ.get('MAX_CONCURRENT_RUNS', 5))
-        max_user = int(os.environ.get('MAX_USER_CONCURRENT_RUNS', 2))
+        max_queued = int(os.environ.get('MAX_QUEUED_JOBS', 30))
+        max_user = int(os.environ.get('MAX_USER_QUEUED_JOBS', 2))
         current_user_id = session.get('user_id')
+        current_ip = request.remote_addr or 'unknown'
 
-        running_global = sum(1 for e in running_executions.values() if e.get('status') in ['starting', 'running'])
-        running_user = sum(1 for e in running_executions.values() if (e.get('owner_id') == current_user_id or e.get('user_id') == current_user_id) and e.get('status') in ['starting', 'running'])
+        # Le quota visiteur inclut queued, starting et running, par IP et par Session
+        running_user = sum(1 for e in running_executions.values() if (e.get('owner_id') == current_user_id or e.get('user_id') == current_user_id or e.get('ip') == current_ip) and e.get('status') in ['queued', 'starting', 'running'])
+        running_global = sum(1 for e in running_executions.values() if e.get('status') in ['queued', 'starting', 'running'])
 
         if running_user >= max_user:
-            flash(f"Vous avez déjà {running_user} calculs en cours. Veuillez attendre leur fin avant d'en lancer un nouveau.", "warning")
+            flash(f"Vous avez déjà {running_user} calculs en attente ou en cours. Attendez leur fin pour en lancer un nouveau.", "warning")
             return redirect(url_for('list_executions'))
 
-        if running_global >= max_global:
-            flash("Le serveur est actuellement à pleine capacité. Veuillez réessayer dans quelques instants.", "warning")
+        if running_global >= max_queued:
+            flash("Le service reçoit actuellement trop de requêtes. Veuillez réessayer plus tard.", "warning")
             return redirect(url_for('list_executions'))
 
         running_executions[execution_id] = {
             'id': execution_id,
             'user_id': session.get('user_id'),
             'owner_id': session.get('user_id'),
+            'ip': current_ip,
             'lang': getattr(g, 'lang', None) or session.get('language', 'fr'),
-            'status': 'starting',
+            'status': 'queued',
             'input_file': session['uploaded_file'],
             'output_name': output_name,
             'script_type': script_type,
+            'params': dict(session['params']),
             'logs': [],
             'total_lines': 0,
+            'queued_time': datetime.now(),
             'created_time': datetime.now()
         }
-
-    
-    # Lancer l'exécution en arrière-plan
-    thread = threading.Thread(
-        target=execute_lava_background,
-        args=(execution_id, script_type, 
-              session['uploaded_file'], output_name, session['params'])
-    )
-    thread.daemon = True
-    thread.start()
     
     flash(f'Exécution LAVA lancée (ID: {execution_id[:8]})', 'success')
     return redirect(url_for('monitor', execution_id=execution_id))
@@ -1549,6 +1616,18 @@ def api_status(execution_id):
         'progress': execution.get('progress', None),
     }
     
+    # Calculer la position si queued
+    if execution['status'] == 'queued':
+        # Trouver la position
+        queued_jobs = [e for e in running_executions.values() if e.get('status') == 'queued']
+        queued_jobs.sort(key=lambda x: x.get('queued_time', datetime.now()))
+        position = 1
+        for job in queued_jobs:
+            if job['id'] == execution_id:
+                break
+            position += 1
+        data['queue_position'] = position
+
     if 'start_time' in execution:
         data['start_time'] = execution['start_time'].strftime('%H:%M:%S')
     
@@ -1811,10 +1890,17 @@ def stop_execution(execution_id):
     check_execution_ownership(execution_id)
     if execution_id in running_executions:
         execution = running_executions[execution_id]
-        if 'process' in execution and execution['process'].poll() is None:
-            execution['process'].terminate()
+        if execution['status'] == 'queued':
             execution['status'] = 'stopped'
-        flash('Execution arretee', 'warning')
+            flash('Exécution annulée avant son démarrage.', 'info')
+        elif 'process' in execution and execution['process'].poll() is None:
+            import signal
+            try:
+                os.killpg(os.getpgid(execution['process'].pid), signal.SIGTERM)
+            except Exception as e:
+                print(f"Erreur lors de l'arrêt manuel: {e}")
+            execution['status'] = 'stopped'
+            flash('Exécution arrêtée', 'warning')
     
     return redirect(url_for('monitor', execution_id=execution_id))
 
@@ -2018,6 +2104,58 @@ def background_data_cleanup():
         except Exception as e:
             print(f"Erreur purge automatique: {e}")
 
+def background_job_scheduler():
+    """Ordonnanceur de jobs en file d'attente (FIFO) avec Timeout global."""
+    import signal
+    while True:
+        time_module.sleep(1)
+        try:
+            with executions_lock:
+                max_concurrent = int(os.environ.get('MAX_CONCURRENT_RUNS', 5))
+                min_queue_sec = int(os.environ.get('MIN_QUEUE_SECONDS', 30))
+                max_runtime_sec = int(os.environ.get('MAX_RUNTIME_SECONDS', 3600))
+                now = datetime.now()
+
+                # Gestion des timeouts des jobs en cours
+                running_jobs = [e for e in running_executions.values() if e.get('status') in ['starting', 'running']]
+                for job in running_jobs:
+                    start_time = job.get('start_time')
+                    if start_time and (now - start_time).total_seconds() > max_runtime_sec:
+                        process = job.get('process')
+                        if process and process.poll() is None:
+                            try:
+                                os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+                                time_module.sleep(1)
+                                if process.poll() is None:
+                                    os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+                            except Exception as e:
+                                print(f"Erreur lors du killpg (timeout): {e}")
+                            job['status'] = 'timeout'
+                            job['end_time'] = now
+                            job['error'] = "Temps de calcul maximal dépassé (1 heure)."
+                            print(f"Job {job['id']} interrompu (timeout).")
+
+                # Recompter après les timeouts
+                running_count = sum(1 for e in running_executions.values() if e.get('status') in ['starting', 'running'])
+
+                if running_count < max_concurrent:
+                    queued_jobs = [e for e in running_executions.values() if e.get('status') == 'queued']
+                    if queued_jobs:
+                        queued_jobs.sort(key=lambda x: x.get('queued_time', now))
+                        oldest_job = queued_jobs[0]
+                        if (now - oldest_job['queued_time']).total_seconds() >= min_queue_sec:
+                            oldest_job['status'] = 'starting'
+                            thread = threading.Thread(
+                                target=execute_lava_background,
+                                args=(oldest_job['id'], oldest_job['script_type'], 
+                                      oldest_job['input_file'], oldest_job['output_name'], oldest_job['params'])
+                            )
+                            thread.daemon = True
+                            thread.start()
+        except Exception as e:
+            print(f"Erreur ordonnanceur: {e}")
+
+threading.Thread(target=background_job_scheduler, daemon=True).start()
 threading.Thread(target=background_data_cleanup, daemon=True).start()
 
 if __name__ == '__main__':

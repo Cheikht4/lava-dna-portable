@@ -4,6 +4,9 @@ import os
 
 # Serveur
 bind = "127.0.0.1:8000"
+# CRITIQUE: workers DOIT rester à 1. La file d'attente (FIFO) est gérée en mémoire 
+# dans le processus Flask. Augmenter les workers créerait des files distinctes,
+# cassant l'ordonnancement et démultipliant silencieusement les plafonds de cœurs.
 workers = 1
 threads = 4
 worker_class = "gthread"
