@@ -1572,7 +1572,30 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
             $_sig_fwd_hits += $data_ref->{hits} || 0;
             $_sig_fwd_done += $data_ref->{done} || 0;
           $_sig_fwd_pruned += $data_ref->{pruned} || 0;
-          $_sig_fwd_evaluated += $data_ref->{evaluated} || 0;
+            $_sig_fwd_evaluated += $data_ref->{evaluated} || 0;
+            
+            $_fwd_rej_geometry += $data_ref->{rej_geometry} || 0;
+            $_fwd_rej_spacing += $data_ref->{rej_spacing} || 0;
+            $_fwd_rej_loopgap += $data_ref->{rej_loopgap} || 0;
+            $_fwd_rej_tm_inner_loop += $data_ref->{rej_tm_inner_loop} || 0;
+            $_fwd_rej_tm_loop_middle += $data_ref->{rej_tm_loop_middle} || 0;
+            $_fwd_rej_tm_inner_middle += $data_ref->{rej_tm_inner_middle} || 0;
+            $_fwd_rej_tm_middle_outer += $data_ref->{rej_tm_middle_outer} || 0;
+            
+            foreach my $k (qw(min_tm_inner_loop min_tm_loop_middle min_tm_inner_middle min_tm_middle_outer min_span_needed)) {
+                next unless defined $data_ref->{$k};
+                if ($k eq 'min_tm_inner_loop') {
+                    $_fwd_min_delta_tm_inner_loop = $data_ref->{$k} if $data_ref->{$k} < $_fwd_min_delta_tm_inner_loop;
+                } elsif ($k eq 'min_tm_loop_middle') {
+                    $_fwd_min_delta_tm_loop_middle = $data_ref->{$k} if $data_ref->{$k} < $_fwd_min_delta_tm_loop_middle;
+                } elsif ($k eq 'min_tm_inner_middle') {
+                    $_fwd_min_delta_tm_inner_middle = $data_ref->{$k} if $data_ref->{$k} < $_fwd_min_delta_tm_inner_middle;
+                } elsif ($k eq 'min_tm_middle_outer') {
+                    $_fwd_min_delta_tm_middle_outer = $data_ref->{$k} if $data_ref->{$k} < $_fwd_min_delta_tm_middle_outer;
+                } elsif ($k eq 'min_span_needed') {
+                    $_fwd_min_span_needed = $data_ref->{$k} if $data_ref->{$k} < $_fwd_min_span_needed;
+                }
+            }
         }
     });
 
@@ -1861,18 +1884,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           min_tm_inner_middle => $chunk_min_delta_tm_inner_middle,
           min_tm_middle_outer => $chunk_min_delta_tm_middle_outer,
           min_span_needed => $chunk_min_span_needed,
-          rej_geometry => $chunk_rej_geometry,
-          rej_spacing => $chunk_rej_spacing,
-          rej_loopgap => $chunk_rej_loopgap,
-          rej_tm_inner_loop => $chunk_rej_tm_inner_loop,
-          rej_tm_loop_middle => $chunk_rej_tm_loop_middle,
-          rej_tm_inner_middle => $chunk_rej_tm_inner_middle,
-          rej_tm_middle_outer => $chunk_rej_tm_middle_outer,
-          min_tm_inner_loop => $chunk_min_delta_tm_inner_loop,
-          min_tm_loop_middle => $chunk_min_delta_tm_loop_middle,
-          min_tm_inner_middle => $chunk_min_delta_tm_inner_middle,
-          min_tm_middle_outer => $chunk_min_delta_tm_middle_outer,
-          min_span_needed => $chunk_min_span_needed,
       });
   } # End chunks
   $pm_fwd->wait_all_children();
@@ -1954,7 +1965,30 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
             $_sig_rev_hits += $data_ref->{hits} || 0;
             $_sig_rev_done += $data_ref->{done} || 0;
           $_sig_rev_pruned += $data_ref->{pruned} || 0;
-          $_sig_rev_evaluated += $data_ref->{evaluated} || 0;
+            $_sig_rev_evaluated += $data_ref->{evaluated} || 0;
+            
+            $_rev_rej_geometry += $data_ref->{rej_geometry} || 0;
+            $_rev_rej_spacing += $data_ref->{rej_spacing} || 0;
+            $_rev_rej_loopgap += $data_ref->{rej_loopgap} || 0;
+            $_rev_rej_tm_inner_loop += $data_ref->{rej_tm_inner_loop} || 0;
+            $_rev_rej_tm_loop_middle += $data_ref->{rej_tm_loop_middle} || 0;
+            $_rev_rej_tm_inner_middle += $data_ref->{rej_tm_inner_middle} || 0;
+            $_rev_rej_tm_middle_outer += $data_ref->{rej_tm_middle_outer} || 0;
+            
+            foreach my $k (qw(min_tm_inner_loop min_tm_loop_middle min_tm_inner_middle min_tm_middle_outer min_span_needed)) {
+                next unless defined $data_ref->{$k};
+                if ($k eq 'min_tm_inner_loop') {
+                    $_rev_min_delta_tm_inner_loop = $data_ref->{$k} if $data_ref->{$k} < $_rev_min_delta_tm_inner_loop;
+                } elsif ($k eq 'min_tm_loop_middle') {
+                    $_rev_min_delta_tm_loop_middle = $data_ref->{$k} if $data_ref->{$k} < $_rev_min_delta_tm_loop_middle;
+                } elsif ($k eq 'min_tm_inner_middle') {
+                    $_rev_min_delta_tm_inner_middle = $data_ref->{$k} if $data_ref->{$k} < $_rev_min_delta_tm_inner_middle;
+                } elsif ($k eq 'min_tm_middle_outer') {
+                    $_rev_min_delta_tm_middle_outer = $data_ref->{$k} if $data_ref->{$k} < $_rev_min_delta_tm_middle_outer;
+                } elsif ($k eq 'min_span_needed') {
+                    $_rev_min_span_needed = $data_ref->{$k} if $data_ref->{$k} < $_rev_min_span_needed;
+                }
+            }
         }
     });
 
@@ -2218,6 +2252,18 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           done => $chunk_done,
           pruned => $chunk_pruned,
           evaluated => $chunk_evaluated,
+          rej_geometry => $chunk_rej_geometry,
+          rej_spacing => $chunk_rej_spacing,
+          rej_loopgap => $chunk_rej_loopgap,
+          rej_tm_inner_loop => $chunk_rej_tm_inner_loop,
+          rej_tm_loop_middle => $chunk_rej_tm_loop_middle,
+          rej_tm_inner_middle => $chunk_rej_tm_inner_middle,
+          rej_tm_middle_outer => $chunk_rej_tm_middle_outer,
+          min_tm_inner_loop => $chunk_min_delta_tm_inner_loop,
+          min_tm_loop_middle => $chunk_min_delta_tm_loop_middle,
+          min_tm_inner_middle => $chunk_min_delta_tm_inner_middle,
+          min_tm_middle_outer => $chunk_min_delta_tm_middle_outer,
+          min_span_needed => $chunk_min_span_needed,
       });
   } # End chunks
   $pm_rev->wait_all_children();
