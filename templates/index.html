@@ -797,6 +797,7 @@
         const file = input.files[0];
         const formData = new FormData();
         formData.append('params_file', file);
+        formData.append('csrf_token', "{{ csrf_token() }}");
 
         fetch("{{ url_for('upload_params_file') }}", {
             method: 'POST',
