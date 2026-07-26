@@ -73,7 +73,7 @@ use Getopt::Long;
 sub penaltyAt {
     my ($table_r, $distance, $label) = @_;
     if ($distance < 0) {
-        warn "[PENALTY GUARD] distance negative ($distance) sur $label -> penalite max appliquee\n";
+        # warn "[PENALTY GUARD] distance negative ($distance) sur $label -> penalite max appliquee\n";
         return 100;
     }
     return $table_r->[$distance] // 100;
@@ -1759,12 +1759,12 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   
   if ($_sig_fwd_evaluated > 0) {
       my $pct = ($_sig_fwd_pruned / $_sig_fwd_evaluated) * 100;
-      printf("  [Forward B&B] Elagage: %.2f%% (%d / %d branches evaluees)\n", $pct, $_sig_fwd_pruned, $_sig_fwd_evaluated);
+      # printf("  [Forward B&B] Elagage: %.2f%% (%d / %d branches evaluees)\n", $pct, $_sig_fwd_pruned, $_sig_fwd_evaluated);
   }
 
   
   # Finaliser la barre Forward / Finalize Forward bar
-  print "  [Forward] $forwardSetCount combinaisons Forward trouvees sur $innerForwardCount amorces F1.\n";
+  # print "  [Forward] $forwardSetCount combinaisons Forward trouvees sur $innerForwardCount amorces F1.\n";
 
   # Check if anything found
   if($forwardSetCount == 0) {
@@ -2052,12 +2052,12 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   
   if ($_sig_rev_evaluated > 0) {
       my $pct = ($_sig_rev_pruned / $_sig_rev_evaluated) * 100;
-      printf("  [Reverse B&B] Elagage: %.2f%% (%d / %d branches evaluees)\n", $pct, $_sig_rev_pruned, $_sig_rev_evaluated);
+      # printf("  [Reverse B&B] Elagage: %.2f%% (%d / %d branches evaluees)\n", $pct, $_sig_rev_pruned, $_sig_rev_evaluated);
   }
 
   
   # Finaliser la barre Reverse / Finalize Reverse bar
-  print "  [Reverse] $reverseSetCount combinaisons Reverse trouvees sur $innerReverseCount amorces B1.\n";
+  # print "  [Reverse] $reverseSetCount combinaisons Reverse trouvees sur $innerReverseCount amorces B1.\n";
 
   if($reverseSetCount == 0) {
       print "No valid reverse primer combinations found.\n";
