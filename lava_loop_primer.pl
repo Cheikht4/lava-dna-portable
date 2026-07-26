@@ -1516,6 +1516,19 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   
   my $_sig_fwd_pruned = 0;
   my $_sig_fwd_evaluated = 0;
+  # --- Counters for zero-signature diagnostic ---
+  my $_fwd_rej_geometry = 0;
+  my $_fwd_rej_spacing = 0;
+  my $_fwd_rej_loopgap = 0;
+  my $_fwd_rej_tm_inner_loop = 0;
+  my $_fwd_rej_tm_loop_middle = 0;
+  my $_fwd_rej_tm_inner_middle = 0;
+  my $_fwd_rej_tm_middle_outer = 0;
+  my $_fwd_min_delta_tm_inner_loop = 999;
+  my $_fwd_min_delta_tm_loop_middle = 999;
+  my $_fwd_min_delta_tm_inner_middle = 999;
+  my $_fwd_min_delta_tm_middle_outer = 999;
+  my $_fwd_min_span_needed = 999999;
   my $fwd_prog_dir = "$options_r->{'output_file'}_fwd_prog_$$";
   $fwd_prog_dir = "$options_r->{'output_file'}_fwd_prog_$$" if ref($options_r);
   use File::Path qw(make_path remove_tree);
@@ -1558,6 +1571,19 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       my $chunk_done = 0;
       my $chunk_pruned = 0;
       my $chunk_evaluated = 0;
+      my $chunk_rej_geometry = 0;
+      my $chunk_rej_spacing = 0;
+      my $chunk_rej_loopgap = 0;
+      my $chunk_rej_tm_inner_loop = 0;
+      my $chunk_rej_tm_loop_middle = 0;
+      my $chunk_rej_tm_inner_middle = 0;
+      my $chunk_rej_tm_middle_outer = 0;
+      my $chunk_min_delta_tm_inner_loop = 999;
+      my $chunk_min_delta_tm_loop_middle = 999;
+      my $chunk_min_delta_tm_inner_middle = 999;
+      my $chunk_min_delta_tm_middle_outer = 999;
+      my $chunk_min_span_needed = 999999;
+
       
       for(my $innerIndex = $chunk_id; $innerIndex < $innerForwardCount; $innerIndex += $num_fwd_chunks)
       {
@@ -1591,11 +1617,16 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               
               if ($includeLoopPrimers) {
                   # Fast-Fail: Sorted by location.
-                  next if ($loopLocation < $searchStartAt);
+                  if ($loopLocation < $searchStartAt) { $chunk_rej_geometry++; next; }
                   last if ($loopLocation > $loopEndAt);
 
                   # --- DYNAMIC THERMAL FILTER (Inner vs Loop) ---
-                  next if (abs($innerTm - $loopTm) > $maxTmDiff && !($innerInfo->hasTag("is_fixed") || $loopInfo->hasTag("is_fixed")));
+                  my $diff = abs($innerTm - $loopTm);
+                  if ($diff > $maxTmDiff && !($innerInfo->hasTag("is_fixed") || $loopInfo->hasTag("is_fixed"))) {
+                      $chunk_min_delta_tm_inner_loop = $diff if $diff < $chunk_min_delta_tm_inner_loop;
+                      $chunk_rej_tm_inner_loop++;
+                      next;
+                  }
               }
               
               # 3.2 Calculate Search Bounds for Middle Primer (F2) (Structure: F3-F2-LF-F1c)
@@ -1635,11 +1666,27 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           my ($middleLocation, $middleLength, $middlePenalty, $midTm) = @{$masterMiddleF_data_r->[$j]};
                           
                           if ($includeLoopPrimers) {
-                              next if ($middleLocation + $middleLength + $minPrimerSpacing > $loopLocation - $loopLength + 1);
-                              next if ($middleLocation + $middleLength + $loopMinGap > $innerLocation);
-                              next if (abs($loopTm - $midTm) > $maxTmDiff && !($loopInfo->hasTag("is_fixed") || $middleInfo->hasTag("is_fixed")));
+                              my $needed = ($middleLocation + $middleLength + $minPrimerSpacing) - ($loopLocation - $loopLength + 1);
+                              if ($needed > 0) {
+                                  my $span = ($innerLocation + $innerLength) - $middleLocation + $needed;
+                                  $chunk_min_span_needed = $span if $span < $chunk_min_span_needed;
+                                  $chunk_rej_spacing++;
+                                  next;
+                              }
+                              if ($middleLocation + $middleLength + $loopMinGap > $innerLocation) { $chunk_rej_loopgap++; next; }
+                              my $diffLM = abs($loopTm - $midTm);
+                              if ($diffLM > $maxTmDiff && !($loopInfo->hasTag("is_fixed") || $middleInfo->hasTag("is_fixed"))) {
+                                  $chunk_min_delta_tm_loop_middle = $diffLM if $diffLM < $chunk_min_delta_tm_loop_middle;
+                                  $chunk_rej_tm_loop_middle++;
+                                  next;
+                              }
                           } else {
-                              next if (abs($innerTm - $midTm) > $maxTmDiff && !($innerInfo->hasTag("is_fixed") || $middleInfo->hasTag("is_fixed")));
+                              my $diffIM = abs($innerTm - $midTm);
+                              if ($diffIM > $maxTmDiff && !($innerInfo->hasTag("is_fixed") || $middleInfo->hasTag("is_fixed"))) {
+                                  $chunk_min_delta_tm_inner_middle = $diffIM if $diffIM < $chunk_min_delta_tm_inner_middle;
+                                  $chunk_rej_tm_inner_middle++;
+                                  next;
+                              }
                           }
                           
                           my $outerStartAt = $searchStartAt;
@@ -1664,8 +1711,19 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       my $outerInfo = $masterOuterF_r->[$k];
                                       my ($outerLocation, $outerLength, $outerPenalty, $outTm) = @{$masterOuterF_data_r->[$k]};
                                       
-                                      next if ($outerLocation + $outerLength + $minPrimerSpacing > $middleLocation);
-                                      next if (abs($midTm - $outTm) > $maxTmDiff && !($middleInfo->hasTag("is_fixed") || $outerInfo->hasTag("is_fixed")));
+                                      my $needed = ($outerLocation + $outerLength + $minPrimerSpacing) - $middleLocation;
+                                      if ($needed > 0) {
+                                          my $span = ($innerLocation + $innerLength) - $outerLocation + $needed;
+                                          $chunk_min_span_needed = $span if $span < $chunk_min_span_needed;
+                                          $chunk_rej_spacing++;
+                                          next;
+                                      }
+                                      my $diffMO = abs($midTm - $outTm);
+                                      if ($diffMO > $maxTmDiff && !($middleInfo->hasTag("is_fixed") || $outerInfo->hasTag("is_fixed"))) {
+                                          $chunk_min_delta_tm_middle_outer = $diffMO if $diffMO < $chunk_min_delta_tm_middle_outer;
+                                          $chunk_rej_tm_middle_outer++;
+                                          next;
+                                      }
                                       
                                       my $middleToOuterDistance = $middleLocation - ($outerLocation + $outerLength);
                                       my $spacingPenalty = 0;
@@ -1751,6 +1809,30 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           done => $chunk_done,
           pruned => $chunk_pruned,
           evaluated => $chunk_evaluated,
+          rej_geometry => $chunk_rej_geometry,
+          rej_spacing => $chunk_rej_spacing,
+          rej_loopgap => $chunk_rej_loopgap,
+          rej_tm_inner_loop => $chunk_rej_tm_inner_loop,
+          rej_tm_loop_middle => $chunk_rej_tm_loop_middle,
+          rej_tm_inner_middle => $chunk_rej_tm_inner_middle,
+          rej_tm_middle_outer => $chunk_rej_tm_middle_outer,
+          min_tm_inner_loop => $chunk_min_delta_tm_inner_loop,
+          min_tm_loop_middle => $chunk_min_delta_tm_loop_middle,
+          min_tm_inner_middle => $chunk_min_delta_tm_inner_middle,
+          min_tm_middle_outer => $chunk_min_delta_tm_middle_outer,
+          min_span_needed => $chunk_min_span_needed,
+          rej_geometry => $chunk_rej_geometry,
+          rej_spacing => $chunk_rej_spacing,
+          rej_loopgap => $chunk_rej_loopgap,
+          rej_tm_inner_loop => $chunk_rej_tm_inner_loop,
+          rej_tm_loop_middle => $chunk_rej_tm_loop_middle,
+          rej_tm_inner_middle => $chunk_rej_tm_inner_middle,
+          rej_tm_middle_outer => $chunk_rej_tm_middle_outer,
+          min_tm_inner_loop => $chunk_min_delta_tm_inner_loop,
+          min_tm_loop_middle => $chunk_min_delta_tm_loop_middle,
+          min_tm_inner_middle => $chunk_min_delta_tm_inner_middle,
+          min_tm_middle_outer => $chunk_min_delta_tm_middle_outer,
+          min_span_needed => $chunk_min_span_needed,
       });
   } # End chunks
   $pm_fwd->wait_all_children();
@@ -1768,7 +1850,11 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 
   # Check if anything found
   if($forwardSetCount == 0) {
-      print "No valid forward primer combinations found.\n";
+      print_zero_signature_diagnostic(1, $innerForwardCount, scalar(@$masterOuterF_r),
+        $_fwd_rej_geometry, $_fwd_rej_spacing, $_fwd_rej_loopgap,
+        $_fwd_rej_tm_inner_loop, $_fwd_rej_tm_loop_middle, $_fwd_rej_tm_inner_middle, $_fwd_rej_tm_middle_outer,
+        $_fwd_min_delta_tm_inner_loop, $_fwd_min_delta_tm_loop_middle, $_fwd_min_delta_tm_inner_middle, $_fwd_min_delta_tm_middle_outer,
+        $_fwd_min_span_needed, $signatureMaxLength, $maxTmDiff);
       exit 0;
   }
 
@@ -1817,6 +1903,18 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   
   my $_sig_rev_pruned = 0;
   my $_sig_rev_evaluated = 0;
+  my $_rev_rej_geometry = 0;
+  my $_rev_rej_spacing = 0;
+  my $_rev_rej_loopgap = 0;
+  my $_rev_rej_tm_inner_loop = 0;
+  my $_rev_rej_tm_loop_middle = 0;
+  my $_rev_rej_tm_inner_middle = 0;
+  my $_rev_rej_tm_middle_outer = 0;
+  my $_rev_min_delta_tm_inner_loop = 999;
+  my $_rev_min_delta_tm_loop_middle = 999;
+  my $_rev_min_delta_tm_inner_middle = 999;
+  my $_rev_min_delta_tm_middle_outer = 999;
+  my $_rev_min_span_needed = 999999;
   my $rev_prog_dir = "$options_r->{'output_file'}_rev_prog_$$";
   $rev_prog_dir = "$options_r->{'output_file'}_rev_prog_$$" if ref($options_r);
   use File::Path qw(make_path remove_tree);
@@ -1859,6 +1957,18 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       my $chunk_done = 0;
       my $chunk_pruned = 0;
       my $chunk_evaluated = 0;
+      my $chunk_rej_geometry = 0;
+      my $chunk_rej_spacing = 0;
+      my $chunk_rej_loopgap = 0;
+      my $chunk_rej_tm_inner_loop = 0;
+      my $chunk_rej_tm_loop_middle = 0;
+      my $chunk_rej_tm_inner_middle = 0;
+      my $chunk_rej_tm_middle_outer = 0;
+      my $chunk_min_delta_tm_inner_loop = 999;
+      my $chunk_min_delta_tm_loop_middle = 999;
+      my $chunk_min_delta_tm_inner_middle = 999;
+      my $chunk_min_delta_tm_middle_outer = 999;
+      my $chunk_min_span_needed = 999999;
       
       for(my $innerIndex = $chunk_id; $innerIndex < $innerReverseCount; $innerIndex += $num_rev_chunks)
       {
@@ -1889,7 +1999,12 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               if ($includeLoopPrimers) {
                   next if ($loopLocation < $searchStartAt);
                   last if ($loopLocation > $searchEndAt);
-                  next if (abs($innerTm - $loopTm) > $maxTmDiff);
+                  my $diff = abs($innerTm - $loopTm);
+                  if ($diff > $maxTmDiff) {
+                      $chunk_min_delta_tm_inner_loop = $diff if $diff < $chunk_min_delta_tm_inner_loop;
+                      $chunk_rej_tm_inner_loop++;
+                      next;
+                  }
               }
               
               # 4.2 Calculate Search Bounds for Middle Primer (Reverse)
@@ -1926,11 +2041,27 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           my ($middleLocation, $middleLength, $middlePenalty, $midTm) = @{$masterMiddleR_data_r->[$j]};
                           
                           if ($includeLoopPrimers) {
-                              next if ($middleLocation - $minPrimerSpacing < $loopLocation + $loopLength - 1);
-                              next if ($middleLocation - $loopMinGap < $innerLocation + $innerLength);
-                              next if (abs($loopTm - $midTm) > $maxTmDiff && !($loopInfo->hasTag("is_fixed") || $middleInfo->hasTag("is_fixed")));
+                              my $needed = ($loopLocation + $loopLength - 1) - ($middleLocation - $minPrimerSpacing);
+                              if ($needed > 0) {
+                                  my $span = $middleLocation - ($innerLocation - $innerLength) + $needed;
+                                  $chunk_min_span_needed = $span if $span < $chunk_min_span_needed;
+                                  $chunk_rej_spacing++;
+                                  next;
+                              }
+                              if ($middleLocation - $loopMinGap < $innerLocation + $innerLength) { $chunk_rej_loopgap++; next; }
+                              my $diffLM = abs($loopTm - $midTm);
+                              if ($diffLM > $maxTmDiff && !($loopInfo->hasTag("is_fixed") || $middleInfo->hasTag("is_fixed"))) {
+                                  $chunk_min_delta_tm_loop_middle = $diffLM if $diffLM < $chunk_min_delta_tm_loop_middle;
+                                  $chunk_rej_tm_loop_middle++;
+                                  next;
+                              }
                           } else {
-                              next if (abs($innerTm - $midTm) > $maxTmDiff && !($innerInfo->hasTag("is_fixed") || $middleInfo->hasTag("is_fixed")));
+                              my $diffIM = abs($innerTm - $midTm);
+                              if ($diffIM > $maxTmDiff && !($innerInfo->hasTag("is_fixed") || $middleInfo->hasTag("is_fixed"))) {
+                                  $chunk_min_delta_tm_inner_middle = $diffIM if $diffIM < $chunk_min_delta_tm_inner_middle;
+                                  $chunk_rej_tm_inner_middle++;
+                                  next;
+                              }
                           }
                           
                           my $outerStartAt = $middleLocation + $minPrimerSpacing;
@@ -1956,8 +2087,19 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       my $outerInfo = $masterOuterR_r->[$k];
                                       my ($outerLocation, $outerLength, $outerPenalty, $outTm) = @{$masterOuterR_data_r->[$k]};
                                       
-                                      next if ($outerLocation - $outerLength + 1 - $minPrimerSpacing <= $middleLocation);
-                                      next if (abs($midTm - $outTm) > $maxTmDiff);
+                                      my $needed = $middleLocation - ($outerLocation - $outerLength + 1 - $minPrimerSpacing);
+                                      if ($needed >= 0) {
+                                          my $span = $outerLocation - ($innerLocation - $innerLength) + $needed;
+                                          $chunk_min_span_needed = $span if $span < $chunk_min_span_needed;
+                                          $chunk_rej_spacing++;
+                                          next;
+                                      }
+                                      my $diffMO = abs($midTm - $outTm);
+                                      if ($diffMO > $maxTmDiff) {
+                                          $chunk_min_delta_tm_middle_outer = $diffMO if $diffMO < $chunk_min_delta_tm_middle_outer;
+                                          $chunk_rej_tm_middle_outer++;
+                                          next;
+                                      }
                                       
                                       my $middleToOuterDistance = ($outerLocation - $outerLength) - $middleLocation;
                                       
@@ -2060,8 +2202,12 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   # print "  [Reverse] $reverseSetCount combinaisons Reverse trouvees sur $innerReverseCount amorces B1.\n";
 
   if($reverseSetCount == 0) {
-      print "No valid reverse primer combinations found.\n";
-      print "WARNING: No reverse sets found.\n";
+      print_zero_signature_diagnostic(0, $innerReverseCount, scalar(@$masterOuterR_r),
+        $_rev_rej_geometry, $_rev_rej_spacing, $_rev_rej_loopgap,
+        $_rev_rej_tm_inner_loop, $_rev_rej_tm_loop_middle, $_rev_rej_tm_inner_middle, $_rev_rej_tm_middle_outer,
+        $_rev_min_delta_tm_inner_loop, $_rev_min_delta_tm_loop_middle, $_rev_min_delta_tm_inner_middle, $_rev_min_delta_tm_middle_outer,
+        $_rev_min_span_needed, $signatureMaxLength, $maxTmDiff);
+      exit 0;
   }
 
   #-----------------------------------------------------------------------------
@@ -2722,4 +2868,99 @@ sub binary_search_last_le {
         }
     }
     return $ans;
+}
+
+
+sub print_zero_signature_diagnostic {
+    my ($is_forward, $innerCount, $outerCount, 
+        $rej_geometry, $rej_spacing, $rej_loopgap, 
+        $rej_tm_inner_loop, $rej_tm_loop_middle, $rej_tm_inner_middle, $rej_tm_middle_outer,
+        $min_tm_inner_loop, $min_tm_loop_middle, $min_tm_inner_middle, $min_tm_middle_outer,
+        $min_span_needed, $signatureMaxLength, $maxTmDiff) = @_;
+
+    my $outBase = $main::options_r->{'output_file'} // "lava_run";
+    my $diagFile = "${outBase}_diagnostic.txt";
+    open(my $dfh, '>', $diagFile) or warn "Cannot open $diagFile\n";
+    
+    my $side = $is_forward ? "Forward" : "Reverse";
+    
+    my $msg = "================================================================================\n";
+    $msg .= "DIAGNOSTIC LAVA : AUCUNE DEMI-SIGNATURE $side TROUVÉE\n";
+    $msg .= "================================================================================\n\n";
+
+    if ($innerCount == 0 || $outerCount == 0) {
+        $msg .= "[CAS 1] PROBLÈME EN AMONT : Pools d'amorces vides.\n";
+        $msg .= "Aucune amorce n'a passé la validation initiale (0 candidat généré).\n";
+        $msg .= "Le problème se situe avant l'assemblage : vos séquences sont probablement trop\n";
+        $msg .= "divergentes dans cette région, ou les contraintes sont trop strictes.\n\n";
+        $msg .= "Pistes de résolution :\n";
+        $msg .= "  - Abaisser --min_primer_coverage (actuel : " . ($main::options_r->{'min_primer_coverage'}//100) . "%)\n";
+        $msg .= "  - Augmenter --max_total_degenerate_bases (actuel : " . ($main::options_r->{'max_total_degenerate_bases'}//0) . ")\n";
+        $msg .= "  - Augmenter --max_tolerated_mismatches (actuel : " . ($main::options_r->{'max_tolerated_mismatches'}//0) . ")\n";
+        $msg .= "  - Élargir la plage de Tm (tm_min, tm_max) des amorces individuelles.\n";
+    } else {
+        $msg .= "[CAS 2] PROBLÈME D'ASSEMBLAGE : Incompatibilité des contraintes.\n";
+        $msg .= "Les pools sont non vides (ex: $innerCount amorces F1c/B1c), mais aucune combinaison\n";
+        $msg .= "ne respecte toutes les contraintes de température et d'espacement.\n\n";
+        
+        my @causes;
+        push @causes, { name => "Thermodynamique (Inner/Loop)", rej => $rej_tm_inner_loop, min => $min_tm_inner_loop, param => "max_tm_diff", type => "tm" } if $rej_tm_inner_loop > 0;
+        push @causes, { name => "Thermodynamique (Loop/Middle)", rej => $rej_tm_loop_middle, min => $min_tm_loop_middle, param => "max_tm_diff", type => "tm" } if $rej_tm_loop_middle > 0;
+        push @causes, { name => "Thermodynamique (Inner/Middle)", rej => $rej_tm_inner_middle, min => $min_tm_inner_middle, param => "max_tm_diff", type => "tm" } if $rej_tm_inner_middle > 0;
+        push @causes, { name => "Thermodynamique (Middle/Outer)", rej => $rej_tm_middle_outer, min => $min_tm_middle_outer, param => "max_tm_diff", type => "tm" } if $rej_tm_middle_outer > 0;
+        
+        push @causes, { name => "Espacement / Géométrie (Trop court)", rej => $rej_spacing, min => $min_span_needed, param => "signature_max_length", type => "span" } if $rej_spacing > 0;
+        push @causes, { name => "Espacement (Loop Gap)", rej => $rej_loopgap, min => 0, param => "loop_min_gap", type => "gap" } if $rej_loopgap > 0;
+        push @causes, { name => "Contraintes Géométriques Générales", rej => $rej_geometry, min => 0, param => "search_range", type => "geom" } if $rej_geometry > 0;
+        
+        @causes = sort { $b->{rej} <=> $a->{rej} } @causes;
+        
+        my $total_rej = $rej_geometry + $rej_spacing + $rej_loopgap + $rej_tm_inner_loop + $rej_tm_loop_middle + $rej_tm_inner_middle + $rej_tm_middle_outer;
+        
+        if (@causes && $total_rej > 0) {
+            my $primary = $causes[0];
+            my $pct = sprintf("%.1f", ($primary->{rej} / $total_rej) * 100);
+            $msg .= "-> Cause principale : $primary->{name} ($pct% des rejets)\n";
+            
+            if ($primary->{type} eq 'tm') {
+                $msg .= "   - Meilleur écart atteignable : " . sprintf("%.1f", $primary->{min}) . " °C.\n";
+                $msg .= "   - Votre limite --max_tm_diff est : $maxTmDiff °C.\n";
+                my $suggest = int($primary->{min} + 1.5);
+                if ($suggest > 10) {
+                    $msg .= "   => SUGGESTION : Les séquences sont très divergentes. Une valeur > 10 °C n'est pas recommandée.\n";
+                    $msg .= "      Envisagez de segmenter la cible ou de relâcher les paramètres d'amont.\n";
+                } else {
+                    $msg .= "   => SUGGESTION : Essayez --max_tm_diff $suggest\n";
+                }
+            } elsif ($primary->{type} eq 'span') {
+                $msg .= "   - Empan minimal nécessaire : $primary->{min} nt.\n";
+                $msg .= "   - Votre --signature_max_length est : $signatureMaxLength nt.\n";
+                my $suggest = $primary->{min} + 20;
+                $msg .= "   => SUGGESTION : Essayez --signature_max_length $suggest\n";
+            } elsif ($primary->{type} eq 'gap') {
+                $msg .= "   - Collision avec le loop_min_gap détectée.\n";
+                $msg .= "   => SUGGESTION : Essayez de réduire --loop_min_gap ou d'augmenter l'espace total.\n";
+            }
+            
+            if (scalar(@causes) > 1) {
+                my $sec = $causes[1];
+                my $pct2 = sprintf("%.1f", ($sec->{rej} / $total_rej) * 100);
+                $msg .= "\n-> Cause secondaire : $sec->{name} ($pct2% des rejets)\n";
+                if ($sec->{type} eq 'tm') {
+                    $msg .= "   - Meilleur écart atteignable : " . sprintf("%.1f", $sec->{min}) . " °C.\n";
+                } elsif ($sec->{type} eq 'span') {
+                    $msg .= "   - Empan minimal nécessaire : $sec->{min} nt.\n";
+                }
+            }
+        }
+    }
+    
+    if ($is_forward) {
+        $msg .= "\nLe scan Reverse n'a pas été exécuté car aucune demi-signature Forward n'a été trouvée.\n";
+    }
+    $msg .= "================================================================================\n";
+    
+    print $msg;
+    print $dfh $msg if $dfh;
+    close($dfh) if $dfh;
 }
