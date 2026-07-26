@@ -2093,3 +2093,17 @@ Bien qu'une amorce soit "fixée" et imposée par l'utilisateur, forcer sa pénal
 
 **Impact attendu :** 
 Les amorces fixées afficheront une vraie valeur dans les rapports (ex: `Thm[I:0.3]`). Le score global (`penalty`) des signatures contenant des amorces fixées sera plus réaliste et directement comparable aux résultats standard, sans biaiser le tri final des candidats.
+
+### Date/Étape : 2026-07-26 - Correction du calcul d'espacement (Spacing Penalty) sur le brin reverse
+**Fichiers impactés** : `lava_loop_primer.pl`
+**Nature du changement** : [Thermodynamique / Bug Fix]
+**Explication technique** : La formule de calcul de la distance `innerToLoopDistance` sur le brin Reverse était inversée : `($loopLocation - $loopLength) - $innerLocation`. Cela produisait des distances négatives lorsque les boucles se croisaient, provoquant un accès hors-tableau (index négatif) dans la table des pénalités Perl, ce qui appliquait silencieusement la pire pénalité possible (index -1 = dernière valeur). La formule a été corrigée pour `$loopLocation - ($innerLocation + 1)`, devenant ainsi symétrique au brin Forward.
+**Justification biologique** : Un calcul de distance négatif n'a pas de sens physique (il implique un chevauchement non géré ou un repliement stérique impossible pour l'enzyme). En corrigeant cette distance, la pénalité d'espacement (Spacing Penalty `I_L`) redevient proportionnelle à l'éloignement réel entre l'amorce interne et l'amorce de boucle sur le brin complémentaire.
+**Impact attendu** : Des pénalités globales beaucoup plus faibles et précises pour les signatures LOOP, permettant de découvrir des amorces qui étaient injustement rejetées par un score faussé (ex: pénalité chutant de 63.6 à 13.6).
+
+### Date/Étape : 2026-07-26 - Finalisation de l'infrastructure de tests continus (Canary Baseline)
+**Fichiers impactés** : `t/canary_regression.t`, `t/baseline/` (les 3 dépôts)
+**Nature du changement** : [Architecture]
+**Explication technique** : L'implémentation du test d'équivalence stricte. Le test canary génère des signatures (`.primers`, `.all_signatures`, `.dash`) puis fait un `strict_diff` ligne par ligne contre des références prouvées (baselines). Les tests non-déterministes (`_amplified.fasta`) sont validés sur leur volumétrie. Ajout du flag environnemental `LAVA_UPDATE_BASELINE=1` permettant la regénération contrôlée des fichiers de référence en cas d'évolution volontaire de l'algorithme.
+**Justification biologique** : Tout changement dans la thermodynamique du moteur (ex: l'ajout du Branch & Bound ou de l'entropie) doit garantir une non-régression absolue sur des agents pathogènes de référence comme le Rotavirus. Sans comparaison des séquences ATGC générées à la lettre près, une altération silencieuse pourrait fausser un design d'amorces sans faire planter le programme.
+**Impact attendu** : Sécurité absolue lors de la publication scientifique. Toute modification future de la cinétique d'hybridation fera échouer le CI si elle modifie les amorces sortantes non prévues.
