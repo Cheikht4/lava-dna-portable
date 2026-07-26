@@ -2,8 +2,23 @@
 use strict;
 use warnings;
 use Test::More;
+use File::Compare qw(compare);
+use File::Copy    qw(copy);
 
-# Subroutine to get the longest common substring
+# =============================================================================
+# canary_regression.t -- LAVA-DNA v2026
+# Tests de regression + equivalence baseline pour lava_loop_primer.pl
+# et lava_stem_primer.pl.
+#
+# Variables d'environnement :
+#   LAVA_UPDATE_BASELINE=1  -> regenere les baselines au lieu de comparer.
+#                              A utiliser UNIQUEMENT apres validation humaine
+#                              d'une nouvelle reference voulue.
+#   PERL5LIB                -> ajoute lib/ automatiquement si non defini.
+# =============================================================================
+
+# --- Subroutines utilitaires ---
+
 sub longest_common_substring {
     my ($s1, $s2) = @_;
     my $max_len = 0;
@@ -25,11 +40,80 @@ sub reverse_complement {
     return $seq;
 }
 
-# Add lib to PERL5LIB
+# Compte le nombre de sequences dans un FASTA
+sub count_fasta_sequences {
+    my ($file) = @_;
+    return 0 unless -f $file;
+    open my $fh, '<', $file or return 0;
+    my $count = 0;
+    $count++ while <$fh> =~ /^>/;
+    close $fh;
+    return $count;
+}
+
+# Compare deux fichiers texte ligne a ligne, retourne undef si identiques
+# ou un message d'erreur avec les premieres lignes divergentes.
+sub strict_diff {
+    my ($got, $expected) = @_;
+    return "Fichier genere absent : $got"       unless -f $got;
+    return "Fichier de reference absent : $expected" unless -f $expected;
+
+    open my $fh_g, '<', $got      or return "Impossible de lire $got : $!";
+    open my $fh_e, '<', $expected or return "Impossible de lire $expected : $!";
+
+    my $line_no = 0;
+    while (1) {
+        my $lg = <$fh_g>;
+        my $le = <$fh_e>;
+        last unless defined $lg || defined $le;
+        $line_no++;
+        $lg //= '';
+        $le //= '';
+        if ($lg ne $le) {
+            chomp $lg; chomp $le;
+            return "Divergence ligne $line_no :\n  OBTENU   : $lg\n  ATTENDU  : $le";
+        }
+    }
+    close $fh_g; close $fh_e;
+    return undef;  # identiques
+}
+
+# Verifie ou regenere un fichier de baseline
+sub check_or_update_baseline {
+    my ($generated, $baseline, $label) = @_;
+
+    if ($ENV{LAVA_UPDATE_BASELINE}) {
+        copy($generated, $baseline)
+            or die "Impossible de copier $generated -> $baseline : $!";
+        diag("BASELINE MISE A JOUR : $baseline");
+        pass("$label (baseline regeneree)");
+    } else {
+        my $err = strict_diff($generated, $baseline);
+        if (!defined $err) {
+            pass($label);
+        } else {
+            fail($label);
+            diag($err);
+        }
+    }
+}
+
+# =============================================================================
+# Initialisation
+# =============================================================================
+
 $ENV{PERL5LIB} = "./lib:" . ($ENV{PERL5LIB} || "");
 
-# Parameters common to both
-my $common_args = "--alignment_fasta t/fixtures/rota_canary_40.fasta --threads 1 --signature_max_length 206 " .
+my $UPDATE_BASELINE = $ENV{LAVA_UPDATE_BASELINE} // 0;
+
+if ($UPDATE_BASELINE) {
+    diag("MODE REGENERATION BASELINE actif (LAVA_UPDATE_BASELINE=1)");
+}
+
+# Parametres communs aux deux scripts
+my $common_args =
+    "--alignment_fasta t/fixtures/rota_canary_40.fasta --threads 1 " .
+    "--signature_max_length 206 " .
     "--dna_conc 400.0 --dntp_conc 1.4 --entropy_threshold 1.5 " .
     "--inner_primer_min_length 15 --inner_primer_target_length 18 --inner_primer_max_length 22 " .
     "--inner_primer_min_tm 59.0 --inner_primer_target_tm 60.0 --inner_primer_max_tm 65.0 " .
@@ -46,52 +130,113 @@ my $common_args = "--alignment_fasta t/fixtures/rota_canary_40.fasta --threads 1
     "--salt_divalent 8.0 --penalty_plateau 0.25 --penalty_slope 0.15 " .
     "--max_overlap_percent 0.0 --max_per_window 0 --max_primer_gen 10000.0 --window_size 0";
 
-# Run LOOP test
-my $loop_args = $common_args . " --output_file t/canary_loop --loop_min_gap 20 " .
+# =============================================================================
+# PARTIE 1 : LOOP
+# =============================================================================
+
+my $loop_out  = "t/canary_loop";
+my $loop_args = $common_args .
+    " --output_file $loop_out --loop_min_gap 20 " .
     "--loop_primer_min_length 15 --loop_primer_target_length 18 --loop_primer_max_length 22 " .
     "--loop_primer_min_tm 59.0 --loop_primer_target_tm 60.0 --loop_primer_max_tm 61.0";
-    
-diag("Running LOOP canary test...");
+
+diag("=== LOOP canary : execution (--threads 1) ===");
 my $loop_exit = system("perl lava_loop_primer.pl $loop_args > /dev/null 2>&1");
 is($loop_exit, 0, "lava_loop_primer.pl executes successfully");
 
 my @loop_sigs = glob("t/canary_loop_signatures_individuelles/signature_*_VALID_*.txt");
 ok(scalar(@loop_sigs) > 0, "REGRESSION LOOP : 0 signature sur la reference rota");
 
-# Run STEM test
-my $stem_args = $common_args . " --output_file t/canary_stem --include_stem_primers 1 " .
+# --- Tests d'equivalence baseline LOOP ---
+diag("=== LOOP : comparaison avec baseline ===");
+
+for my $ext (qw(.primers .all_signatures .dash)) {
+    my $generated = "${loop_out}${ext}";
+    my $baseline  = "t/baseline/canary_loop${ext}";
+    check_or_update_baseline($generated, $baseline,
+        "BASELINE LOOP${ext} : sortie identique a la reference");
+}
+
+# Fichiers non-deterministes : on compare seulement le nombre de sequences
+for my $suffix (qw(_amplified.fasta)) {
+    my $got_file      = "${loop_out}${suffix}";
+    my $baseline_file = "t/baseline/canary_loop${suffix}";
+    my $got_n   = count_fasta_sequences($got_file);
+    my $exp_n   = count_fasta_sequences($baseline_file);
+    if ($UPDATE_BASELINE) {
+        copy($got_file, $baseline_file) if -f $got_file;
+        pass("BASELINE LOOP${suffix} : baseline regeneree");
+    } else {
+        is($got_n, $exp_n,
+           "BASELINE LOOP${suffix} : nombre de sequences FASTA amplifie ($got_n vs $exp_n attendu)");
+    }
+}
+
+# =============================================================================
+# PARTIE 2 : STEM
+# =============================================================================
+
+my $stem_out  = "t/canary_stem";
+my $stem_args = $common_args .
+    " --output_file $stem_out --include_stem_primers 1 " .
     "--stem_primer_min_length 15 --stem_primer_target_length 18 --stem_primer_max_length 22 " .
     "--stem_primer_min_tm 59.0 --stem_primer_target_tm 60.0 --stem_primer_max_tm 61.0";
 
-diag("Running STEM canary test...");
+diag("=== STEM canary : execution (--threads 1) ===");
 my $stem_exit = system("perl lava_stem_primer.pl $stem_args > /dev/null 2>&1");
 is($stem_exit, 0, "lava_stem_primer.pl executes successfully");
 
 my @stem_sigs = glob("t/canary_stem_signatures_individuelles/signature_*_VALID_*.txt");
 ok(scalar(@stem_sigs) > 0, "REGRESSION STEM : 0 signature sur la reference rota");
 
-# Anti-dimer check
+# --- Tests d'equivalence baseline STEM ---
+diag("=== STEM : comparaison avec baseline ===");
+
+for my $ext (qw(.primers .all_signatures .dash)) {
+    my $generated = "${stem_out}${ext}";
+    my $baseline  = "t/baseline/canary_stem${ext}";
+    check_or_update_baseline($generated, $baseline,
+        "BASELINE STEM${ext} : sortie identique a la reference");
+}
+
+for my $suffix (qw(_amplified.fasta)) {
+    my $got_file      = "${stem_out}${suffix}";
+    my $baseline_file = "t/baseline/canary_stem${suffix}";
+    my $got_n   = count_fasta_sequences($got_file);
+    my $exp_n   = count_fasta_sequences($baseline_file);
+    if ($UPDATE_BASELINE) {
+        copy($got_file, $baseline_file) if -f $got_file;
+        pass("BASELINE STEM${suffix} : baseline regeneree");
+    } else {
+        is($got_n, $exp_n,
+           "BASELINE STEM${suffix} : nombre de sequences FASTA amplifie ($got_n vs $exp_n attendu)");
+    }
+}
+
+# =============================================================================
+# PARTIE 3 : Anti-dimer STEM
+# =============================================================================
+
+diag("=== STEM : verification anti-dimere ===");
+
 if (scalar(@stem_sigs) > 0) {
     my $sig_file = $stem_sigs[0];
     open my $fh, '<', $sig_file or die "Cannot open $sig_file: $!";
     my ($fstem, $bstem) = ("", "");
     while (<$fh>) {
-        if (/^# FSTEM:\s+([A-Za-z]+)/) {
-            $fstem = $1;
-        } elsif (/^# BSTEM:\s+([A-Za-z]+)/) {
-            $bstem = $1;
-        }
+        if (/^# FSTEM:\s+([A-Za-z]+)/) { $fstem = $1; }
+        elsif (/^# BSTEM:\s+([A-Za-z]+)/) { $bstem = $1; }
     }
     close $fh;
-    
+
     ok($fstem ne "", "FSTEM sequence found in signature");
     ok($bstem ne "", "BSTEM sequence found in signature");
-    
+
     if ($fstem ne "" && $bstem ne "") {
-        my $rc_bstem = reverse_complement($bstem);
+        my $rc_bstem  = reverse_complement($bstem);
         my $dimer_len = longest_common_substring($fstem, $rc_bstem);
-        
-        cmp_ok($dimer_len, '<', 8, "REGRESSION STEM : dimere FSTEM/BSTEM detecte (complementarite = $dimer_len nt)");
+        cmp_ok($dimer_len, '<', 8,
+            "REGRESSION STEM : dimere FSTEM/BSTEM detecte (complementarite = $dimer_len nt)");
     }
 }
 
