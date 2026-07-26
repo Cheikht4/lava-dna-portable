@@ -1902,7 +1902,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               my $m_end = binary_search_last_le($masterMiddleR_data_r, $middleEndAt);
               if ($m_start != -1 && $m_end != -1 && $m_start <= $m_end) {
                   my $min_P_mid_range = query_rmq($rmq_middle_r, $m_start, $m_end) * $middlePenaltyWeight;
-                  my $innerToLoopDistance = $includeLoopPrimers ? ($loopLocation - $loopLength) - $innerLocation : 0;
+                  my $innerToLoopDistance = $includeLoopPrimers ? $loopLocation - ($innerLocation + 1) : 0;
                   my $base_penalty = ($innerPenalty * $innerPenaltyWeight) + 
                                      ($includeLoopPrimers ? $loopPenalty * $loopPenaltyWeight : 0) + 
                                      ($includeLoopPrimers ? $innerToLoopPenalties_r->[$innerToLoopDistance] * $innerToLoopPenaltyWeight : 0);

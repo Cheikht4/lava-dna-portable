@@ -110,3 +110,21 @@ translate_lib.py
 update_output.py
 _internal/
 LAVA_Production_2026_v3/
+
+# --------------- Sorties de tests (generees, hors baseline) --
+t/canary_loop
+t/canary_loop.*
+t/canary_loop_amplified*
+t/canary_loop_signatures_individuelles/
+t/canary_stem
+t/canary_stem.*
+t/canary_stem_amplified*
+t/canary_stem_signatures_individuelles/
+t/canary_stem_combinations.txt
+t/canary_stem_excluded*
+!t/baseline/
+t/*.log
+t/optimized_stem.log
+t/baseline_loop.log
+t/baseline_stem.log
+t/reference_a_stem.log
