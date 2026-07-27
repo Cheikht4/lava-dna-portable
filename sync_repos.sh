@@ -36,15 +36,42 @@ WHITELIST=(
     ".github/workflows/canary.yml"
 )
 
-# Fonction pour calculer le md5 d'un fichier sur Mac
+# Configuration du hash selon l'OS (Linux md5sum vs macOS md5)
+if command -v md5sum >/dev/null 2>&1; then
+    HASH_CMD="md5sum"
+elif command -v md5 >/dev/null 2>&1; then
+    HASH_CMD="md5"
+else
+    echo "ERREUR : ni md5sum ni md5 disponible." >&2
+    exit 1
+fi
+
 compute_md5() {
     local file="$1"
     if [ -f "$file" ]; then
-        md5 -q "$file" 2>/dev/null || echo "MISSING"
+        if [ "$HASH_CMD" = "md5sum" ]; then
+            md5sum "$file" 2>/dev/null | awk '{print $1}' || echo "ERROR"
+        else
+            md5 -q "$file" 2>/dev/null || echo "ERROR"
+        fi
     else
-        echo "MISSING"
+        echo "MISSING_FILE"
     fi
 }
+
+# Auto-test de protection
+echo "Verification du systeme de hachage..."
+TEST_HASH1=$(compute_md5 "lava_loop_primer.pl")
+TEST_HASH2=$(compute_md5 "t/canary_regression.t")
+if [ "$TEST_HASH1" = "ERROR" ] || [ "$TEST_HASH2" = "ERROR" ] || [ "$TEST_HASH1" = "MISSING_FILE" ]; then
+    echo "ERREUR CRITIQUE : Impossible de calculer le hash des fichiers sources." >&2
+    exit 1
+fi
+if [ "$TEST_HASH1" = "$TEST_HASH2" ]; then
+    echo "ERREUR CRITIQUE : Le systeme de hachage renvoie des valeurs identiques pour des fichiers differents. Annulation." >&2
+    exit 1
+fi
+echo "Hachage OK."
 
 sync_item() {
     local src_item="$1"
@@ -55,6 +82,12 @@ sync_item() {
     if [ -f "$src_item" ]; then
         local target_item="$target_repo/$src_item"
         local src_md5=$(compute_md5 "$src_item")
+        
+        if [ "$src_md5" = "MISSING_FILE" ] || [ "$src_md5" = "ERROR" ]; then
+            echo "ERREUR FATALE: Le fichier source $src_item est manquant ou illisible. Le script est interrompu." >&2
+            exit 1
+        fi
+        
         local target_md5=$(compute_md5 "$target_item")
 
         if [[ "$src_md5" != "$target_md5" ]]; then
@@ -75,6 +108,12 @@ sync_item() {
 
             local target_item="$target_repo/$src_file"
             local src_md5=$(compute_md5 "$src_file")
+            
+            if [ "$src_md5" = "MISSING_FILE" ] || [ "$src_md5" = "ERROR" ]; then
+                echo "ERREUR FATALE: Le fichier source $src_file est manquant ou illisible. Le script est interrompu." >&2
+                exit 1
+            fi
+            
             local target_md5=$(compute_md5 "$target_item")
 
             if [[ "$src_md5" != "$target_md5" ]]; then
