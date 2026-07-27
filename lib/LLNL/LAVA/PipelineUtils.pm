@@ -2482,9 +2482,35 @@ sub injectFixedPrimers {
         }
         
         if ($valid_variants > 0) {
+            # NOTE DU CONCEPTEUR / DESIGNER NOTE (FR/EN):
+            # Pour une amorce fixee degeneree, la penalite retenue est la MOYENNE des penalites
+            # de toutes les variantes IUPAC developpees.
+            # Justification : Un oligo degenere est un MELANGE physique de variantes synthetisees.
+            # L amorce degeneree n ayant pas de sequence non-degeneree d origine disponible
+            # (contrairement a une amorce generee par le Branch & Bound LAVA), la moyenne
+            # represente fidelement le comportement moyen du melange d oligos.
+            # Consequence : La penalite globale de la signature n est pas directement comparable
+            # a celle d un run libre, mais le classement relatif et le choix des amorces voisines
+            # restent rigoureusement inalteres (decalage constant sur le pool).
+            #
+            # For a degenerate fixed primer, the retained penalty is the AVERAGE of penalties
+            # across all expanded IUPAC variants.
+            # Justification: A degenerate oligo is a physical MIXTURE of synthesized variants.
+            # Since a fixed primer has no original non-degenerate sequence available (unlike a
+            # LAVA Branch & Bound generated primer), the average faithfully represents the
+            # mean physical behavior of the oligo mixture.
+            # Consequence: Overall signature penalty is not directly comparable to an unconstrained
+            # run, but relative ranking and neighbor selection remain strictly unaffected.
             $tm_penalty = $sum_pen / $valid_variants;
             $real_tm = $sum_tm / $valid_variants;
             $scoring_method = "Primer3 check_primers";
+
+            if ($is_degenerate && scalar(@variants) > 1) {
+                printf("[FIXED PRIMER] TYPE=%s : %d variantes degenerees, penalite = moyenne de %d variantes (%.2f) - non comparable a un run sans amorce fixee.\n",
+                       $primer_type, scalar(@variants), $valid_variants, $tm_penalty);
+                printf("[FIXED PRIMER] TYPE=%s : %d degenerate variants, penalty = average of %d variants (%.2f) - not comparable to an unconstrained run.\n",
+                       $primer_type, scalar(@variants), $valid_variants, $tm_penalty);
+            }
         } else {
             my $cause = @variant_errors ? join("; ", @variant_errors[0..0]) : "Echec calcul Primer3";
             $scoring_method = "REPLI : $cause";

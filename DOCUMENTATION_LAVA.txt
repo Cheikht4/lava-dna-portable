@@ -157,6 +157,19 @@ Paramètres dans l'interface :
 - loop_min_gap             : Gap minimum entre primers LOOP
 - include_loop_primers     : Inclure ou non les LOOP primers
 
+5.3 AMORCES FIXÉES (--fixed_primer) / FIXED PRIMERS
+--------------------------------------------------
+Description : Possibilité d imposer une ou plusieurs séquences d amorces prédéfinies.
+Cas d usage principaux / Main use cases :
+  1. Conception autour d un SNP critique ou d une région mutée connue (Design around a critical SNP or mutation).
+  2. Réutilisation d un oligo déjà validé ou synthétisé au laboratoire (Re-use of an existing validated oligo).
+
+Comportement du scoring et pénalités / Scoring behavior & penalties :
+  - Le scoring thermodynamique est effectué par Primer3 (PRIMER_TASK=check_primers).
+  - Pour une amorce non dégénérée, la pénalité est strictement équivalente à celle d une amorce générée.
+  - Pour une amorce dégénérée (bases IUPAC), la pénalité calculée est la MOYENNE des pénalités de ses variantes.
+  - Comparabilité : La pénalité globale d un run fixant une amorce dégénérée n est pas directement comparable en valeur absolue à celle d un run libre. Toutefois, la sélection et le classement relatif des amorces voisines restent strictement inchangés (décalage constant).
+
 ================================================================================
 6. UTILISATION DE L'INTERFACE
 ================================================================================

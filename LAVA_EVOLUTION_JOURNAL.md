@@ -2150,3 +2150,22 @@ Justification biologique :
 Un calcul asymétrique des pénalités thermodynamiques détruit la viabilité des assemblages LAMP (pénaliser une amorce et pas une autre ruine l'énergie libre estimée). Le contrôle strict garantit que si une optimisation cinétique est demandée, elle sera appliquée, ou bien le programme alertera immédiatement.
 
 Impact attendu : La fiabilité des calculs pour les amorces fixées est sécurisée. Les utilisateurs n'auront plus de comportement silencieux erratique si une option n'est pas reconnue par l'enveloppe BioPerl, et la fonction de repli continuera de s'exécuter élégamment si Primer3_core est introuvable.
+
+### [2026-07-27] Documentation & Choix Délibéré du Scoring des Amorces Fixées Dégénérées
+
+**Date/Étape** : 2026-07-27 - Prise en compte du scoring des amorces fixées dégénérées (Choix Délibéré de la Moyenne).
+
+**Fichiers impactés** : `lib/LLNL/LAVA/PipelineUtils.pm`, `LAVA_PARAMETERS_REFERENCE.txt`, `DOCUMENTATION_LAVA.txt`, `LAVA_EVOLUTION_JOURNAL.md`.
+
+**Nature du changement** : [Thermodynamique / Documentation]
+
+**Explication technique** :
+Lors du scoring d'une amorce fixée comportant une ou plusieurs bases dégénérées (codes IUPAC R, Y, S, W...), le pipeline développe l'ensemble des variantes nucléotidiques possibles. Chaque variante est évaluée individuellement par Primer3 (`PRIMER_TASK=check_primers`) en effectuant une substitution synthétique au niveau du template de référence. La pénalité finale attribuée à l'amorce fixée dégénérée est la MOYENNE des pénalités obtenues sur l'ensemble des variantes validées.
+
+**Justification biologique** :
+Une amorce dégénérée n'est pas une molécule unique, mais un MÉLANGE physique de plusieurs oligo-nucléotides synthétisés en compétition. Contrairement aux amorces dégénérées issues de la génération LAVA (où le Branch & Bound conserve la pénalité de la séquence d'origine connue avant l'introduction de la dégénérescence), une amorce fixée provenant d'une source externe, d'un run antérieur ou d'une synthèse de laboratoire ne dispose pas d'une séquence originale unique. La moyenne arithmétique constitue l'estimation physique la plus fidèle du comportement d'hybridation thermodynamique moyen du mélange d'oligos à 65°C.
+
+**Impact attendu** :
+- La pénalité globale d'une signature contenant une amorce fixée dégénérée peut être légèrement supérieure (ex: pénalité LOOP de 1.6 vs 1.1 pour un FLOOP dégénéré), ce qui est normal et physiquement fondé.
+- La sélection des amorces voisines et le classement relatif ne sont aucunement altérés car la pénalité fixée s'applique comme un décalage constant sur l'ensemble des combinaisons.
+- Cette entrée consigne explicitement que l'écart mesuré entre la pénalité d'un run libre et d'un run fixant une amorce dégénérée est un CHOIX DÉLIBÉRÉ de conception et ne doit pas être considéré comme un bug lors de futures révisions.

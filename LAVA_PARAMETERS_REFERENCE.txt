@@ -149,3 +149,22 @@ Les distances cibles entre amorces sont calculées proportionnellement à la lon
 - **F3-F2** : 12% de la longueur totale.
 - **F2-F1** : 18% de la longueur totale.
 - **Inner (F1c-B1c)** : 40% de la longueur totale.
+
+---
+
+## 10. Amorces Fixées par l'Utilisateur (--fixed_primer)
+
+| Paramètre | Défaut | Label Interface (FR) | Description |
+|-----------|--------|----------------------|-------------|
+| `--fixed_primer <spec>` | Aucun | Amorces Fixées | Spécification d'amorce fixée au format `TYPE:SÉQUENCE[:POSITION]`. Peut être répété pour plusieurs amorces. |
+| `--fixed_primer_optimize` | 1 | Optimiser amorces fixées | Si 1 (défaut), applique l'optimisation Branch & Bound IUPAC sur l'amorce fixée. Si 0, la séquence est conservée telle quelle. |
+
+### Détails du Comportement des Amorces Fixées / Fixed Primer Behavior Details:
+- **Types acceptés / Accepted types** : `F3`, `B3`, `F2`, `B2`, `F1C`, `B1C`, `FLOOP`, `BLOOP` (`F1` et `B1` sont acceptés comme alias de `F1C` et `B1C`).
+- **Format** : `TYPE:SÉQUENCE` ou `TYPE:SÉQUENCE:POSITION` (ex: `F3:AACGTCAACTCTTTCTGGA`).
+- **Refus des types inconnus / Unknown type refusal** : Un type non reconnu provoque l'arrêt immédiat du script avec le code de sortie `2`.
+- **Rendement et couverture / Coverage behavior** : Une amorce fixée est TOUJOURS conservée dans son pool, même si sa couverture mesurée est inférieure au seuil `--min_primer_coverage` (mention d'inclusion forcée `FORCE=1` dans les logs).
+- **Scoring des amorces dégénérées / Degenerate primer scoring** :
+  - Le scoring d'une amorce fixée est effectué via Primer3 (`PRIMER_TASK=check_primers`) avec les mêmes paramètres thermodynamiques que les amorces générées.
+  - Pour une amorce fixée dégénérée (contenant des codes IUPAC), la pénalité affichée est la **moyenne des pénalités** de toutes ses variantes synthétisées.
+  - La pénalité globale de la signature est donc légèrement différente d'un run sans amorce fixée, mais la sélection et le classement relatif des amorces voisines ne sont pas affectés (décalage constant).
