@@ -2369,20 +2369,32 @@ sub injectFixedPrimers {
         
         foreach my $var_seq (@variants) {
             $primer3_args{'SEQUENCE_INTERNAL_OLIGO'} = $var_seq;
-            my $p3 = Bio::Tools::Run::Primer3->new(
-                -path => $options_r->{"primer3_executable"} // "/usr/bin/primer3_core"
-            );
-            $p3->add_targets(%primer3_args);
+            my ($p3, $results);
+            eval {
+                $p3 = Bio::Tools::Run::Primer3->new(
+                    -path => $options_r->{"primer3_executable"} // "/usr/bin/primer3_core"
+                );
+                
+                # PREVENTION DU REJET SILENCIEUX (BUG IDENTIFIE 3 FOIS)
+                my %p3_valid_params = map { $_ => 1 } @Bio::Tools::Run::Primer3::PRIMER3_PARAMS;
+                foreach my $k (keys %primer3_args) {
+                    die "\n[ERREUR CRITIQUE LAVA] Le parametre Primer3 '$k' est absent de \@Bio::Tools::Run::Primer3::PRIMER3_PARAMS.\nLa methode add_targets() va l'ignorer silencieusement, ce qui faussera les calculs.\nVeuillez l'ajouter dans lib/Bio/Tools/Run/Primer3.pm.\n" 
+                        unless exists $p3_valid_params{$k};
+                }
+                
+                $p3->add_targets(%primer3_args);
+                
+                $p3->{'verbose'} = 0;
+                $results = $p3->run();
+            };
             
-            $p3->{'verbose'} = 0;
-            my $results = $p3->run();
-            if ($results && $results->number_of_results > 0) {
+            if (!$@ && $results && $results->number_of_results > 0) {
                 my $res = $results->primer_results(0);
                 $sum_pen += $res->{"PRIMER_INTERNAL_PENALTY"} // 0;
                 $sum_tm  += $res->{"PRIMER_INTERNAL_TM"} // 0;
                 $valid_variants++;
             } else {
-                my $err = $results ? "Aucun resultat" : "Erreur execution";
+                my $err = $@ ? "Erreur execution: $@" : ($results ? "Aucun resultat" : "Erreur execution");
                 print "[FIXED PRIMER DEBUG] Primer3 a echoue sur la variante $var_seq : $err\n";
             }
         }

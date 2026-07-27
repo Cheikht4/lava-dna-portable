@@ -2136,3 +2136,17 @@ L'évaluation des amorces fixées par l'utilisateur (via l'interface ou `--fixed
 
 Impact attendu : La notation des amorces fixées sera scrupuleusement identique à celle des amorces natives générées par le pipeline, permettant un assemblage beaucoup plus rigoureux et transparent pour l'utilisateur final qui s'attend à une vraie pénalisation de Primer3 sur la séquence qu'il a fournie.
 
+### [2026-07-27] Prévention du Rejet Silencieux des Paramètres Primer3
+
+Fichiers impactés : `lib/Bio/Tools/Run/Primer3.pm`, `lib/LLNL/LAVA/PipelineUtils.pm`
+
+Nature du changement : [Bug Fix / Architecture]
+
+Explication technique : 
+La méthode `add_targets` de `Bio::Tools::Run::Primer3` ignorait silencieusement tout paramètre absent de la déclaration `@PRIMER3_PARAMS`. Les ajouts faits récemment (tels que `SEQUENCE_INTERNAL_OLIGO`, `PRIMER_TASK`, `PRIMER_PICK_INTERNAL_OLIGO`, etc.) étaient donc bloqués par ce filtre strict du module BioPerl, réduisant à néant les calculs de pénalités thermodynamiques pour les amorces fixées et entraînant des `(REPLI)` intempestifs.
+Le correctif consiste en deux actions. D'une part, la liste `@PRIMER3_PARAMS` de `lib/Bio/Tools/Run/Primer3.pm` a été mise à jour exhaustivement. D'autre part, un contrôle strict a été injecté dans `injectFixedPrimers` (`PipelineUtils.pm`) : le pipeline vérifie que tous les paramètres passés sont déclarés et échoue *bruyamment* (erreur fatale) s'il y a un décalage, évitant ainsi le rejet silencieux. De plus, `Bio::Tools::Run::Primer3->new` et `->run()` ont été entourés d'un bloc `eval {}` pour s'assurer que le fallback (REPLI) s'exécute proprement si l'exécutable Primer3 vient à manquer, au lieu d'arrêter prématurément le script.
+
+Justification biologique : 
+Un calcul asymétrique des pénalités thermodynamiques détruit la viabilité des assemblages LAMP (pénaliser une amorce et pas une autre ruine l'énergie libre estimée). Le contrôle strict garantit que si une optimisation cinétique est demandée, elle sera appliquée, ou bien le programme alertera immédiatement.
+
+Impact attendu : La fiabilité des calculs pour les amorces fixées est sécurisée. Les utilisateurs n'auront plus de comportement silencieux erratique si une option n'est pas reconnue par l'enveloppe BioPerl, et la fonction de repli continuera de s'exécuter élégamment si Primer3_core est introuvable.
