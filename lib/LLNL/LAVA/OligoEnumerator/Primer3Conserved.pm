@@ -535,17 +535,14 @@ sub setPrimer3Targets
       next;
     }
     
-    # oops if it doesn't exist
-    if(! exists $p3Names_r->{$currTarget})
-    {
-      confess("programming error - failing to set primer3 target " .
-        "\"$currTarget\" because no default value for that target was " .
-        "created during Primer3Conserved's instantiation");
+    # si le nom de parametre existe dans le mapping, le traduire ; sinon accepter s'il s'agit d'une cle officielle Primer3
+    if (exists $p3Names_r->{$currTarget}) {
+      $p3Targets_r->{$p3Names_r->{$currTarget}} = $paramHash_r->{$currTarget};
+    } elsif (exists $p3Targets_r->{$currTarget} || $currTarget =~ /^(PRIMER_|SEQUENCE_)/) {
+      $p3Targets_r->{$currTarget} = $paramHash_r->{$currTarget};
+    } else {
+      confess("programming error - failing to set primer3 target \"$currTarget\"");
     }
-
-    
-    # Since it does exist, set the correct tag in Targets to be the new value
-    $p3Targets_r->{$p3Names_r->{$currTarget}} = $paramHash_r->{$currTarget};
   }
 }
 

@@ -49,6 +49,7 @@ our @EXPORT_OK = qw(
   injectFixedPrimers
   findPrimerPositionInAlignment
   computeFixedPrimerWindows
+  getPrimer3ParamsForType
 );
 
 use LLNL::LAVA::Constants ":standard";
@@ -2123,6 +2124,81 @@ sub findPrimerPositionInAlignment {
 
 #-------------------------------------------------------------------------------
 
+=head2 getPrimer3ParamsForType
+
+  Construit le hash unifie des parametres Primer3 pour un type d amorce donne.
+  Builds the unified Primer3 parameter hash for a given primer type.
+
+=cut
+
+sub getPrimer3ParamsForType {
+  my ($primer_type, $options_r) = @_;
+  $options_r //= {};
+
+  my $type_uc = uc($primer_type // "INNER");
+  my $pfx = "inner_primer";
+  if ($type_uc =~ /^F3|B3$/) {
+    $pfx = "outer_primer";
+  } elsif ($type_uc =~ /^F2|B2$/) {
+    $pfx = "middle_primer";
+  } elsif ($type_uc =~ /^F1C?|B1C?$/) {
+    $pfx = "inner_primer";
+  } elsif ($type_uc =~ /^FLOOP|BLOOP$/) {
+    $pfx = "loop_primer";
+  } elsif ($type_uc =~ /^FSTEM|BSTEM$/) {
+    $pfx = "stem_primer";
+  }
+
+  my $target_len = $options_r->{$pfx . "_target_length"} // $options_r->{$pfx . "_length"} // ($pfx eq "inner_primer" ? 23 : 20);
+  my $min_len    = $options_r->{$pfx . "_min_length"}    // ($pfx eq "inner_primer" ? 20 : 18);
+  my $max_len    = $options_r->{$pfx . "_max_length"}    // ($pfx eq "inner_primer" ? 26 : 27);
+
+  my $target_tm  = $options_r->{$pfx . "_target_tm"}     // $options_r->{$pfx . "_tm"} // ($pfx eq "inner_primer" ? 62.0 : 60.0);
+  my $min_tm     = $options_r->{$pfx . "_min_tm"}        // ($target_tm - 1.0);
+  my $max_tm     = $options_r->{$pfx . "_max_tm"}        // ($target_tm + 1.0);
+
+  my $max_poly_x = $options_r->{"max_poly_bases"} // 2;
+  my $min_gc     = $options_r->{"min_gc"} // 30;
+  my $max_gc     = $options_r->{"max_gc"} // 80;
+
+  my $dna_conc   = $options_r->{"dna_conc"} // 400.0;
+  my $dntp_conc  = $options_r->{"dntp_conc"} // 1.4;
+  my $salt_mono  = $options_r->{"salt_conc"} // $options_r->{"salt_monovalent"} // 50.0;
+  my $salt_div   = $options_r->{"mg_conc"}   // $options_r->{"salt_divalent"}   // 8.0;
+
+  my $tm_formula = $options_r->{"primer3_tm_formula"} // 1;
+  my $salt_corr  = $options_r->{"primer3_salt_corrections"} // 2;
+
+  my %args = (
+    'PRIMER_INTERNAL_OPT_SIZE'         => int($target_len),
+    'PRIMER_INTERNAL_MIN_SIZE'         => int($min_len),
+    'PRIMER_INTERNAL_MAX_SIZE'         => int($max_len),
+    'PRIMER_INTERNAL_OPT_TM'           => sprintf("%.2f", $target_tm) + 0,
+    'PRIMER_INTERNAL_MIN_TM'           => sprintf("%.2f", $min_tm) + 0,
+    'PRIMER_INTERNAL_MAX_TM'           => sprintf("%.2f", $max_tm) + 0,
+    'PRIMER_INTERNAL_OLIGO_MAX_POLY_X' => int($max_poly_x),
+    'PRIMER_INTERNAL_MIN_GC'           => sprintf("%.2f", $min_gc) + 0,
+    'PRIMER_INTERNAL_MAX_GC'           => sprintf("%.2f", $max_gc) + 0,
+    'PRIMER_INTERNAL_DNA_CONC'         => sprintf("%.2f", $dna_conc) + 0,
+    'PRIMER_INTERNAL_DNTP_CONC'        => sprintf("%.2f", $dntp_conc) + 0,
+    'PRIMER_INTERNAL_SALT_MONOVALENT'  => sprintf("%.2f", $salt_mono) + 0,
+    'PRIMER_INTERNAL_SALT_DIVALENT'    => sprintf("%.2f", $salt_div) + 0,
+    'PRIMER_INTERNAL_OLIGO_SELF_ANY'   => 8.00,
+    'PRIMER_TM_FORMULA'                => int($tm_formula),
+    'PRIMER_SALT_CORRECTIONS'          => int($salt_corr),
+    'PRIMER_THERMODYNAMIC_ALIGNMENT'   => 1,
+  );
+
+  my $thermo_path = $options_r->{"thermodynamic_path"};
+  if (defined $thermo_path && $thermo_path ne "" && $thermo_path ne "/etc/primer3_config/") {
+    $args{'PRIMER_THERMODYNAMIC_PARAMETERS_PATH'} = $thermo_path;
+  }
+
+  return %args;
+}
+
+#-------------------------------------------------------------------------------
+
 =head2 injectFixedPrimers
 
   Injecte des amorces fixees par l utilisateur dans le pipeline LAVA.
@@ -2325,77 +2401,83 @@ sub injectFixedPrimers {
     my $target_tm = (defined $target_tms_ref && defined $target_tms_ref->{$primer_type}) ? $target_tms_ref->{$primer_type} : 60.0;
     my $real_tm = 0;
     my $tm_penalty = 0;
-    my $scoring_method = "REPLI : ecart de Tm, penalites non comparables";
+    my $scoring_method = "REPLI : options non fournies";
 
     if (defined $options_r) {
         require Bio::Tools::Run::Primer3;
-        my $template_seq = $alignment->get_seq_by_pos(1)->seq();
         
-        my %type_map = (
-          "F3" => "outer_primer", "B3" => "outer_primer",
-          "F2" => "middle_primer", "B2" => "middle_primer",
-          "F1C" => "inner_primer", "B1C" => "inner_primer",
-          "FLOOP" => "loop_primer", "BLOOP" => "loop_primer",
-          "FSTEM" => "stem_primer", "BSTEM" => "stem_primer"
-        );
-        my $pfx = $type_map{$primer_type} // "inner_primer";
+        # Factorisation unifiée des paramètres Primer3 par type d'amorce (Cause 1)
+        my %primer3_args = getPrimer3ParamsForType($primer_type, $options_r);
         
-        my %primer3_args = (
-            'PRIMER_TASK' => 'check_primers',
-            'PRIMER_PICK_INTERNAL_OLIGO' => 1,
-            'PRIMER_PICK_ANYWAY' => 1,
-            'SEQUENCE_TEMPLATE' => $template_seq,
-            'SEQUENCE_ID' => 't',
-            'PRIMER_TM_FORMULA' => $options_r->{"primer3_tm_formula"} // 1,
-            'PRIMER_SALT_CORRECTIONS' => $options_r->{"primer3_salt_corrections"} // 2,
-            'PRIMER_INTERNAL_SALT_MONOVALENT' => $options_r->{"salt_conc"} // 50.0,
-            'PRIMER_INTERNAL_SALT_DIVALENT' => $options_r->{"mg_conc"} // 8.0,
-            'PRIMER_INTERNAL_DNTP_CONC' => $options_r->{"dntp_conc"} // 1.4,
-            'PRIMER_INTERNAL_DNA_CONC' => $options_r->{"dna_conc"} // 400.0,
-            'PRIMER_INTERNAL_MIN_TM' => $options_r->{$pfx."_min_tm"} // 50,
-            'PRIMER_INTERNAL_MAX_TM' => $options_r->{$pfx."_max_tm"} // 69,
-            'PRIMER_INTERNAL_OPT_TM' => $options_r->{$pfx."_target_tm"} // $target_tm,
-        );
-        
-        my $thermo_path = $options_r->{"thermodynamic_path"};
-        if (defined $thermo_path && $thermo_path ne "" && $thermo_path ne "/etc/primer3_config/") {
-            $primer3_args{'PRIMER_THERMODYNAMIC_PARAMETERS_PATH'} = $thermo_path;
+        # Propriétés spécifiques au scoring check_primers
+        $primer3_args{'PRIMER_TASK'}                = 'check_primers';
+        $primer3_args{'PRIMER_PICK_INTERNAL_OLIGO'} = 1;
+        $primer3_args{'PRIMER_PICK_ANYWAY'}         = 1;
+        $primer3_args{'SEQUENCE_ID'}                = 't';
+
+        # Control strict anti-rejet silencieux BioPerl
+        my %p3_valid_params = map { $_ => 1 } @Bio::Tools::Run::Primer3::PRIMER3_PARAMS;
+        foreach my $k (keys %primer3_args) {
+            die "\n[ERREUR CRITIQUE LAVA] Le parametre Primer3 '$k' est absent de \@Bio::Tools::Run::Primer3::PRIMER3_PARAMS.\n" 
+                unless exists $p3_valid_params{$k};
         }
 
+        # Sequence de reference pour la substitution synthetique (Cause 2)
+        my $first_seq = $alignment->get_seq_by_pos(1);
+        my $ref_seq_str = uc($first_seq->seq());
+        $ref_seq_str =~ s/\-/N/g; # Primer3 ne tolère pas les gaps (-)
+        
         my @variants = $expand_sequence->($final_sequence);
         my $sum_tm = 0;
         my $sum_pen = 0;
         my $valid_variants = 0;
-        
+        my @variant_errors = ();
+
+        my $p3_exec = $options_r->{"primer3_executable"} // "/usr/bin/primer3_core";
+
         foreach my $var_seq (@variants) {
+            # Template synthetique par substitution a la position connue (Cause 2)
+            # Primer3 cherche SEQUENCE_INTERNAL_OLIGO ($var_seq) directement sur SEQUENCE_TEMPLATE.
+            # On substitue donc $var_seq a la position $position pour garantir sa presence.
+            my $synthetic_template = $ref_seq_str;
+            my $var_len = length($var_seq);
+            if ($position + $var_len <= length($synthetic_template)) {
+                substr($synthetic_template, $position, $var_len) = $var_seq;
+            }
+
+            $primer3_args{'SEQUENCE_TEMPLATE'}      = $synthetic_template;
             $primer3_args{'SEQUENCE_INTERNAL_OLIGO'} = $var_seq;
+            
             my ($p3, $results);
+            my $eval_err = "";
             eval {
-                $p3 = Bio::Tools::Run::Primer3->new(
-                    -path => $options_r->{"primer3_executable"} // "/usr/bin/primer3_core"
-                );
-                
-                # PREVENTION DU REJET SILENCIEUX (BUG IDENTIFIE 3 FOIS)
-                my %p3_valid_params = map { $_ => 1 } @Bio::Tools::Run::Primer3::PRIMER3_PARAMS;
-                foreach my $k (keys %primer3_args) {
-                    die "\n[ERREUR CRITIQUE LAVA] Le parametre Primer3 '$k' est absent de \@Bio::Tools::Run::Primer3::PRIMER3_PARAMS.\nLa methode add_targets() va l'ignorer silencieusement, ce qui faussera les calculs.\nVeuillez l'ajouter dans lib/Bio/Tools/Run/Primer3.pm.\n" 
-                        unless exists $p3_valid_params{$k};
-                }
-                
+                $p3 = Bio::Tools::Run::Primer3->new(-path => $p3_exec);
                 $p3->add_targets(%primer3_args);
-                
                 $p3->{'verbose'} = 0;
                 $results = $p3->run();
             };
+            if ($@) {
+                $eval_err = $@;
+                chomp($eval_err);
+            }
             
-            if (!$@ && $results && $results->number_of_results > 0) {
+            if (!$eval_err && $results && $results->number_of_results > 0) {
                 my $res = $results->primer_results(0);
-                $sum_pen += $res->{"PRIMER_INTERNAL_PENALTY"} // 0;
-                $sum_tm  += $res->{"PRIMER_INTERNAL_TM"} // 0;
-                $valid_variants++;
+                my $pen = $res->{"PRIMER_INTERNAL_PENALTY"};
+                my $tm  = $res->{"PRIMER_INTERNAL_TM"};
+                my $p3_err = $res->{"PRIMER_ERROR"};
+                
+                if (defined $pen && defined $tm) {
+                    $sum_pen += $pen;
+                    $sum_tm  += $tm;
+                    $valid_variants++;
+                } else {
+                    my $msg = $p3_err ? "Primer3 a repondu \"$p3_err\"" : "Aucune penalite retournee";
+                    push @variant_errors, "$msg pour la variante $var_seq";
+                }
             } else {
-                my $err = $@ ? "Erreur execution: $@" : ($results ? "Aucun resultat" : "Erreur execution");
-                print "[FIXED PRIMER DEBUG] Primer3 a echoue sur la variante $var_seq : $err\n";
+                my $msg = $eval_err ? "Erreur execution ($eval_err)" : ($results ? "Aucun resultat" : "Erreur execution Primer3");
+                push @variant_errors, "$msg pour la variante $var_seq";
             }
         }
         
@@ -2403,6 +2485,9 @@ sub injectFixedPrimers {
             $tm_penalty = $sum_pen / $valid_variants;
             $real_tm = $sum_tm / $valid_variants;
             $scoring_method = "Primer3 check_primers";
+        } else {
+            my $cause = @variant_errors ? join("; ", @variant_errors[0..0]) : "Echec calcul Primer3";
+            $scoring_method = "REPLI : $cause";
         }
     }
     
