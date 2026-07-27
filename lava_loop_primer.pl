@@ -506,16 +506,20 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       print "[FIXED PRIMER] WARNING: Invalid format '$raw'. Expected TYPE:SEQUENCE or TYPE:SEQUENCE:POSITION. Skipped.\n";
       next;
     }
+    my $type = uc($parts[0]);
+    $type = "F1C" if $type eq "F1";
+    $type = "B1C" if $type eq "B1";
+    
     my $spec = {
-      type => uc($parts[0]),
+      type => $type,
       seq  => uc($parts[1]),
       pos  => (defined $parts[2] && $parts[2] =~ /^\d+$/) ? int($parts[2]) : undef,
     };
     # Validation du type pour LOOP
     my %valid_loop_types = map { $_ => 1 } qw(F3 B3 F2 B2 F1C B1C FLOOP BLOOP);
     if (!$valid_loop_types{$spec->{type}}) {
-      print "[FIXED PRIMER] AVERTISSEMENT: Type '$spec->{type}' non reconnu pour LOOP. Types valides: F3 B3 F2 B2 F1C B1C FLOOP BLOOP.\n";
-      print "[FIXED PRIMER] WARNING: Type '$spec->{type}' not recognized for LOOP. Valid types: F3 B3 F2 B2 F1C B1C FLOOP BLOOP.\n";
+      print STDERR "ERROR: [FIXED PRIMER] Type '$spec->{type}' non reconnu pour LOOP. Types valides: F3 B3 F2 B2 F1C B1C FLOOP BLOOP (F1 et B1 sont acceptes comme alias de F1C et B1C).\n";
+      exit(2);
     }
     push @fixedPrimerSpecs, $spec;
     printf("[FIXED PRIMER] Spec enregistree: TYPE=%s SEQ=%s POS=%s\n",
@@ -1203,7 +1207,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen,
       $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
       $options{"fixed_primer_optimize"},
-      \%target_tms
+      \%target_tms,
+      $options_r
     );
     # Fusionner les amorces fixees dans chaque pool / Merge fixed primers into each pool
     unshift @outerForwardPrimers,  @{ $fixed_results_r->{"F3"}    // [] };
