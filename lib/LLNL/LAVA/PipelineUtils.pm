@@ -2160,7 +2160,8 @@ sub injectFixedPrimers {
       $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen,
       $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency,
       $fixed_primer_optimize,
-      $target_tms_ref) = @_;
+      $target_tms_ref,
+      $options_r) = @_;
       
   $fixed_primer_optimize //= 1; # Par defaut, on optimise
 
@@ -2168,15 +2169,13 @@ sub injectFixedPrimers {
 
   return \%result unless defined $fixed_specs_ref && @{$fixed_specs_ref};
 
-  # LAVA 2026: Fonction de calcul Tm robuste via oligotm
   my $calc_tm = sub {
       my ($seq, $type) = @_;
       my %IUPAC = (
           'A' => ['A'], 'C' => ['C'], 'G' => ['G'], 'T' => ['T'], 'U' => ['T'],
-          'M' => ['A','C'], 'R' => ['A','G'], 'W' => ['A','T'],
-          'S' => ['C','G'], 'Y' => ['C','T'], 'K' => ['G','T'],
-          'V' => ['A','C','G'], 'H' => ['A','C','T'], 'D' => ['A','G','T'], 'B' => ['C','G','T'],
-          'N' => ['A','C','G','T']
+          'R' => ['A', 'G'], 'Y' => ['C', 'T'], 'S' => ['G', 'C'], 'W' => ['A', 'T'],
+          'K' => ['G', 'T'], 'M' => ['A', 'C'], 'B' => ['C', 'G', 'T'], 'D' => ['A', 'G', 'T'],
+          'H' => ['A', 'C', 'T'], 'V' => ['A', 'C', 'G'], 'N' => ['A', 'C', 'G', 'T']
       );
       my @seqs = ('');
       for my $char (split //, uc($seq)) {
@@ -2197,6 +2196,28 @@ sub injectFixedPrimers {
       if ($count > 0) { return $sum / $count; }
       print "[FIXED PRIMER] WARNING: oligotm echoue ou introuvable. Utilisation d'un Tm par defaut.\n";
       return ($type =~ /^F1C|B1C$/i) ? 62.0 : 60.0;
+  };
+  
+  my $expand_sequence = sub {
+      my ($seq) = @_;
+      my %IUPAC = (
+          'A' => ['A'], 'C' => ['C'], 'G' => ['G'], 'T' => ['T'], 'U' => ['T'],
+          'R' => ['A', 'G'], 'Y' => ['C', 'T'], 'S' => ['G', 'C'], 'W' => ['A', 'T'],
+          'K' => ['G', 'T'], 'M' => ['A', 'C'], 'B' => ['C', 'G', 'T'], 'D' => ['A', 'G', 'T'],
+          'H' => ['A', 'C', 'T'], 'V' => ['A', 'C', 'G'], 'N' => ['A', 'C', 'G', 'T']
+      );
+      my @results = ("");
+      foreach my $base (split //, uc($seq)) {
+          my @new_results;
+          my $choices = $IUPAC{$base} || [$base];
+          foreach my $prefix (@results) {
+              foreach my $choice (@$choices) {
+                  push @new_results, $prefix . $choice;
+              }
+          }
+          @results = @new_results;
+      }
+      return @results;
   };
 
   # Extraire les sequences de l alignement pour la validation
@@ -2300,15 +2321,88 @@ sub injectFixedPrimers {
     $fixed_oligo->setTag("coverage_forced",        $coverage_forced);
     $fixed_oligo->setTag("fixed_original_seq",     $primer_seq);
     
-    # LAVA 2026: Eviter les crashs dans analyzeAll, mais avec VRAI Tm
-    my $real_tm = $calc_tm->($final_sequence, $primer_type);
-    $fixed_oligo->setTag("primer3_tm",             $real_tm);
-
-    # Calcul de la pénalité Tm pour permettre une comparaison équitable avec les amorces générées / Calculate Tm penalty for fair comparison
+    # Calcul de la pénalité via Primer3 pour permettre une comparaison équitable
     my $target_tm = (defined $target_tms_ref && defined $target_tms_ref->{$primer_type}) ? $target_tms_ref->{$primer_type} : 60.0;
-    my $tm_penalty = abs($real_tm - $target_tm);
-    $fixed_oligo->setTag("primer3_penalty",        $tm_penalty);
+    my $real_tm = 0;
+    my $tm_penalty = 0;
+    my $scoring_method = "REPLI : ecart de Tm, penalites non comparables";
 
+    if (defined $options_r) {
+        require Bio::Tools::Run::Primer3;
+        my $template_seq = $alignment->get_seq_by_pos(1)->seq();
+        
+        my %type_map = (
+          "F3" => "outer_primer", "B3" => "outer_primer",
+          "F2" => "middle_primer", "B2" => "middle_primer",
+          "F1C" => "inner_primer", "B1C" => "inner_primer",
+          "FLOOP" => "loop_primer", "BLOOP" => "loop_primer",
+          "FSTEM" => "stem_primer", "BSTEM" => "stem_primer"
+        );
+        my $pfx = $type_map{$primer_type} // "inner_primer";
+        
+        my %primer3_args = (
+            'PRIMER_TASK' => 'check_primers',
+            'PRIMER_PICK_INTERNAL_OLIGO' => 1,
+            'PRIMER_PICK_ANYWAY' => 1,
+            'SEQUENCE_TEMPLATE' => $template_seq,
+            'SEQUENCE_ID' => 't',
+            'PRIMER_TM_FORMULA' => $options_r->{"primer3_tm_formula"} // 1,
+            'PRIMER_SALT_CORRECTIONS' => $options_r->{"primer3_salt_corrections"} // 2,
+            'PRIMER_INTERNAL_SALT_MONOVALENT' => $options_r->{"salt_conc"} // 50.0,
+            'PRIMER_INTERNAL_SALT_DIVALENT' => $options_r->{"mg_conc"} // 8.0,
+            'PRIMER_INTERNAL_DNTP_CONC' => $options_r->{"dntp_conc"} // 1.4,
+            'PRIMER_INTERNAL_DNA_CONC' => $options_r->{"dna_conc"} // 400.0,
+            'PRIMER_INTERNAL_MIN_TM' => $options_r->{$pfx."_min_tm"} // 50,
+            'PRIMER_INTERNAL_MAX_TM' => $options_r->{$pfx."_max_tm"} // 69,
+            'PRIMER_INTERNAL_OPT_TM' => $options_r->{$pfx."_target_tm"} // $target_tm,
+        );
+        
+        my $thermo_path = $options_r->{"thermodynamic_path"};
+        if (defined $thermo_path && $thermo_path ne "" && $thermo_path ne "/etc/primer3_config/") {
+            $primer3_args{'PRIMER_THERMODYNAMIC_PARAMETERS_PATH'} = $thermo_path;
+        }
+
+        my @variants = $expand_sequence->($final_sequence);
+        my $sum_tm = 0;
+        my $sum_pen = 0;
+        my $valid_variants = 0;
+        
+        foreach my $var_seq (@variants) {
+            $primer3_args{'SEQUENCE_INTERNAL_OLIGO'} = $var_seq;
+            my $p3 = Bio::Tools::Run::Primer3->new(
+                -path => $options_r->{"primer3_executable"} // "/usr/bin/primer3_core"
+            );
+            $p3->add_targets(%primer3_args);
+            
+            $p3->{'verbose'} = 0;
+            my $results = $p3->run();
+            if ($results && $results->number_of_results > 0) {
+                my $res = $results->primer_results(0);
+                $sum_pen += $res->{"PRIMER_INTERNAL_PENALTY"} // 0;
+                $sum_tm  += $res->{"PRIMER_INTERNAL_TM"} // 0;
+                $valid_variants++;
+            } else {
+                my $err = $results ? "Aucun resultat" : "Erreur execution";
+                print "[FIXED PRIMER DEBUG] Primer3 a echoue sur la variante $var_seq : $err\n";
+            }
+        }
+        
+        if ($valid_variants > 0) {
+            $tm_penalty = $sum_pen / $valid_variants;
+            $real_tm = $sum_tm / $valid_variants;
+            $scoring_method = "Primer3 check_primers";
+        }
+    }
+    
+    if ($scoring_method =~ /^REPLI/) {
+        $real_tm = $calc_tm->($final_sequence, $primer_type);
+        $tm_penalty = abs($real_tm - $target_tm);
+    }
+    
+    $fixed_oligo->setTag("primer3_tm", $real_tm);
+    $fixed_oligo->setTag("primer3_penalty", $tm_penalty);
+
+    printf("[FIXED PRIMER] TYPE=%s PEN=%.2f (%s)\n", $primer_type, $tm_penalty, $scoring_method);
     printf("[FIXED PRIMER] Amorce injectee : TYPE=%s POS=%d STRAND=%s SEQ=%s COUV=%.1f%% FORCE=%d TM=%.1f PEN=%.2f\n",
            $primer_type, $final_location, $strand, $final_sequence, $coverage_percent, $coverage_forced, $real_tm, $tm_penalty);
     printf("[FIXED PRIMER] Primer injected : TYPE=%s POS=%d STRAND=%s SEQ=%s COVER=%.1f%% FORCED=%d TM=%.1f PEN=%.2f\n",
