@@ -2194,3 +2194,11 @@ Une amorce dégénérée n'est pas une molécule unique, mais un MÉLANGE physiq
 - **Justification biologique** : Un seuil de couverture de 70% par défaut permet d'assurer qu'une signature est universelle. Le chevauchement des options forçait la valeur 40 (issue de `min_signatures`) dans `min_signatures_for_success` et le seuil de couverture s'effondrait implicitement à son défaut non modifiable, induisant des rejets imprévus de signatures parfaitement valides.
 - **Impact attendu** : L'interface utilisateur présente désormais deux champs distincts et fonctionnels avec les comportements biologiques corrects.
 
+
+### Date/Étape : 2026-07-28 - Rétablissement du bouton Stop pour les exécutions en attente
+- **Fichiers impactés** : `templates/monitor.html`, `templates/executions.html`
+- **Nature du changement** : Bug Fix (Interface)
+- **Explication technique** : La condition d'affichage du bouton stop `{% if execution.status in ["running", "starting"] %}` masquait le bouton pour les tâches avec le statut `"queued"` introduit récemment. J'ai étendu la condition pour inclure `"queued"`. L'API backend de `stop_execution` gérait déjà l'annulation d'une tâche `queued`.
+- **Justification biologique** : Permet aux utilisateurs d'annuler des calculs inutiles avant même qu'ils n'allouent des threads et bloquent la file d'attente des autres utilisateurs.
+- **Impact attendu** : Le bouton Stop est de nouveau visible immédiatement pour les tâches en file d'attente.
+

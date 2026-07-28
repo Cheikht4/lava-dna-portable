@@ -109,7 +109,7 @@
                                     <i class="fas fa-eye me-1"></i>{{ 'view_btn'|t }}
                                 </a>
                                 
-                                {% if execution.status in ['running', 'starting'] %}
+                                {% if execution.status in ['running', 'starting', 'queued'] %}
                                 <form method="post" action="{{ url_for('stop_execution', execution_id=execution_id) }}" class="d-inline">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn btn-danger btn-sm" 
