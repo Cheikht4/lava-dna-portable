@@ -2169,3 +2169,12 @@ Une amorce dégénérée n'est pas une molécule unique, mais un MÉLANGE physiq
 - La pénalité globale d'une signature contenant une amorce fixée dégénérée peut être légèrement supérieure (ex: pénalité LOOP de 1.6 vs 1.1 pour un FLOOP dégénéré), ce qui est normal et physiquement fondé.
 - La sélection des amorces voisines et le classement relatif ne sont aucunement altérés car la pénalité fixée s'applique comme un décalage constant sur l'ensemble des combinaisons.
 - Cette entrée consigne explicitement que l'écart mesuré entre la pénalité d'un run libre et d'un run fixant une amorce dégénérée est un CHOIX DÉLIBÉRÉ de conception et ne doit pas être considéré comme un bug lors de futures révisions.
+
+## [2026-07-28] Interface & Processus - Fiabilisation de la lecture de flux et mapping des paramètres
+- **Fichiers impactés :** `lava_flask_app.py`
+- **Nature du changement :** [Architecture / Bug Fix]
+- **Explication technique :**
+  - Remplacement de l'utilisation combinée des flux standards (`stderr=subprocess.STDOUT`) par une séparation stricte (`stderr=subprocess.PIPE`). L'interface lit désormais STDOUT et STDERR de manière asynchrone via des threads et une queue (file d'attente non bloquante) avec un préfixe visuel `🔴 [ERREUR/STDERR]`.
+  - Correction du mapping du paramètre `minimum_signature_coverage` vers `signature_common_target_min_percent` (au lieu de `min_signature_coverage`).
+- **Justification biologique / technique :** Les processus longs (ex: Primer3) ou les scripts Perl générant de nombreuses erreurs pouvaient bloquer le flux de la requête HTTP. L'usage de `subprocess.PIPE` avec des threads garantit que l'interface restera réactive et évitera les deadlocks (interblocages). Le paramètre de couverture de signature a été renommé pour correspondre exactement à la variable attendue par LAVA dans son module Options.pm.
+- **Impact attendu :** L'interface Flask ne bloquera plus silencieusement si un script Perl échoue ou si STDERR se remplit. Les erreurs de validation ou de timeout s'afficheront en rouge directement dans les logs en temps réel.

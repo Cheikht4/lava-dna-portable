@@ -123,7 +123,8 @@ TRANSLATIONS = {
         'max_per_window_desc': 'Nombre max d\'amorces gardées par fenêtre. 0 = désactivé. Ex: 3 = 3 meilleurs par fenêtre.',
         'spatial_reduction_info': 'Garde les K meilleurs candidats par fenêtre de W nucléotides. Réduit le temps de calcul sans sacrifier la diversité spatiale. Valeurs recommandées : Fenêtre=10, Max=3.',
         'fixed_primers': 'Amorces Fixées (Optionnel)',
-        'fixed_primers_desc': 'Fixe and use specific primer sequence.',
+        'fixed_primers_desc': 'Fixe et utilise des séquences d\'amorces spécifiques.',
+        'fixed_primers_degen_note': 'Si l\'amorce fixée contient des bases dégénérées, la pénalité affichée est la moyenne de ses variantes ; elle peut donc différer légèrement d\'un calcul sans amorce fixée. Les amorces sélectionnées, elles, ne sont pas affectées.',
         'add_fixed_primer': 'Ajouter une amorce fixée',
         'sequence_placeholder': 'Séquence (ex: ACGT...)',
         'position_placeholder': 'Position (opt.)',
@@ -338,6 +339,7 @@ TRANSLATIONS = {
         'spatial_reduction_info': 'Keeps the K best candidates per W-nucleotide window. Drastically reduces computation time without sacrificing spatial diversity. Recommended: Window=10, Max=3.',
         'fixed_primers': 'Fixed Primers (Optional)',
         'fixed_primers_desc': 'Fix and use specific primer sequence.',
+        'fixed_primers_degen_note': 'If the fixed primer contains degenerate bases, the displayed penalty is the average across its variants; it may therefore differ slightly from an unconstrained run. The selected primers themselves remain unaffected.',
         'add_fixed_primer': 'Add fixed primer',
         'sequence_placeholder': 'Sequence (e.g. ACGT...)',
         'position_placeholder': 'Position (opt.)',
@@ -835,9 +837,9 @@ def upload_file():
                 elif current_len != first_len:
                     is_valid_alignment = False
 
-            if seq_count < 1:
+            if seq_count < 2:
                 os.remove(filepath)
-                flash("Le fichier fourni est vide. Veuillez fournir une séquence ou un alignement valide.", 'error')
+                flash("Le fichier fourni ne contient qu'une seule séquence ou est vide. Veuillez fournir un alignement multiple.", 'error')
                 return redirect(url_for('index'))
                 
             if not is_valid_alignment:
@@ -923,7 +925,7 @@ def upload_params_file():
         param_mapping = {
             'iupac_match_percent': 'primer_iupac_min_percent',
             'minimum_primer_coverage': 'min_primer_coverage', 
-            'minimum_signature_coverage': 'min_signature_coverage',
+            'minimum_signature_coverage': 'signature_common_target_min_percent',
             'mismatch_tolerance': 'primer_min_match_percent',
             'primer_min_iupac_percent': 'primer_iupac_min_percent',
             'primer_min_coverage_percent': 'min_primer_coverage',
@@ -1168,7 +1170,7 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
         param_mapping = {
             'iupac_match_percent': 'primer_iupac_min_percent',
             'minimum_primer_coverage': 'min_primer_coverage', 
-            'minimum_signature_coverage': 'min_signature_coverage',
+            'minimum_signature_coverage': 'signature_common_target_min_percent',
             'mismatch_tolerance': 'primer_min_match_percent',
             'primer_min_iupac_percent': 'primer_iupac_min_percent',
             'primer_min_coverage_percent': 'min_primer_coverage',
@@ -1188,6 +1190,7 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
             'signature_max_length', 'max_primer_gen', 'primer_min_match_percent',
             'primer_iupac_min_percent', 'primer_min_iupac_percent', 'min_primer_coverage', 'primer_min_coverage_percent', 'min_base_frequency',
             'min_signatures_for_success', 'max_overlap_percent', 'resolve_overlap_by',
+            'signature_common_target_min_percent',
             'primer3_executable', 'thermodynamic_path', 'alignment_format',
             'dntp_conc', 'dna_conc', 'salt_monovalent', 'salt_divalent',
             'max_poly_bases', 'entropy_threshold', 
@@ -1293,7 +1296,7 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stderr=subprocess.PIPE,
             text=True,
             cwd=os.getcwd(),
             env=env,
@@ -1308,59 +1311,71 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
         output_lines = []
         buffer_size = 1000  # Taille du buffer pour l'affichage temps réel
         
+        import queue
+        import threading
+        
+        q = queue.Queue()
+        def reader_thread(pipe, tag):
+            for line in iter(pipe.readline, ''):
+                q.put((tag, line))
+            pipe.close()
+            
+        threading.Thread(target=reader_thread, args=(process.stdout, 'STDOUT'), daemon=True).start()
+        threading.Thread(target=reader_thread, args=(process.stderr, 'STDERR'), daemon=True).start()
+        
         while True:
-            line = process.stdout.readline()
-            if line:
-                stripped = line.strip()
-                
-                # ── Détection des lignes de progression LAVA-PROGRESS ─────────────
-                # Format Perl : [LAVA-PROGRESS] label|done|total|extra|rate|eta
-                # Detect LAVA-PROGRESS lines emitted by Perl scripts
-                if stripped.startswith('[LAVA-PROGRESS]'):
-                    try:
-                        parts = stripped[len('[LAVA-PROGRESS]'):].strip().split('|')
-                        if len(parts) >= 3:
-                            running_executions[execution_id]['progress'] = {
-                                'label': parts[0].strip(),
-                                'done':  int(parts[1]),
-                                'total': int(parts[2]),
-                                'extra': parts[3].strip() if len(parts) > 3 else '',
-                                'rate':  parts[4].strip() if len(parts) > 4 else '',
-                                'eta':   int(parts[5]) if len(parts) > 5 and parts[5].strip().isdigit() else 0,
-                                'pct':   round(int(parts[1]) / max(int(parts[2]), 1) * 100, 1),
-                            }
-                    except Exception:
-                        pass  # Ligne malformée ignorée silencieusement
-                    # NE PAS ajouter ces lignes aux logs affichés
-                    continue
-                # ─────────────────────────────────────────────────────────────────
-                
-                output_lines.append(stripped)
-                # Pour l'affichage temps réel, garder un mix : début + fin récente
-                if len(output_lines) > buffer_size:
-                    # Garder les 100 premières + les 400 dernières lignes pour l'affichage
-                    display_logs = output_lines[:100] + ["... [logs intermédiaires masqués] ..."] + output_lines[-(buffer_size-101):]
-                else:
-                    display_logs = output_lines
-                
-                running_executions[execution_id]['logs'] = display_logs
-                running_executions[execution_id]['total_lines'] = len(output_lines)
-            else:
+            try:
+                tag, line = q.get(timeout=0.1)
+                if line:
+                    stripped = line.strip()
+                    if tag == 'STDERR':
+                        stripped = f"🔴 [ERREUR/STDERR] {stripped}"
+                    
+                    # ── Détection des lignes de progression LAVA-PROGRESS ─────────────
+                    # Format Perl : [LAVA-PROGRESS] label|done|total|extra|rate|eta
+                    # Detect LAVA-PROGRESS lines emitted by Perl scripts
+                    if stripped.startswith('[LAVA-PROGRESS]'):
+                        try:
+                            parts = stripped[len('[LAVA-PROGRESS]'):].strip().split('|')
+                            if len(parts) >= 3:
+                                running_executions[execution_id]['progress'] = {
+                                    'label': parts[0].strip(),
+                                    'done':  int(parts[1]),
+                                    'total': int(parts[2]),
+                                    'extra': parts[3].strip() if len(parts) > 3 else '',
+                                    'rate':  parts[4].strip() if len(parts) > 4 else '',
+                                    'eta':   int(parts[5]) if len(parts) > 5 and parts[5].strip().isdigit() else 0,
+                                    'pct':   round(int(parts[1]) / max(int(parts[2]), 1) * 100, 1),
+                                }
+                        except Exception:
+                            pass  # Ligne malformée ignorée silencieusement
+                        # NE PAS ajouter ces lignes aux logs affichés
+                        continue
+                    # ─────────────────────────────────────────────────────────────────
+                    
+                    output_lines.append(stripped)
+                    # Pour l'affichage temps réel, garder un mix : début + fin récente
+                    if len(output_lines) > buffer_size:
+                        # Garder les 100 premières + les 400 dernières lignes pour l'affichage
+                        display_logs = output_lines[:100] + ["... [logs intermédiaires masqués] ..."] + output_lines[-(buffer_size-101):]
+                    else:
+                        display_logs = output_lines
+                    
+                    running_executions[execution_id]['logs'] = display_logs
+                    running_executions[execution_id]['total_lines'] = len(output_lines)
+            except queue.Empty:
                 # Pas de nouvelle ligne, vérifier si le processus est terminé
                 if process.poll() is not None:
                     break
-                # Petite pause pour éviter une boucle CPU intensive
-                import time
-                time.sleep(0.01)
         
-        # Processus terminé - capturer tout ce qui reste
-        import time
-        time.sleep(0.2)  # Pause plus longue pour vider les buffers
-        
-        remaining_lines = process.stdout.readlines()
-        for remaining_line in remaining_lines:
-            if remaining_line.strip():
-                output_lines.append(remaining_line.strip())
+        # Processus terminé - vider ce qui reste dans la queue
+        while not q.empty():
+            tag, line = q.get()
+            if line.strip():
+                stripped = line.strip()
+                if tag == 'STDERR':
+                    stripped = f"🔴 [ERREUR/STDERR] {stripped}"
+                output_lines.append(stripped)
         
         # Maintenant stocker TOUS les logs pour l'affichage final
         running_executions[execution_id]['logs'] = output_lines  # TOUS les logs
