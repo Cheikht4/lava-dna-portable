@@ -533,13 +533,22 @@
                                         'execution_config'|t }}</h6>
                                     <div class="row g-3">
                                         <div class="col-md-6">
+                                            <label class="form-label small">{{ 'signature_common_target_min_percent'|t }}</label>
+                                            <input type="number" class="form-control form-control-sm"
+                                                name="signature_common_target_min_percent"
+                                                value="{{ params.signature_common_target_min_percent }}" min="0" max="100">
+                                            <div class="form-text x-small">{{ 'signature_common_target_min_percent_desc'|t }}</div>
+                                        </div>
+                                        <div class="col-md-6">
                                             <label class="form-label small">{{ 'min_signatures'|t }}</label>
                                             <input type="number" class="form-control form-control-sm"
                                                 name="min_signatures_for_success"
-                                                value="{{ params.min_signatures_for_success }}" min="1" max="100">
+                                                value="{{ params.min_signatures_for_success }}" min="1">
                                             <div class="form-text x-small">{{ 'min_signatures_desc'|t }}</div>
                                         </div>
-                                        <div class="col-md-6">
+                                    </div>
+                                    <div class="row g-3 mt-1">
+                                        <div class="col-md-12">
                                             <label class="form-label small">{{ 'threads_label'|t }}</label>
                                             <input type="text" class="form-control form-control-sm"
                                                 name="threads" value="{{ params.threads }}" placeholder="auto (max 8)">
@@ -613,8 +622,11 @@
                     <!-- Fixed Primers (Dynamic Rows) -->
                     <div class="mb-4 p-3 border rounded bg-light">
                         <label class="form-label fw-bold text-primary"><i class="fas fa-anchor me-2"></i>{{ 'fixed_primers'|t }}</label>
-                        <div class="form-text mb-3">
+                        <div class="form-text mb-2">
                             {{ 'fixed_primers_desc'|t }}
+                        </div>
+                        <div class="form-text text-muted mb-3 small">
+                            <i class="fas fa-info-circle me-1"></i>{{ 'fixed_primers_degen_note'|t }}
                         </div>
                         
                         <div id="fixed_primers_list">

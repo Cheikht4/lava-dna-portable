@@ -2186,3 +2186,11 @@ Une amorce dégénérée n'est pas une molécule unique, mais un MÉLANGE physiq
 - **Justification biologique** : Les cinétiques d'amplification isotherme sont fortement dépendantes de la taille des amplicons. Des signatures trop longues réduisent l'efficacité et le temps de détection, tandis que celles trop courtes manquent de spécificité. Cette borne garantit des amplicons strictement dans la plage thermodynamique optimale (par exemple, autour de 200-300 pb).
 - **Impact attendu** : Rejet silencieux (compilé en statistiques de fin d'assemblage) des signatures hors limites, réduisant considérablement le nombre de combinaisons invalidées tardivement, et ramenant le comportement de STEM/LOOP au standard des autres paramètres de bornes.
 
+
+### Date/Étape : 2026-07-28 - Correction du paramètre Couverture Signature
+- **Fichiers impactés** : `lava_flask_app.py`, `templates/index.html`, `sync_repos.sh`, `t/test_form_names.py`
+- **Nature du changement** : Architecture / Bug Fix
+- **Explication technique** : Séparation des champs de formulaire pour `min_signatures_for_success` (nombre de signatures min.) et `signature_common_target_min_percent` (couverture cible). Création du script de test `t/test_form_names.py` pour valider la correspondance 1:1 entre les champs HTML et les arguments Perl. Ajout de `lava_flask_app.py` et `templates/` dans la whitelist de `sync_repos.sh`.
+- **Justification biologique** : Un seuil de couverture de 70% par défaut permet d'assurer qu'une signature est universelle. Le chevauchement des options forçait la valeur 40 (issue de `min_signatures`) dans `min_signatures_for_success` et le seuil de couverture s'effondrait implicitement à son défaut non modifiable, induisant des rejets imprévus de signatures parfaitement valides.
+- **Impact attendu** : L'interface utilisateur présente désormais deux champs distincts et fonctionnels avec les comportements biologiques corrects.
+

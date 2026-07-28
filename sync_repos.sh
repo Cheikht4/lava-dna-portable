@@ -29,6 +29,8 @@ fi
 WHITELIST=(
     "lava_loop_primer.pl"
     "lava_stem_primer.pl"
+    "lava_flask_app.py"
+    "templates"
     "lib"
     "t/baseline"
     "t/canary_regression.t"
@@ -197,8 +199,8 @@ echo ""
 echo "============================================================"
 echo "VERIFICATION DE COHERENCE (CHECKSUMS)"
 echo "============================================================"
-# Compare .pl and lib/LLNL/LAVA
-declare -a FILES_TO_CHECK=("lava_loop_primer.pl" "lava_stem_primer.pl")
+# Compare .pl, app and lib/LLNL/LAVA
+declare -a FILES_TO_CHECK=("lava_loop_primer.pl" "lava_stem_primer.pl" "lava_flask_app.py")
 while IFS= read -r f; do
     FILES_TO_CHECK+=("$f")
 done < <(find lib/LLNL/LAVA -type f -name "*.pm")
