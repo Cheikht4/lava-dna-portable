@@ -165,6 +165,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "output_file=s" => \$options{"output_file"}, 
       "threads|cpu=s" => \$options{"threads"},
       "signature_max_length=i" => \$options{"signature_max_length"},
+      "signature_min_length=i" => \$options{"signature_min_length"},
       "total_signature_length=i" => \$options{"total_signature_length"},
 
       "outer_primer_target_length=i" => \$options{"outer_primer_target_length"},
@@ -264,6 +265,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "fixed_primer" => [],  # Tableau d'amorces fixees / Array of fixed primers
       "fixed_primer_optimize" => 1,
       "signature_max_length" => 320,
+      "signature_min_length" => 0,
       "outer_primer_target_length" => 20,
       "outer_primer_min_length" => 18,
       "outer_primer_max_length" => 23,
@@ -326,8 +328,11 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     "./lava.pl \n" .
       "    --alignment_fasta <fasta_file>\n" .
       "    --output_file <output_file>\n" .
-      "    [--signature_max_length <length, deafult=" .
+      "    [--signature_max_length <length, default=" .
         $optionDefaults{"signature_max_length"} .
+	">]\n" .
+      "    [--signature_min_length <length, default=" .
+        $optionDefaults{"signature_min_length"} .
 	">]\n" .
       # Outer primer options
       "    [--outer_primer_target_length <length, default=" .
@@ -466,7 +471,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   # TODO: Probably want to be able to use multiple files for parameter
   # definition, so we can have the thermo parameters set, and separately have
   # the file IO parameters.
-  GetOptions(%optionMap);
+  GetOptions(%optionMap) or die "FATAL: Options de ligne de commande invalides (Unknown option).\n";
   loadOptionsFromFile(\%options);
   my $options_r = \%options;
 
@@ -477,6 +482,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $signatureMaxLength = 
     optionWithDefault($options_r, "signature_max_length", 
       300);
+  my $signatureMinLength = 
+    optionWithDefault($options_r, "signature_min_length", 
+      $optionDefaults{"signature_min_length"});
   my $totalSignatureLength = 
     optionWithDefault($options_r, "total_signature_length",
       $signatureMaxLength); # Default to max length if not specified
@@ -2387,6 +2395,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   print "Combining Best F/R Halves to create LAMP Signatures...\n";
   
   my $combinedSignatureCount = 0;
+  my $rejected_max_len = 0;
+  my $rejected_min_len = 0;
 
   for(my $i = 0; $i < scalar(@{$masterInnerF_r}); $i++) {
       next unless defined $bestForwardInfos[$i]; # Skip if no valid F-half found
@@ -2438,6 +2448,16 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           # Validity Checks
           next if ($inner_gap < 0); # Overlap
           next if ($inner_gap > 100); # Too far apart (Inner Gap Limit)
+
+          my $fStart_v   = $f_set_infos->[2]->getLocation();   # F3, brin plus : bord gauche
+          my $rEnd_v     = $r_set_infos->[2]->getLocation();   # B3, brin moins : bord droit
+          my $totalLen_v = $rEnd_v - $fStart_v + 1;
+          
+          $rejected_max_len++ if ($totalLen_v > $signatureMaxLength);
+          next if ($totalLen_v > $signatureMaxLength);
+          
+          $rejected_min_len++ if ($signatureMinLength > 0 && $totalLen_v < $signatureMinLength);
+          next if ($signatureMinLength > 0 && $totalLen_v < $signatureMinLength);
 
           # VALIDATION COMPLETE D'ESPACEMENT - tous les primers de la signature
           # Full spacing validation - all primers in the signature (mirrors STEM behavior)
@@ -2543,6 +2563,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   }
   
   print "Created $combinedSignatureCount complete LAMP signatures.\n";
+  printf("Assemblage : %d signatures retenues, %d rejetees (longueur > %d), %d rejetees (longueur < min).\n", 
+         $combinedSignatureCount, $rejected_max_len, $signatureMaxLength, $rejected_min_len);
   
   print "Found " .
     scalar(@{$allFoundSignatures_r}) .

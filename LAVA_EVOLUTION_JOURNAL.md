@@ -2178,3 +2178,11 @@ Une amorce dégénérée n'est pas une molécule unique, mais un MÉLANGE physiq
   - Correction du mapping du paramètre `minimum_signature_coverage` vers `signature_common_target_min_percent` (au lieu de `min_signature_coverage`).
 - **Justification biologique / technique :** Les processus longs (ex: Primer3) ou les scripts Perl générant de nombreuses erreurs pouvaient bloquer le flux de la requête HTTP. L'usage de `subprocess.PIPE` avec des threads garantit que l'interface restera réactive et évitera les deadlocks (interblocages). Le paramètre de couverture de signature a été renommé pour correspondre exactement à la variable attendue par LAVA dans son module Options.pm.
 - **Impact attendu :** L'interface Flask ne bloquera plus silencieusement si un script Perl échoue ou si STDERR se remplit. Les erreurs de validation ou de timeout s'afficheront en rouge directement dans les logs en temps réel.
+
+### Date/Étape : 2026-07-28 - Restauration de la contrainte de longueur de signature
+- **Fichiers impactés** : `lava_loop_primer.pl`, `lava_stem_primer.pl`
+- **Nature du changement** : Algorithmique / Bug Fix
+- **Explication technique** : Les paramètres `--signature_max_length` et le nouveau `--signature_min_length` ont été intégrés directement dans les boucles d'assemblage (`Combining Best F/R Halves`). La vérification de la longueur totale (`rEnd - fStart + 1`) entraîne un `next` propre sautant l'itération de l'assemblage en cours sans masquer les compteurs, évitant le piège Perl du bloc nu.
+- **Justification biologique** : Les cinétiques d'amplification isotherme sont fortement dépendantes de la taille des amplicons. Des signatures trop longues réduisent l'efficacité et le temps de détection, tandis que celles trop courtes manquent de spécificité. Cette borne garantit des amplicons strictement dans la plage thermodynamique optimale (par exemple, autour de 200-300 pb).
+- **Impact attendu** : Rejet silencieux (compilé en statistiques de fin d'assemblage) des signatures hors limites, réduisant considérablement le nombre de combinaisons invalidées tardivement, et ramenant le comportement de STEM/LOOP au standard des autres paramètres de bornes.
+
