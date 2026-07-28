@@ -177,7 +177,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "output_file=s" => \$options{"output_file"}, 
       "threads|cpu=s" => \$options{"threads"},
       "signature_max_length=i" => \$options{"signature_max_length"},
-      "signature_min_length=i" => \$options{"signature_min_length"},
       "total_signature_length=i" => \$options{"total_signature_length"},
 
       "outer_primer_target_length=i" => \$options{"outer_primer_target_length"},
@@ -278,7 +277,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "fixed_primer" => [],  # Tableau d'amorces fixees / Array of fixed primers
       "fixed_primer_optimize" => 1, # Optimisation active par defaut
       "signature_max_length" => 400,
-      "signature_min_length" => 0,
       "outer_primer_target_length" => 20,
       "outer_primer_min_length" => 18,
       "outer_primer_max_length" => 23,
@@ -342,9 +340,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "    --output_file <output_file>\n" .
       "    [--signature_max_length <length, default=" .
         $optionDefaults{"signature_max_length"} .
-	">]\n" .
-      "    [--signature_min_length <length, default=" .
-        $optionDefaults{"signature_min_length"} .
 	">]\n" .
       # Outer primer options
       "    [--outer_primer_target_length <length, default=" .
@@ -493,9 +488,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $signatureMaxLength = 
     optionWithDefault($options_r, "signature_max_length", 
       $optionDefaults{"signature_max_length"});
-  my $signatureMinLength = 
-    optionWithDefault($options_r, "signature_min_length", 
-      $optionDefaults{"signature_min_length"});
   my $totalSignatureLength = 
     optionWithDefault($options_r, "total_signature_length",
       $signatureMaxLength); # Default to max length if not specified
@@ -2331,8 +2323,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 
     # Now, try to combine forward and reverse primer sets into full signatures
     print "Combining Best F/R Halves to create LAMP Signatures...\n";
-    my $rejected_max_len = 0;
-    my $rejected_min_len = 0;
     my $previousFirstCompatibleIndex = 0; # Bound the lower end of the inner iteration
     for(my $i = 0; $i < $innerForwardCount; $i++)
     {
@@ -2400,14 +2390,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 	{
 	  next;
 	}
-
-        my $totalLen_v = $reverseEnd - $forwardStart + 1;
-        
-        $rejected_max_len++ if ($totalLen_v > $signatureMaxLength);
-        next if ($totalLen_v > $signatureMaxLength);
-        
-        $rejected_min_len++ if ($signatureMinLength > 0 && $totalLen_v < $signatureMinLength);
-        next if ($signatureMinLength > 0 && $totalLen_v < $signatureMinLength);
 
         # VALIDATION COMPLÈTE D'ESPACEMENT POUR TOUS LES PRIMERS
         # Nouvelle logique qui vérifie TOUS les primers de la signature / New logic that verifies ALL primers of the signature
@@ -2524,8 +2506,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       } # End forward sets iteration
     } # End reverse sets iteration
 
-  printf("Assemblage : %d signatures retenues, %d rejetees (longueur > %d), %d rejetees (longueur < min).\n", 
-         scalar(@{$allFoundSignatures_r}), $rejected_max_len, $signatureMaxLength, $rejected_min_len);
   print "Found " .
     scalar(@{$allFoundSignatures_r}) .
     " total signatures across all iterations\n";
