@@ -2194,3 +2194,11 @@ Une amorce dégénérée n'est pas une molécule unique, mais un MÉLANGE physiq
 - **Justification biologique** : Un seuil de couverture de 70% par défaut permet d'assurer qu'une signature est universelle. Le chevauchement des options forçait la valeur 40 (issue de `min_signatures`) dans `min_signatures_for_success` et le seuil de couverture s'effondrait implicitement à son défaut non modifiable, induisant des rejets imprévus de signatures parfaitement valides.
 - **Impact attendu** : L'interface utilisateur présente désormais deux champs distincts et fonctionnels avec les comportements biologiques corrects.
 
+
+### Date/Étape : 2026-07-28 - Ajout du paramètre Longueur Min (Signature) sur l'UI
+- **Fichiers impactés** : `lava_flask_app.py`, `templates/index.html`
+- **Nature du changement** : Architecture / Interface Utilisateur
+- **Explication technique** : Ajout du champ `signature_min_length` dans les paramètres globaux (mapping Flask et template HTML en 3 colonnes col-md-4) pour exposer l'option `--signature_min_length` implémentée dans les scripts Perl.
+- **Justification biologique** : Permettre à l'utilisateur de filtrer les signatures trop courtes directement depuis l'interface web.
+- **Impact attendu** : Le champ "Longueur min signature" est visible dans les Paramètres généraux et sa valeur est transmise au backend.
+

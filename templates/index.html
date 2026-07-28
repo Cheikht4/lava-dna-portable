@@ -140,13 +140,18 @@
                     <div class="param-section">
                         <h6><i class="fas fa-sliders-h me-2"></i>{{ 'general_params'|t }}</h6>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <label for="signature_min_length" class="form-label">{{ 'min_signature_length'|t }}</label>
+                                <input type="number" class="form-control" name="signature_min_length"
+                                    value="{{ params.signature_min_length }}" min="0" max="600">
+                            </div>
+                            <div class="col-md-4">
                                 <label for="signature_max_length" class="form-label">{{ 'max_signature_length'|t
                                     }}</label>
                                 <input type="number" class="form-control" name="signature_max_length"
                                     value="{{ params.signature_max_length }}" min="200" max="600">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="max_primer_gen" class="form-label">{{ 'max_primers_generated'|t }}</label>
                                 <input type="number" class="form-control" name="max_primer_gen"
                                     value="{{ params.max_primer_gen }}" min="100" max="20000">
