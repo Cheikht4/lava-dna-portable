@@ -2202,3 +2202,11 @@ Une amorce dégénérée n'est pas une molécule unique, mais un MÉLANGE physiq
 - **Justification biologique** : Permet aux utilisateurs d'annuler des calculs inutiles avant même qu'ils n'allouent des threads et bloquent la file d'attente des autres utilisateurs.
 - **Impact attendu** : Le bouton Stop est de nouveau visible immédiatement pour les tâches en file d'attente.
 
+
+### Date/Étape : 2026-07-28 - Correction des avertissements Perl sur lava_loop_primer.pl
+- **Fichiers impactés** : `lava_loop_primer.pl`
+- **Nature du changement** : Bug Fix (Algorithmique / Syntaxe)
+- **Explication technique** : Suppression de redéclarations `my` illégales (`$middleToOuterDistance` ligne 2253 et `@guard_msgs` ligne 2366) qui masquaient des variables de la même portée ("variable masks earlier declaration"). La formule de calcul de `$middleToOuterDistance` ligne 2234 a été ajustée pour refléter la version sans l'offset de `+1`, rétablissant la cohérence avec le calcul de `pen_out`.
+- **Justification biologique** : Les avertissements bloquaient la sortie propre ou polluaient STDERR, potentiellement interceptés par Flask comme une erreur technique. Le calcul de l'espacement `middleToOuter` côté Reverse (3' vers 5') est mathématiquement fiabilisé.
+- **Impact attendu** : Fin des avertissements dans les logs, fonctionnement sans heurts du script Perl et calcul exact des pénalités d'espacement.
+
