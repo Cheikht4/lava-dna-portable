@@ -2202,3 +2202,11 @@ Une amorce dégénérée n'est pas une molécule unique, mais un MÉLANGE physiq
 - **Justification biologique** : Permettre à l'utilisateur de filtrer les signatures trop courtes directement depuis l'interface web.
 - **Impact attendu** : Le champ "Longueur min signature" est visible dans les Paramètres généraux et sa valeur est transmise au backend.
 
+
+### Date/Étape : 2026-07-28 - Correction avertissements Perl (my variable masks) sur la branche
+- **Fichiers impactés** : `lava_loop_primer.pl`
+- **Nature du changement** : Bug Fix / Nettoyage
+- **Explication technique** : Suppression de la redéclaration de `my $middleToOuterDistance` (ligne 2253) et de `my @guard_msgs` (ligne 2366) qui causaient des avertissements "masks earlier declaration" lors de l'exécution. La formule de calcul 3'-5' de $middleToOuterDistance a également été harmonisée.
+- **Justification biologique** : Aucune, nettoyage de code pour éviter de polluer stderr lors des tests sur la branche feature/signature-length-bound.
+- **Impact attendu** : Fin des avertissements Perl intempestifs lors du lancement de l'outil.
+

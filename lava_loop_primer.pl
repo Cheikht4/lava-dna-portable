@@ -2231,7 +2231,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       my $outerInfo = $masterOuterR_r->[$k];
                                       my ($outerLocation, $outerLength, $outerPenalty, $outTm) = @{$masterOuterR_data_r->[$k]};
                                       
-                                      my $middleToOuterDistance = ($outerLocation - $outerLength + 1) - $middleLocation;
+                                      my $middleToOuterDistance = ($outerLocation - $outerLength) - $middleLocation;
                                       if ($middleToOuterDistance < 0) {
                                           $chunk_rej_spacing++;
                                           next;
@@ -2250,7 +2250,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                           next;
                                       }
                                       
-                                      my $middleToOuterDistance = ($outerLocation - $outerLength) - $middleLocation;
                                       my $pen_out = penaltyAt($middleToOuterPenalties_r, $middleToOuterDistance, 'middleToOuter');
                                       if ($pen_out < 0) { $penalty_guard_middleToOuter_neg++; }
                                       if ($pen_out == 9999) { $penalty_guard_middleToOuter_oob++; }
@@ -2363,7 +2362,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       print sprintf("    [Reverse B&B] Elagage: %.2f%%\n", $pct);
   }
 
-  my @guard_msgs = ();
+  @guard_msgs = ();
   foreach my $k (qw(innerToLoop loopToMiddle innerToMiddle middleToOuter)) {
       if ($_rev_pen_guards{"${k}_neg"}) {
           push @guard_msgs, "$k(neg: $_rev_pen_guards{\"${k}_neg\"})";
