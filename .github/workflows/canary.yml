@@ -24,6 +24,9 @@ jobs:
       - name: Verify primer3_core is in PATH
         run: which primer3_core || echo "primer3_core not found in PATH"
 
+      - name: Run UI Form Names Audit
+        run: python3 t/test_form_names.py
+
       - name: Run Canary Regression Test
         run: |
           export PERL5LIB=$GITHUB_WORKSPACE/lib
