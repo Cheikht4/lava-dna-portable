@@ -1266,14 +1266,21 @@ sub flattenInfoData
     
     # Extraction robuste du Tm / Robust Tm extraction
     my $tm = 0;
+    my $bitvec = "";
     eval {
         my $oligo = $info->getAnalyzedPrimer();
         $tm = $oligo->getTag("primer3_tm");
+        my $compatible_ids = $oligo->getTag("compatible_sequence_ids");
+        if (defined $compatible_ids && ref($compatible_ids) eq 'ARRAY') {
+            foreach my $id (@$compatible_ids) {
+                vec($bitvec, $id, 1) = 1;
+            }
+        }
     };
     if($@) { $tm = 0; } # Default if missing
 
     $flattenedData_r->[$infoIndex] = 
-      [$info->getLocation(), $info->getLength(), $info->getPenalty(), $tm];
+      [$info->getLocation(), $info->getLength(), $info->getPenalty(), $tm, $bitvec];
   }
 
   return $flattenedData_r;

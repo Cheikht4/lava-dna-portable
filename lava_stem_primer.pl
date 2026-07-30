@@ -179,6 +179,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "signature_max_length=i" => \$options{"signature_max_length"},
       "signature_min_length=i" => \$options{"signature_min_length"},
       "total_signature_length=i" => \$options{"total_signature_length"},
+      
+      "half_signature_candidates=i" => \$options{"half_signature_candidates"},
+      "max_signature_penalty=i" => \$options{"max_signature_penalty"},
 
       "outer_primer_target_length=i" => \$options{"outer_primer_target_length"},
       "outer_primer_min_length=i" => \$options{"outer_primer_min_length"},
@@ -499,6 +502,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $totalSignatureLength = 
     optionWithDefault($options_r, "total_signature_length",
       $signatureMaxLength); # Default to max length if not specified
+
+  my $halfSignatureCandidates = optionWithDefault($options_r, "half_signature_candidates", 5);
+  my $maxSignaturePenalty = optionWithDefault($options_r, "max_signature_penalty", 1000000);
 
   my $maxTotalDegen = optionWithDefault($options_r, "max_total_degenerate_bases", 2);
   my $maxConsecDegen = optionWithDefault($options_r, "max_consecutive_degenerate_bases", 2);
@@ -1542,6 +1548,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $rmq_outer_f  = build_rmq($masterOuterF_data_r, 2);
   my $min_P_outer_F = @$masterOuterF_data_r ? query_rmq($rmq_outer_f, 0, scalar(@$masterOuterF_data_r)-1) * $outerPenaltyWeight : 0;
   
+  my $msaNumSeqs = $inputMSA->num_sequences();
   my $_sig_fwd_pruned = 0;
   my $_sig_fwd_evaluated = 0;
   # --- Counters for zero-signature diagnostic ---
@@ -1658,7 +1665,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
             my ($innerLocation, $innerLength, $innerPenalty, $innerTm) = 
               @{$innerForwardSubsetData_r->[$innerIndex]};
 
-            my $bestSetPenalty = 1000000;
+            my @topCandidates = ();
+          my $kthBestPenalty = $maxSignaturePenalty;
 
             my $searchStartAt = $innerLocation - $signatureMaxLength +
               $innerLength + 20;
@@ -1848,16 +1856,39 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   }
 
                   my $forwardSetPenalty = $spacingPenalty + $primer3Penalty;
-                  if($forwardSetPenalty < $bestSetPenalty)
+                  if($forwardSetPenalty < $kthBestPenalty)
                   {
-                    $chunk_hits++ unless exists $chunk_infos{$innerIndex};
-                    $chunk_infos{$innerIndex} = [$stemInfo, $middleInfo, $outerInfo];
-                    $chunk_penalties{$innerIndex} = [$spacingPenalty, $primer3Penalty, $detailStr];
-                    $bestSetPenalty = $forwardSetPenalty;
+                    my $innerBitVec = $masterInnerF_data_r->[$innerIndex][4];
+                    my $middleBitVec = $masterMiddleF_data_r->[$i][4];
+                    my $outerBitVec = $masterOuterF_data_r->[$k][4];
+                    my $stemBitVec = $masterStemF_data_r->[$j][4];
+                    my $intersection = $innerBitVec & $middleBitVec & $outerBitVec & $stemBitVec;
+                    my $coverage_count = unpack("%32b*", $intersection);
+                    my $coveragePct = ($msaNumSeqs > 0) ? ($coverage_count / $msaNumSeqs) * 100 : 0;
+                    
+                    my $candidate = {
+                        infos => [$stemInfo, $middleInfo, $outerInfo],
+                        penalties => [$spacingPenalty, $primer3Penalty, $detailStr],
+                        coverage => $coveragePct,
+                        total_penalty => $forwardSetPenalty
+                    };
+                    
+                    push @topCandidates, $candidate;
+                    @topCandidates = sort { $b->{coverage} <=> $a->{coverage} || $a->{total_penalty} <=> $b->{total_penalty} } @topCandidates;
+                    if (scalar(@topCandidates) > $halfSignatureCandidates) {
+                        pop @topCandidates;
+                    }
+                    if (scalar(@topCandidates) == $halfSignatureCandidates) {
+                        $kthBestPenalty = $topCandidates[-1]->{total_penalty};
+                    }
                   }
                 } # End forward outer iteration
               } # End forward middle iteration
             } # End forward STEM iteration
+          if (scalar(@topCandidates) > 0) {
+              $chunk_hits++;
+              $chunk_infos{$innerIndex} = \@topCandidates;
+          }
           
           # Intra-chunk progress reporting
           if ($chunk_done % 5 == 0) {
@@ -2063,7 +2094,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
             my ($innerLocation, $innerLength, $innerPenalty, $innerTm) = 
               @{$innerReverseSubsetData_r->[$innerIndex]};
 
-            my $bestSetPenalty = 1000000;
+            my @topCandidates = ();
+          my $kthBestPenalty = $maxSignaturePenalty;
 
             my $searchEndAt = $innerLocation + $signatureMaxLength -
               $innerLength - 20;
@@ -2241,16 +2273,39 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   }
 
                   my $reverseSetPenalty = $spacingPenalty + $primer3Penalty;
-                  if($reverseSetPenalty < $bestSetPenalty)
+                  if($reverseSetPenalty < $kthBestPenalty)
                   {
-                    $chunk_hits++ unless exists $chunk_infos{$innerIndex};
-                    $chunk_infos{$innerIndex} = [$stemInfo, $middleInfo, $outerInfo];
-                    $chunk_penalties{$innerIndex} = [$spacingPenalty, $primer3Penalty, $detailStr];
-                    $bestSetPenalty = $reverseSetPenalty;
+                    my $innerBitVec = $masterInnerR_data_r->[$innerIndex][4];
+                    my $middleBitVec = $masterMiddleR_data_r->[$i][4];
+                    my $outerBitVec = $masterOuterR_data_r->[$k][4];
+                    my $stemBitVec = $masterStemR_data_r->[$j][4];
+                    my $intersection = $innerBitVec & $middleBitVec & $outerBitVec & $stemBitVec;
+                    my $coverage_count = unpack("%32b*", $intersection);
+                    my $coveragePct = ($msaNumSeqs > 0) ? ($coverage_count / $msaNumSeqs) * 100 : 0;
+                    
+                    my $candidate = {
+                        infos => [$stemInfo, $middleInfo, $outerInfo],
+                        penalties => [$spacingPenalty, $primer3Penalty, $detailStr],
+                        coverage => $coveragePct,
+                        total_penalty => $reverseSetPenalty
+                    };
+                    
+                    push @topCandidates, $candidate;
+                    @topCandidates = sort { $b->{coverage} <=> $a->{coverage} || $a->{total_penalty} <=> $b->{total_penalty} } @topCandidates;
+                    if (scalar(@topCandidates) > $halfSignatureCandidates) {
+                        pop @topCandidates;
+                    }
+                    if (scalar(@topCandidates) == $halfSignatureCandidates) {
+                        $kthBestPenalty = $topCandidates[-1]->{total_penalty};
+                    }
                   }
                 } # End reverse outer iteration
               } # End reverse middle iteration
             } # End reverse STEM iteration
+          if (scalar(@topCandidates) > 0) {
+              $chunk_hits++;
+              $chunk_infos{$innerIndex} = \@topCandidates;
+          }
           
           # Intra-chunk progress reporting
           if ($chunk_done % 5 == 0) {
@@ -2343,9 +2398,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       }
 
       my $finnerInfo = $innerForwardSubset_r->[$i];
-      my ($fstemInfo, $fmiddleInfo, $fouterInfo) = @{$bestForwardInfos[$i]};
+      foreach my $f_cand (@{$bestForwardInfos[$i]}) {
+      my ($fstemInfo, $fmiddleInfo, $fouterInfo) = @{$f_cand->{infos}};
       my ($forwardSpacingPenalty, $forwardPrimer3Penalty, $forwardDetailStr) = 
-        @{$bestForwardPenalties[$i]};
+        @{$f_cand->{penalties}};
 
       my $forwardStart = $fouterInfo->getLocation();
       my $forwardEnd = $finnerInfo->getLocation() + $finnerInfo->getLength() - 1;
@@ -2364,9 +2420,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 	  next;
         }
 	my $binnerInfo = $innerReverseSubset_r->[$j];
-	my ($bstemInfo, $bmiddleInfo, $bouterInfo) = @{$bestReverseInfos[$j]};
+	foreach my $r_cand (@{$bestReverseInfos[$j]}) {
+	my ($bstemInfo, $bmiddleInfo, $bouterInfo) = @{$r_cand->{infos}};
         my ($reverseSpacingPenalty, $reversePrimer3Penalty, $reverseDetailStr) = 
-	  @{$bestReversePenalties[$j]};
+	  @{$r_cand->{penalties}};
 
         my $reverseEnd = $bouterInfo->getLocation();
         my $reverseStart = $binnerInfo->getLocation() - $binnerInfo->getLength() + 1;
@@ -2521,7 +2578,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
         # STEM tags set, validation will be done in the post-collection batch
          
         push(@{$allFoundSignatures_r}, $signature);
+      } # End r_cand
       } # End forward sets iteration
+      } # End f_cand
     } # End reverse sets iteration
 
   printf("Assemblage : %d signatures retenues, %d rejetees (longueur > %d), %d rejetees (longueur < min).\n", 

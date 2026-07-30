@@ -167,6 +167,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "signature_max_length=i" => \$options{"signature_max_length"},
       "signature_min_length=i" => \$options{"signature_min_length"},
       "total_signature_length=i" => \$options{"total_signature_length"},
+      
+      "half_signature_candidates=i" => \$options{"half_signature_candidates"},
+      "max_signature_penalty=i" => \$options{"max_signature_penalty"},
 
       "outer_primer_target_length=i" => \$options{"outer_primer_target_length"},
       "outer_primer_min_length=i" => \$options{"outer_primer_min_length"},
@@ -488,6 +491,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $totalSignatureLength = 
     optionWithDefault($options_r, "total_signature_length",
       $signatureMaxLength); # Default to max length if not specified
+
+  my $halfSignatureCandidates = optionWithDefault($options_r, "half_signature_candidates", 5);
+  my $maxSignaturePenalty = optionWithDefault($options_r, "max_signature_penalty", 1000000);
 
   my $maxTotalDegen = optionWithDefault($options_r, "max_total_degenerate_bases", 2);
   my $maxConsecDegen = optionWithDefault($options_r, "max_consecutive_degenerate_bases", 2);
@@ -1529,6 +1535,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $rmq_loop_f   = build_rmq($masterLoopF_data_r, 2) if $includeLoopPrimers;
   my $min_P_outer_F = @$masterOuterF_data_r ? query_rmq($rmq_outer_f, 0, scalar(@$masterOuterF_data_r)-1) * $outerPenaltyWeight : 0;
   
+  my $msaNumSeqs = $inputMSA->num_sequences();
   my $_sig_fwd_pruned = 0;
   my $_sig_fwd_evaluated = 0;
   # --- Counters for zero-signature diagnostic ---
@@ -1635,7 +1642,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           my $innerInfo = $masterInnerF_r->[$innerIndex];
           my ($innerLocation, $innerLength, $innerPenalty, $innerTm) = @{$masterInnerF_data_r->[$innerIndex]};
           
-          my $bestSetPenalty = 1000000;
+          my @topCandidates = ();
+          my $kthBestPenalty = $maxSignaturePenalty;
           
           # 3.1 Calculate Search Bounds for Loop Primer
           my $searchStartAt = $innerLocation - $signatureMaxLength + $innerLength + 20;
@@ -1706,7 +1714,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                      ($includeLoopPrimers ? $pen_innerToLoop * $innerToLoopPenaltyWeight : 0);
                   my $min_S_to_mid = $includeLoopPrimers ? $minS_loopToMiddle_F : $minS_innerToMiddle_F;
                   
-                  if ($base_penalty + $min_P_mid_range + $min_P_outer_F + $min_S_to_mid + $minS_middleToOuter_F >= $bestSetPenalty) {
+                  if ($base_penalty + $min_P_mid_range + $min_P_outer_F + $min_S_to_mid + $minS_middleToOuter_F >= $kthBestPenalty) {
                       $chunk_pruned += ($m_end - $m_start + 1);
                   } else {
                       for(my $j = $m_start; $j <= $m_end; $j++)
@@ -1772,7 +1780,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                               my $part_penalty = $base_penalty + ($middlePenalty * $middlePenaltyWeight) + 
                                                  ($pen_mid * ($includeLoopPrimers ? $loopToMiddlePenaltyWeight : $innerToMiddlePenaltyWeight));
                               
-                              if ($part_penalty + $min_P_out_range + $minS_middleToOuter_F >= $bestSetPenalty) {
+                              if ($part_penalty + $min_P_out_range + $minS_middleToOuter_F >= $kthBestPenalty) {
                                   $chunk_pruned += ($o_end - $o_start + 1);
                               } else {
                                   for(my $k = $o_start; $k <= $o_end; $k++)
@@ -1822,11 +1830,33 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       }
                                       
                                       my $currentSetPenalty = $spacingPenalty + $primer3Penalty;
-                                      if ($currentSetPenalty < $bestSetPenalty) {
-                                          $chunk_hits++ unless exists $chunk_infos{$innerIndex};
-                                          $chunk_infos{$innerIndex} = $includeLoopPrimers ? [$loopInfo, $middleInfo, $outerInfo] : [$middleInfo, $outerInfo];
-                                          $chunk_penalties{$innerIndex} = [$spacingPenalty, $primer3Penalty, $detailStr];
-                                          $bestSetPenalty = $currentSetPenalty;
+                                      if ($currentSetPenalty < $kthBestPenalty) {
+                                          my $innerBitVec = $masterInnerF_data_r->[$innerIndex][4];
+                                          my $middleBitVec = $masterMiddleF_data_r->[$i][4];
+                                          my $outerBitVec = $masterOuterF_data_r->[$k][4];
+                                          my $intersection = $innerBitVec & $middleBitVec & $outerBitVec;
+                                          if ($includeLoopPrimers) {
+                                              my $loopBitVec = $masterLoopF_data_r->[$j][4];
+                                              $intersection = $intersection & $loopBitVec if defined $loopBitVec;
+                                          }
+                                          my $coverage_count = unpack("%32b*", $intersection);
+                                          my $coveragePct = ($msaNumSeqs > 0) ? ($coverage_count / $msaNumSeqs) * 100 : 0;
+                                          
+                                          my $candidate = {
+                                              infos => $includeLoopPrimers ? [$loopInfo, $middleInfo, $outerInfo] : [$middleInfo, $outerInfo],
+                                              penalties => [$spacingPenalty, $primer3Penalty, $detailStr],
+                                              coverage => $coveragePct,
+                                              total_penalty => $currentSetPenalty
+                                          };
+                                          
+                                          push @topCandidates, $candidate;
+                                          @topCandidates = sort { $b->{coverage} <=> $a->{coverage} || $a->{total_penalty} <=> $b->{total_penalty} } @topCandidates;
+                                          if (scalar(@topCandidates) > $halfSignatureCandidates) {
+                                              pop @topCandidates;
+                                          }
+                                          if (scalar(@topCandidates) == $halfSignatureCandidates) {
+                                              $kthBestPenalty = $topCandidates[-1]->{total_penalty};
+                                          }
                                       }
                                   }
                               }
@@ -1835,6 +1865,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   }
               }
 
+          if (scalar(@topCandidates) > 0) {
+              $chunk_hits++;
+              $chunk_infos{$innerIndex} = \@topCandidates;
+          }
           } # End Loop
           
           # Intra-chunk progress reporting
@@ -2094,7 +2128,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           my $innerInfo = $masterInnerR_r->[$innerIndex];
           my ($innerLocation, $innerLength, $innerPenalty, $innerTm) = @{$masterInnerR_data_r->[$innerIndex]};
           
-          my $bestSetPenalty = 1000000;
+          my @topCandidates = ();
+          my $kthBestPenalty = $maxSignaturePenalty;
           
           # 4.1 Calculate Search Bounds for Loop Primer (Reverse)
           my $searchStartAt = $innerLocation + 1 + $minPrimerSpacing;
@@ -2155,7 +2190,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                      ($includeLoopPrimers ? $pen_innerToLoop * $innerToLoopPenaltyWeight : 0);
                   my $min_S_to_mid = $includeLoopPrimers ? $minS_loopToMiddle_R : $minS_innerToMiddle_R;
                   
-                  if ($base_penalty + $min_P_mid_range + $min_P_outer_R + $min_S_to_mid + $minS_middleToOuter_R >= $bestSetPenalty) {
+                  if ($base_penalty + $min_P_mid_range + $min_P_outer_R + $min_S_to_mid + $minS_middleToOuter_R >= $kthBestPenalty) {
                       $chunk_pruned += ($m_end - $m_start + 1);
                   } else {
                       for(my $j = $m_start; $j <= $m_end; $j++)
@@ -2222,7 +2257,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                               my $part_penalty = $base_penalty + ($middlePenalty * $middlePenaltyWeight) + 
                                                  ($pen_mid * ($includeLoopPrimers ? $loopToMiddlePenaltyWeight : $innerToMiddlePenaltyWeight));
                               
-                              if ($part_penalty + $min_P_out_range + $minS_middleToOuter_R >= $bestSetPenalty) {
+                              if ($part_penalty + $min_P_out_range + $minS_middleToOuter_R >= $kthBestPenalty) {
                                   $chunk_pruned += ($o_end - $o_start + 1);
                               } else {
                                   for(my $k = $o_start; $k <= $o_end; $k++)
@@ -2272,11 +2307,33 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       }
                                       
                                       my $currentSetPenalty = $spacingPenalty + $primer3Penalty;
-                                      if ($currentSetPenalty < $bestSetPenalty) {
-                                          $chunk_hits++ unless exists $chunk_infos{$innerIndex};
-                                          $chunk_infos{$innerIndex} = $includeLoopPrimers ? [$loopInfo, $middleInfo, $outerInfo] : [$middleInfo, $outerInfo];
-                                          $chunk_penalties{$innerIndex} = [$spacingPenalty, $primer3Penalty, $detailStr];
-                                          $bestSetPenalty = $currentSetPenalty;
+                                      if ($currentSetPenalty < $kthBestPenalty) {
+                                          my $innerBitVec = $masterInnerR_data_r->[$innerIndex][4];
+                                          my $middleBitVec = $masterMiddleR_data_r->[$i][4];
+                                          my $outerBitVec = $masterOuterR_data_r->[$k][4];
+                                          my $intersection = $innerBitVec & $middleBitVec & $outerBitVec;
+                                          if ($includeLoopPrimers) {
+                                              my $loopBitVec = $masterLoopR_data_r->[$j][4];
+                                              $intersection = $intersection & $loopBitVec if defined $loopBitVec;
+                                          }
+                                          my $coverage_count = unpack("%32b*", $intersection);
+                                          my $coveragePct = ($msaNumSeqs > 0) ? ($coverage_count / $msaNumSeqs) * 100 : 0;
+                                          
+                                          my $candidate = {
+                                              infos => $includeLoopPrimers ? [$loopInfo, $middleInfo, $outerInfo] : [$middleInfo, $outerInfo],
+                                              penalties => [$spacingPenalty, $primer3Penalty, $detailStr],
+                                              coverage => $coveragePct,
+                                              total_penalty => $currentSetPenalty
+                                          };
+                                          
+                                          push @topCandidates, $candidate;
+                                          @topCandidates = sort { $b->{coverage} <=> $a->{coverage} || $a->{total_penalty} <=> $b->{total_penalty} } @topCandidates;
+                                          if (scalar(@topCandidates) > $halfSignatureCandidates) {
+                                              pop @topCandidates;
+                                          }
+                                          if (scalar(@topCandidates) == $halfSignatureCandidates) {
+                                              $kthBestPenalty = $topCandidates[-1]->{total_penalty};
+                                          }
                                       }
                                   }
                               }
@@ -2285,6 +2342,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   }
               }
 
+          if (scalar(@topCandidates) > 0) {
+              $chunk_hits++;
+              $chunk_infos{$innerIndex} = \@topCandidates;
+          }
           } # End Loop
           
           # Intra-chunk progress reporting
@@ -2398,12 +2459,12 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $rejected_min_len = 0;
 
   for(my $i = 0; $i < scalar(@{$masterInnerF_r}); $i++) {
-      next unless defined $bestForwardInfos[$i]; # Skip if no valid F-half found
-      
+      next unless defined $bestForwardInfos[$i];
       my $innerF = $masterInnerF_r->[$i];
-      my $f_set_infos = $bestForwardInfos[$i]; # [LoopF, MidF, OutF]
-       
-      # InnerF (F1c) Location data
+      foreach my $f_cand (@{$bestForwardInfos[$i]}) {
+          my $f_set_infos = $f_cand->{infos};
+          
+          # InnerF (F1c) Location data
       # Note: $innerF is a PrimerInfo. 
       # $innerF->getLocation() is the END of the primer on the Plus strand (for Fwd? No).
       # Let's verify standard LAVA location semantics:
@@ -2422,9 +2483,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       
       for(my $j = 0; $j < scalar(@{$masterInnerR_r}); $j++) {
           next unless defined $bestReverseInfos[$j];
-          
           my $innerR = $masterInnerR_r->[$j];
-          my $r_set_infos = $bestReverseInfos[$j]; # [LoopR, MidR, OutR]
+          foreach my $r_cand (@{$bestReverseInfos[$j]}) {
+              my $r_set_infos = $r_cand->{infos};
           
           my $b1c_location = $masterInnerR_data_r->[$j]->[0];
           my $b1c_length = $masterInnerR_data_r->[$j]->[1];
@@ -2551,13 +2612,15 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           }
           
           # Add total penalty tag
-          my $f_penalty = $bestForwardPenalties[$i]->[0] + $bestForwardPenalties[$i]->[1];
-          my $r_penalty = $bestReversePenalties[$j]->[0] + $bestReversePenalties[$j]->[1];
+          my $f_penalty = $f_cand->{penalties}->[0] + $f_cand->{penalties}->[1];
+          my $r_penalty = $r_cand->{penalties}->[0] + $r_cand->{penalties}->[1];
           $lampSignature->setTag("lamp_penalty", $f_penalty + $r_penalty);
-          $lampSignature->setTag("penalty_notes", sprintf("Total F:%.1f R:%.1f | F{%s} | R{%s}", $f_penalty, $r_penalty, $bestForwardPenalties[$i]->[2], $bestReversePenalties[$j]->[2]));
+          $lampSignature->setTag("penalty_notes", sprintf("Total F:%.1f R:%.1f | F{%s} | R{%s}", $f_penalty, $r_penalty, $f_cand->{penalties}->[2], $r_cand->{penalties}->[2]));
           
           push(@{$allFoundSignatures_r}, $lampSignature);
           $combinedSignatureCount++;
+          }
+      }
       }
   }
   
