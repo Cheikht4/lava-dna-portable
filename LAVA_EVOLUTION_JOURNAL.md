@@ -2252,3 +2252,21 @@ Privilégier aveuglément l'amorce thermodynamiquement "parfaite" pouvait condui
 - Capacité inédite du logiciel à "rattraper" des signatures très couvrantes sur des virus hautement variables.
 - Aucune perte de vitesse notable grâce à l'implémentation par opérations binaires natives (`unpack("%32b*")`).
 - Paramétrage fin accessible via `--half_signature_candidates`.
+
+### Date/Étape : 30 Juillet 2026 - Refonte de l'Architecture de Parallélisme et de l'Élagage Thermodynamique
+
+**Fichiers impactés** : 
+- `lava_loop_primer.pl`
+- `lava_stem_primer.pl`
+
+**Nature du changement** : Architecture / Algorithmique
+
+**Explication technique** : 
+1. **Architecture** : Remplacement du transfert profond d'objets `BioPerl` au travers du `ForkManager` par un transfert d'indices entiers (`infos_idx`). Les objets complexes sont reconstruits dans le processus parent via le bloc `run_on_finish`. 
+2. **Algorithmique (Branch & Bound)** : Correction de la logique de tri des listes internes `@topCandidates` pour la priorisation exclusive sur la pénalité thermodynamique (`total_penalty`) au lieu de la couverture, garantissant la validité mathématique de la condition d'élagage (`$currentSetPenalty < $kthBestPenalty`).
+
+**Justification biologique** : La logique d'élagage précédente triait par couverture avant pénalité, invalidant la borne mathématique de la pénalité (la pire pénalité du Top-K n'était plus la véritable borne). En rectifiant le tri, le moteur LAVA ne rejette plus par erreur des candidats thermodynamiquement supérieurs (stabilité de l'hybridation), tout en préservant l'exploration du Top-K.
+
+**Impact attendu** : 
+1. **Performance** : Résolution définitive de l'effondrement CPU (surcharge `Storable`) avec des temps d'exécution redevenant optimaux.
+2. **Qualité** : Les signatures générées ont des pénalités thermodynamiques strictement inférieures (meilleures) par rapport à l'ancienne version, garantissant un design d'amorces LAMP plus robuste.

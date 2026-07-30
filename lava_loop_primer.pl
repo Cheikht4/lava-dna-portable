@@ -300,6 +300,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "inner_pair_target_length" => 50, 
       "max_overlap_percent" => 0,
       "resolve_overlap_by" => "penalty",
+      "half_signature_candidates" => 3,
       # Calcul dynamique (porte depuis STEM / ported from STEM)
       "max_dist_outer_middle" => 30,
       "max_dist_middle_inner" => 30,
@@ -447,6 +448,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     "    [--max_primer_gen <length, default=" .
       $optionDefaults{"max_primer_gen"} .
 	">]\n" .
+      "    [--half_signature_candidates <int, default=" .
+      $optionDefaults{"half_signature_candidates"} .
+	">]\n" .
       # --- PARAMÈTRES DE TOLÉRANCE AUX MISMATCHES ---
       "    [--primer_min_match_percent <percent, default=" .
         $optionDefaults{"primer_min_match_percent"} .
@@ -492,7 +496,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     optionWithDefault($options_r, "total_signature_length",
       $signatureMaxLength); # Default to max length if not specified
 
-  my $halfSignatureCandidates = optionWithDefault($options_r, "half_signature_candidates", 5);
+  my $halfSignatureCandidates = optionWithDefault($options_r, "half_signature_candidates", $optionDefaults{"half_signature_candidates"});
   my $maxSignaturePenalty = optionWithDefault($options_r, "max_signature_penalty", 1000000);
 
   my $maxTotalDegen = optionWithDefault($options_r, "max_total_degenerate_bases", 2);
@@ -1576,8 +1580,21 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               if (!defined $bestForwardInfos[$idx]) {
                   $forwardSetCount++;
               }
-              $bestForwardInfos[$idx] = $data_ref->{infos}->{$idx};
-              $bestForwardPenalties[$idx] = $data_ref->{penalties}->{$idx};
+              my @reconstructed = ();
+              foreach my $cand (@{$data_ref->{infos}->{$idx}}) {
+                  my @obj_infos = ();
+                  if ($includeLoopPrimers) {
+                      push @obj_infos, $masterLoopF_r->[$cand->{infos_idx}->[0]];
+                      push @obj_infos, $masterMiddleF_r->[$cand->{infos_idx}->[1]];
+                      push @obj_infos, $masterOuterF_r->[$cand->{infos_idx}->[2]];
+                  } else {
+                      push @obj_infos, $masterMiddleF_r->[$cand->{infos_idx}->[0]];
+                      push @obj_infos, $masterOuterF_r->[$cand->{infos_idx}->[1]];
+                  }
+                  $cand->{infos} = \@obj_infos;
+                  push @reconstructed, $cand;
+              }
+              $bestForwardInfos[$idx] = \@reconstructed;
           }
           $_sig_fwd_hits += $data_ref->{hits} || 0;
           $_sig_fwd_done += $data_ref->{done} || 0;
@@ -1832,25 +1849,25 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       my $currentSetPenalty = $spacingPenalty + $primer3Penalty;
                                       if ($currentSetPenalty < $kthBestPenalty) {
                                           my $innerBitVec = $masterInnerF_data_r->[$innerIndex][4];
-                                          my $middleBitVec = $masterMiddleF_data_r->[$i][4];
+                                          my $middleBitVec = $masterMiddleF_data_r->[$j][4];
                                           my $outerBitVec = $masterOuterF_data_r->[$k][4];
                                           my $intersection = $innerBitVec & $middleBitVec & $outerBitVec;
                                           if ($includeLoopPrimers) {
-                                              my $loopBitVec = $masterLoopF_data_r->[$j][4];
+                                              my $loopBitVec = $masterLoopF_data_r->[$i][4];
                                               $intersection = $intersection & $loopBitVec if defined $loopBitVec;
                                           }
                                           my $coverage_count = unpack("%32b*", $intersection);
                                           my $coveragePct = ($msaNumSeqs > 0) ? ($coverage_count / $msaNumSeqs) * 100 : 0;
                                           
                                           my $candidate = {
-                                              infos => $includeLoopPrimers ? [$loopInfo, $middleInfo, $outerInfo] : [$middleInfo, $outerInfo],
+                                              infos_idx => $includeLoopPrimers ? [$i, $j, $k] : [$j, $k],
                                               penalties => [$spacingPenalty, $primer3Penalty, $detailStr],
                                               coverage => $coveragePct,
                                               total_penalty => $currentSetPenalty
                                           };
                                           
                                           push @topCandidates, $candidate;
-                                          @topCandidates = sort { $b->{coverage} <=> $a->{coverage} || $a->{total_penalty} <=> $b->{total_penalty} } @topCandidates;
+                                          @topCandidates = sort { $a->{total_penalty} <=> $b->{total_penalty} } @topCandidates;
                                           if (scalar(@topCandidates) > $halfSignatureCandidates) {
                                               pop @topCandidates;
                                           }
@@ -2055,8 +2072,21 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               if (!defined $bestReverseInfos[$idx]) {
                   $reverseSetCount++;
               }
-              $bestReverseInfos[$idx] = $data_ref->{infos}->{$idx};
-              $bestReversePenalties[$idx] = $data_ref->{penalties}->{$idx};
+              my @reconstructed = ();
+              foreach my $cand (@{$data_ref->{infos}->{$idx}}) {
+                  my @obj_infos = ();
+                  if ($includeLoopPrimers) {
+                      push @obj_infos, $masterLoopR_r->[$cand->{infos_idx}->[0]];
+                      push @obj_infos, $masterMiddleR_r->[$cand->{infos_idx}->[1]];
+                      push @obj_infos, $masterOuterR_r->[$cand->{infos_idx}->[2]];
+                  } else {
+                      push @obj_infos, $masterMiddleR_r->[$cand->{infos_idx}->[0]];
+                      push @obj_infos, $masterOuterR_r->[$cand->{infos_idx}->[1]];
+                  }
+                  $cand->{infos} = \@obj_infos;
+                  push @reconstructed, $cand;
+              }
+              $bestReverseInfos[$idx] = \@reconstructed;
           }
           $_sig_rev_hits += $data_ref->{hits} || 0;
           $_sig_rev_done += $data_ref->{done} || 0;
@@ -2309,25 +2339,25 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       my $currentSetPenalty = $spacingPenalty + $primer3Penalty;
                                       if ($currentSetPenalty < $kthBestPenalty) {
                                           my $innerBitVec = $masterInnerR_data_r->[$innerIndex][4];
-                                          my $middleBitVec = $masterMiddleR_data_r->[$i][4];
+                                          my $middleBitVec = $masterMiddleR_data_r->[$j][4];
                                           my $outerBitVec = $masterOuterR_data_r->[$k][4];
                                           my $intersection = $innerBitVec & $middleBitVec & $outerBitVec;
                                           if ($includeLoopPrimers) {
-                                              my $loopBitVec = $masterLoopR_data_r->[$j][4];
+                                              my $loopBitVec = $masterLoopR_data_r->[$i][4];
                                               $intersection = $intersection & $loopBitVec if defined $loopBitVec;
                                           }
                                           my $coverage_count = unpack("%32b*", $intersection);
                                           my $coveragePct = ($msaNumSeqs > 0) ? ($coverage_count / $msaNumSeqs) * 100 : 0;
                                           
                                           my $candidate = {
-                                              infos => $includeLoopPrimers ? [$loopInfo, $middleInfo, $outerInfo] : [$middleInfo, $outerInfo],
+                                              infos_idx => $includeLoopPrimers ? [$i, $j, $k] : [$j, $k],
                                               penalties => [$spacingPenalty, $primer3Penalty, $detailStr],
                                               coverage => $coveragePct,
                                               total_penalty => $currentSetPenalty
                                           };
                                           
                                           push @topCandidates, $candidate;
-                                          @topCandidates = sort { $b->{coverage} <=> $a->{coverage} || $a->{total_penalty} <=> $b->{total_penalty} } @topCandidates;
+                                          @topCandidates = sort { $a->{total_penalty} <=> $b->{total_penalty} } @topCandidates;
                                           if (scalar(@topCandidates) > $halfSignatureCandidates) {
                                               pop @topCandidates;
                                           }
