@@ -2224,3 +2224,11 @@ Une amorce dégénérée n'est pas une molécule unique, mais un MÉLANGE physiq
 - **Justification biologique** : Les avertissements bloquaient la sortie propre ou polluaient STDERR, potentiellement interceptés par Flask comme une erreur technique. Le calcul de l'espacement `middleToOuter` côté Reverse (3' vers 5') est mathématiquement fiabilisé.
 - **Impact attendu** : Fin des avertissements dans les logs, fonctionnement sans heurts du script Perl et calcul exact des pénalités d'espacement.
 
+
+
+### Date/Étape : 2026-07-30 - Validation de la borne de longueur (Chantiers 1 et 2)
+- **Fichiers impactés** : `lava_loop_primer.pl`, `lava_stem_primer.pl`
+- **Nature du changement** : Architecture / Bug Fix
+- **Explication technique** : Resynchronisation propre de la branche `feature/signature-length-bound` avec `main` (sans les avertissements my mask, ni l'écrasement de la borne de longueur). La contrainte d'espacement globale `totalLen_v` est validée et testée.
+- **Justification biologique** : S'assurer que le filtrage des amorces selon l'encombrement stérique maximal (longueur totale de la signature cible) ne perturbe pas le reste de l'algorithme, préservant l'intégrité de la recherche de signatures.
+- **Impact attendu** : Diff avec `main` parfaitement isolé sur le bloc de `signature_min_length` et `signature_max_length`. Les tests canary valident la non-régression.
