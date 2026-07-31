@@ -117,9 +117,9 @@ GCTGGTGAGTGGATCGTT
 CCTCTGGAGACTTCGACAA
 >7_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 8 (length: 205bp) (penalty: 14.7307401) Total F:8.9 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 129-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 8 (length: 204bp) (penalty: 14.6368497) Total F:8.9 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 127-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >8_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >8_B3
 TGAATCCATAGACACGCC
 >8_F2
@@ -129,12 +129,12 @@ GCGTCTGCATTTGTCTTAACT
 >8_F1
 TTTCACCRGATGCAGAAGC
 >8_B1
-AGCTGGTGAGTGGATCG
+GCTGGTGAGTGGATCGTT
 >8_FSTEM
 CCTCTGGAGACTTCGACAA
 >8_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 9 (length: 205bp) (penalty: 14.8371662) Total F:8.7 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 9 (length: 205bp) (penalty: 14.7307401) Total F:8.9 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 129-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >9_F3
 AACGTCAACTCTTTCTGGA
 >9_B3
@@ -146,12 +146,12 @@ GCGTCTGCATTTGTCTTAACT
 >9_F1
 TTTCACCRGATGCAGAAGC
 >9_B1
-GCTGGTGAGTGGATCGT
+AGCTGGTGAGTGGATCG
 >9_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >9_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 10 (length: 204bp) (penalty: 14.8371662) Total F:8.7 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 10 (length: 204bp) (penalty: 14.7307401) Total F:8.9 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 129-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >10_F3
 ACGTCAACTCTTTCTGGAA
 >10_B3
@@ -163,12 +163,12 @@ GCGTCTGCATTTGTCTTAACT
 >10_F1
 TTTCACCRGATGCAGAAGC
 >10_B1
-GCTGGTGAGTGGATCGT
+AGCTGGTGAGTGGATCG
 >10_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >10_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 11 (length: 205bp) (penalty: 14.8422477) Total F:8.9 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 124-142)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 11 (length: 205bp) (penalty: 14.8371662) Total F:8.7 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >11_F3
 AACGTCAACTCTTTCTGGA
 >11_B3
@@ -180,14 +180,14 @@ GCGTCTGCATTTGTCTTAACT
 >11_F1
 TTTCACCRGATGCAGAAGC
 >11_B1
-TGGTGAGTGGATCGTTTGA
+GCTGGTGAGTGGATCGT
 >11_FSTEM
-CCTCTGGAGACTTCGACAA
+CCTCTGGAGACTTCGACA
 >11_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 12 (length: 205bp) (penalty: 15.0028838) Total F:8.7 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 125-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 12 (length: 204bp) (penalty: 14.8371662) Total F:8.7 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >12_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >12_B3
 TGAATCCATAGACACGCC
 >12_F2
@@ -197,14 +197,14 @@ GCGTCTGCATTTGTCTTAACT
 >12_F1
 TTTCACCRGATGCAGAAGC
 >12_B1
-CTGGTGAGTGGATCGTTTG
+GCTGGTGAGTGGATCGT
 >12_FSTEM
 CCTCTGGAGACTTCGACA
 >12_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 13 (length: 204bp) (penalty: 15.0028838) Total F:8.7 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 125-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 13 (length: 205bp) (penalty: 14.8422477) Total F:8.9 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 124-142)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >13_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >13_B3
 TGAATCCATAGACACGCC
 >13_F2
@@ -214,14 +214,14 @@ GCGTCTGCATTTGTCTTAACT
 >13_F1
 TTTCACCRGATGCAGAAGC
 >13_B1
-CTGGTGAGTGGATCGTTTG
+TGGTGAGTGGATCGTTTGA
 >13_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >13_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 14 (length: 205bp) (penalty: 15.0743997) Total F:8.9 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 14 (length: 204bp) (penalty: 14.8422477) Total F:8.9 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 124-142)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >14_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >14_B3
 TGAATCCATAGACACGCC
 >14_F2
@@ -231,12 +231,12 @@ GCGTCTGCATTTGTCTTAACT
 >14_F1
 TTTCACCRGATGCAGAAGC
 >14_B1
-GCTGGTGAGTGGATCGT
+TGGTGAGTGGATCGTTTGA
 >14_FSTEM
 CCTCTGGAGACTTCGACAA
 >14_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 15 (length: 205bp) (penalty: 15.074801) Total F:9.3 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 127-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 15 (length: 205bp) (penalty: 14.9721623) Total F:9.2 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 127-144)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
 >15_F3
 AACGTCAACTCTTTCTGGA
 >15_B3
@@ -246,16 +246,16 @@ TCTATTGGTAGGAGTGAACAGT
 >15_B2
 GCGTCTGCATTTGTCTTAACT
 >15_F1
-ATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >15_B1
 GCTGGTGAGTGGATCGTT
 >15_FSTEM
-CCTCTGGAGACTTCGACA
+ATCCTCTGGAGACTTCGAC
 >15_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 16 (length: 204bp) (penalty: 15.074801) Total F:9.3 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 127-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 16 (length: 205bp) (penalty: 15.0028838) Total F:8.7 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 125-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >16_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >16_B3
 TGAATCCATAGACACGCC
 >16_F2
@@ -263,16 +263,16 @@ TCTATTGGTAGGAGTGAACAGT
 >16_B2
 GCGTCTGCATTTGTCTTAACT
 >16_F1
-ATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >16_B1
-GCTGGTGAGTGGATCGTT
+CTGGTGAGTGGATCGTTTG
 >16_FSTEM
 CCTCTGGAGACTTCGACA
 >16_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 17 (length: 205bp) (penalty: 15.1686914) Total F:9.3 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 129-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 17 (length: 204bp) (penalty: 15.0028838) Total F:8.7 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 125-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >17_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >17_B3
 TGAATCCATAGACACGCC
 >17_F2
@@ -280,16 +280,16 @@ TCTATTGGTAGGAGTGAACAGT
 >17_B2
 GCGTCTGCATTTGTCTTAACT
 >17_F1
-ATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >17_B1
-AGCTGGTGAGTGGATCG
+CTGGTGAGTGGATCGTTTG
 >17_FSTEM
 CCTCTGGAGACTTCGACA
 >17_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 18 (length: 204bp) (penalty: 15.1686914) Total F:9.3 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 129-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 18 (length: 205bp) (penalty: 15.0660527) Total F:9.2 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 129-145)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
 >18_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >18_B3
 TGAATCCATAGACACGCC
 >18_F2
@@ -297,14 +297,14 @@ TCTATTGGTAGGAGTGAACAGT
 >18_B2
 GCGTCTGCATTTGTCTTAACT
 >18_F1
-ATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >18_B1
 AGCTGGTGAGTGGATCG
 >18_FSTEM
-CCTCTGGAGACTTCGACA
+ATCCTCTGGAGACTTCGAC
 >18_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 19 (length: 205bp) (penalty: 15.2401173) Total F:8.9 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 125-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 19 (length: 205bp) (penalty: 15.0743997) Total F:8.9 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >19_F3
 AACGTCAACTCTTTCTGGA
 >19_B3
@@ -316,14 +316,14 @@ GCGTCTGCATTTGTCTTAACT
 >19_F1
 TTTCACCRGATGCAGAAGC
 >19_B1
-CTGGTGAGTGGATCGTTTG
+GCTGGTGAGTGGATCGT
 >19_FSTEM
 CCTCTGGAGACTTCGACAA
 >19_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 20 (length: 205bp) (penalty: 15.280199) Total F:9.3 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-142)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 20 (length: 204bp) (penalty: 15.0743997) Total F:8.9 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >20_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >20_B3
 TGAATCCATAGACACGCC
 >20_F2
@@ -331,16 +331,16 @@ TCTATTGGTAGGAGTGAACAGT
 >20_B2
 GCGTCTGCATTTGTCTTAACT
 >20_F1
-ATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >20_B1
-TGGTGAGTGGATCGTTTGA
+GCTGGTGAGTGGATCGT
 >20_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >20_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 21 (length: 204bp) (penalty: 15.280199) Total F:9.3 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-142)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 21 (length: 205bp) (penalty: 15.074801) Total F:9.3 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 127-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >21_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >21_B3
 TGAATCCATAGACACGCC
 >21_F2
@@ -350,14 +350,14 @@ GCGTCTGCATTTGTCTTAACT
 >21_F1
 ATTTCACCRGATGCAGAAGC
 >21_B1
-TGGTGAGTGGATCGTTTGA
+GCTGGTGAGTGGATCGTT
 >21_FSTEM
 CCTCTGGAGACTTCGACA
 >21_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 22 (length: 205bp) (penalty: 15.3120345) Total F:9.6 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 127-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 22 (length: 204bp) (penalty: 15.074801) Total F:9.3 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 127-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >22_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >22_B3
 TGAATCCATAGACACGCC
 >22_F2
@@ -369,10 +369,10 @@ ATTTCACCRGATGCAGAAGC
 >22_B1
 GCTGGTGAGTGGATCGTT
 >22_FSTEM
-CCTCTGGAGACTTCGACAA
+CCTCTGGAGACTTCGACA
 >22_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 23 (length: 205bp) (penalty: 15.4059249) Total F:9.6 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 129-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 23 (length: 205bp) (penalty: 15.1686914) Total F:9.3 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 129-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >23_F3
 AACGTCAACTCTTTCTGGA
 >23_B3
@@ -386,12 +386,12 @@ ATTTCACCRGATGCAGAAGC
 >23_B1
 AGCTGGTGAGTGGATCG
 >23_FSTEM
-CCTCTGGAGACTTCGACAA
+CCTCTGGAGACTTCGACA
 >23_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 24 (length: 205bp) (penalty: 15.512351) Total F:9.3 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 24 (length: 204bp) (penalty: 15.1686914) Total F:9.3 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 129-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >24_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >24_B3
 TGAATCCATAGACACGCC
 >24_F2
@@ -401,14 +401,14 @@ GCGTCTGCATTTGTCTTAACT
 >24_F1
 ATTTCACCRGATGCAGAAGC
 >24_B1
-GCTGGTGAGTGGATCGT
+AGCTGGTGAGTGGATCG
 >24_FSTEM
 CCTCTGGAGACTTCGACA
 >24_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 25 (length: 204bp) (penalty: 15.512351) Total F:9.3 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 25 (length: 205bp) (penalty: 15.1775603) Total F:9.2 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 124-142)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
 >25_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >25_B3
 TGAATCCATAGACACGCC
 >25_F2
@@ -416,14 +416,14 @@ TCTATTGGTAGGAGTGAACAGT
 >25_B2
 GCGTCTGCATTTGTCTTAACT
 >25_F1
-ATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >25_B1
-GCTGGTGAGTGGATCGT
+TGGTGAGTGGATCGTTTGA
 >25_FSTEM
-CCTCTGGAGACTTCGACA
+ATCCTCTGGAGACTTCGAC
 >25_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 26 (length: 205bp) (penalty: 15.5174325) Total F:9.6 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-142)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 26 (length: 205bp) (penalty: 15.2401173) Total F:8.9 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 125-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >26_F3
 AACGTCAACTCTTTCTGGA
 >26_B3
@@ -433,16 +433,16 @@ TCTATTGGTAGGAGTGAACAGT
 >26_B2
 GCGTCTGCATTTGTCTTAACT
 >26_F1
-ATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >26_B1
-TGGTGAGTGGATCGTTTGA
+CTGGTGAGTGGATCGTTTG
 >26_FSTEM
 CCTCTGGAGACTTCGACAA
 >26_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 27 (length: 205bp) (penalty: 15.6780686) Total F:9.3 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 125-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 27 (length: 204bp) (penalty: 15.2401173) Total F:8.9 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 125-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >27_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >27_B3
 TGAATCCATAGACACGCC
 >27_F2
@@ -450,16 +450,16 @@ TCTATTGGTAGGAGTGAACAGT
 >27_B2
 GCGTCTGCATTTGTCTTAACT
 >27_F1
-ATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >27_B1
 CTGGTGAGTGGATCGTTTG
 >27_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >27_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 28 (length: 204bp) (penalty: 15.6780686) Total F:9.3 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 125-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 28 (length: 205bp) (penalty: 15.280199) Total F:9.3 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-142)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >28_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >28_B3
 TGAATCCATAGACACGCC
 >28_F2
@@ -469,14 +469,14 @@ GCGTCTGCATTTGTCTTAACT
 >28_F1
 ATTTCACCRGATGCAGAAGC
 >28_B1
-CTGGTGAGTGGATCGTTTG
+TGGTGAGTGGATCGTTTGA
 >28_FSTEM
 CCTCTGGAGACTTCGACA
 >28_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 29 (length: 205bp) (penalty: 15.7495845) Total F:9.6 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 29 (length: 204bp) (penalty: 15.280199) Total F:9.3 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-142)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >29_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >29_B3
 TGAATCCATAGACACGCC
 >29_F2
@@ -486,12 +486,12 @@ GCGTCTGCATTTGTCTTAACT
 >29_F1
 ATTTCACCRGATGCAGAAGC
 >29_B1
-GCTGGTGAGTGGATCGT
+TGGTGAGTGGATCGTTTGA
 >29_FSTEM
-CCTCTGGAGACTTCGACAA
+CCTCTGGAGACTTCGACA
 >29_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 30 (length: 205bp) (penalty: 15.752999) Total F:8.7 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 30 (length: 205bp) (penalty: 15.3120345) Total F:9.6 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 127-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >30_F3
 AACGTCAACTCTTTCTGGA
 >30_B3
@@ -501,14 +501,14 @@ TCTATTGGTAGGAGTGAACAGT
 >30_B2
 GCGTCTGCATTTGTCTTAACT
 >30_F1
-TTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >30_B1
-AGCTGGTGAGTGGATCGT
+GCTGGTGAGTGGATCGTT
 >30_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >30_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 31 (length: 204bp) (penalty: 15.752999) Total F:8.7 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 31 (length: 204bp) (penalty: 15.3120345) Total F:9.6 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 127-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >31_F3
 ACGTCAACTCTTTCTGGAA
 >31_B3
@@ -518,14 +518,14 @@ TCTATTGGTAGGAGTGAACAGT
 >31_B2
 GCGTCTGCATTTGTCTTAACT
 >31_F1
-TTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >31_B1
-AGCTGGTGAGTGGATCGT
+GCTGGTGAGTGGATCGTT
 >31_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >31_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 32 (length: 205bp) (penalty: 15.9153021) Total F:9.6 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 125-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 32 (length: 205bp) (penalty: 15.4059249) Total F:9.6 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 129-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >32_F3
 AACGTCAACTCTTTCTGGA
 >32_B3
@@ -537,14 +537,14 @@ GCGTCTGCATTTGTCTTAACT
 >32_F1
 ATTTCACCRGATGCAGAAGC
 >32_B1
-CTGGTGAGTGGATCGTTTG
+AGCTGGTGAGTGGATCG
 >32_FSTEM
 CCTCTGGAGACTTCGACAA
 >32_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 33 (length: 205bp) (penalty: 15.9902325) Total F:8.9 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 33 (length: 204bp) (penalty: 15.4059249) Total F:9.6 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 129-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >33_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >33_B3
 TGAATCCATAGACACGCC
 >33_F2
@@ -552,14 +552,14 @@ TCTATTGGTAGGAGTGAACAGT
 >33_B2
 GCGTCTGCATTTGTCTTAACT
 >33_F1
-TTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >33_B1
-AGCTGGTGAGTGGATCGT
+AGCTGGTGAGTGGATCG
 >33_FSTEM
 CCTCTGGAGACTTCGACAA
 >33_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 34 (length: 205bp) (penalty: 16.2829094) Total F:8.7 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 126-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 34 (length: 205bp) (penalty: 15.4097123) Total F:9.2 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-144)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
 >34_F3
 AACGTCAACTCTTTCTGGA
 >34_B3
@@ -571,14 +571,14 @@ GCGTCTGCATTTGTCTTAACT
 >34_F1
 TTTCACCRGATGCAGAAGC
 >34_B1
-GCTGGTGAGTGGATCGTTT
+GCTGGTGAGTGGATCGT
 >34_FSTEM
-CCTCTGGAGACTTCGACA
+ATCCTCTGGAGACTTCGAC
 >34_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 35 (length: 204bp) (penalty: 16.2829094) Total F:8.7 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 126-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 35 (length: 205bp) (penalty: 15.512351) Total F:9.3 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >35_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >35_B3
 TGAATCCATAGACACGCC
 >35_F2
@@ -586,16 +586,16 @@ TCTATTGGTAGGAGTGAACAGT
 >35_B2
 GCGTCTGCATTTGTCTTAACT
 >35_F1
-TTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >35_B1
-GCTGGTGAGTGGATCGTTT
+GCTGGTGAGTGGATCGT
 >35_FSTEM
 CCTCTGGAGACTTCGACA
 >35_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 36 (length: 205bp) (penalty: 16.4281838) Total F:9.3 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 36 (length: 204bp) (penalty: 15.512351) Total F:9.3 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >36_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >36_B3
 TGAATCCATAGACACGCC
 >36_F2
@@ -605,14 +605,14 @@ GCGTCTGCATTTGTCTTAACT
 >36_F1
 ATTTCACCRGATGCAGAAGC
 >36_B1
-AGCTGGTGAGTGGATCGT
+GCTGGTGAGTGGATCGT
 >36_FSTEM
 CCTCTGGAGACTTCGACA
 >36_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 37 (length: 204bp) (penalty: 16.4281838) Total F:9.3 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 37 (length: 205bp) (penalty: 15.5174325) Total F:9.6 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-142)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >37_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >37_B3
 TGAATCCATAGACACGCC
 >37_F2
@@ -622,14 +622,14 @@ GCGTCTGCATTTGTCTTAACT
 >37_F1
 ATTTCACCRGATGCAGAAGC
 >37_B1
-AGCTGGTGAGTGGATCGT
+TGGTGAGTGGATCGTTTGA
 >37_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >37_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 38 (length: 205bp) (penalty: 16.5201429) Total F:8.9 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 126-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 38 (length: 204bp) (penalty: 15.5174325) Total F:9.6 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-142)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >38_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >38_B3
 TGAATCCATAGACACGCC
 >38_F2
@@ -637,14 +637,14 @@ TCTATTGGTAGGAGTGAACAGT
 >38_B2
 GCGTCTGCATTTGTCTTAACT
 >38_F1
-TTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >38_B1
-GCTGGTGAGTGGATCGTTT
+TGGTGAGTGGATCGTTTGA
 >38_FSTEM
 CCTCTGGAGACTTCGACAA
 >38_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 39 (length: 205bp) (penalty: 16.6654173) Total F:9.6 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 39 (length: 205bp) (penalty: 15.5754299) Total F:9.2 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 125-143)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
 >39_F3
 AACGTCAACTCTTTCTGGA
 >39_B3
@@ -654,14 +654,14 @@ TCTATTGGTAGGAGTGAACAGT
 >39_B2
 GCGTCTGCATTTGTCTTAACT
 >39_F1
-ATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >39_B1
-AGCTGGTGAGTGGATCGT
+CTGGTGAGTGGATCGTTTG
 >39_FSTEM
-CCTCTGGAGACTTCGACAA
+ATCCTCTGGAGACTTCGAC
 >39_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 40 (length: 205bp) (penalty: 16.9580942) Total F:9.3 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 126-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 40 (length: 205bp) (penalty: 15.6473471) Total F:9.9 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 127-144)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
 >40_F3
 AACGTCAACTCTTTCTGGA
 >40_B3
@@ -673,14 +673,14 @@ GCGTCTGCATTTGTCTTAACT
 >40_F1
 ATTTCACCRGATGCAGAAGC
 >40_B1
-GCTGGTGAGTGGATCGTTT
+GCTGGTGAGTGGATCGTT
 >40_FSTEM
-CCTCTGGAGACTTCGACA
+ATCCTCTGGAGACTTCGAC
 >40_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 41 (length: 204bp) (penalty: 16.9580942) Total F:9.3 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 126-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 41 (length: 205bp) (penalty: 15.6780686) Total F:9.3 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 125-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >41_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >41_B3
 TGAATCCATAGACACGCC
 >41_F2
@@ -690,14 +690,14 @@ GCGTCTGCATTTGTCTTAACT
 >41_F1
 ATTTCACCRGATGCAGAAGC
 >41_B1
-GCTGGTGAGTGGATCGTTT
+CTGGTGAGTGGATCGTTTG
 >41_FSTEM
 CCTCTGGAGACTTCGACA
 >41_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 42 (length: 205bp) (penalty: 17.049785) Total F:8.7 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 124-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 42 (length: 204bp) (penalty: 15.6780686) Total F:9.3 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 125-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >42_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >42_B3
 TGAATCCATAGACACGCC
 >42_F2
@@ -705,16 +705,16 @@ TCTATTGGTAGGAGTGAACAGT
 >42_B2
 GCGTCTGCATTTGTCTTAACT
 >42_F1
-TTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >42_B1
-CTGGTGAGTGGATCGTTTGA
+CTGGTGAGTGGATCGTTTG
 >42_FSTEM
 CCTCTGGAGACTTCGACA
 >42_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 43 (length: 204bp) (penalty: 17.049785) Total F:8.7 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 124-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 43 (length: 205bp) (penalty: 15.7412375) Total F:9.9 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 129-145)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
 >43_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >43_B3
 TGAATCCATAGACACGCC
 >43_F2
@@ -722,14 +722,14 @@ TCTATTGGTAGGAGTGAACAGT
 >43_B2
 GCGTCTGCATTTGTCTTAACT
 >43_F1
-TTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >43_B1
-CTGGTGAGTGGATCGTTTGA
+AGCTGGTGAGTGGATCG
 >43_FSTEM
-CCTCTGGAGACTTCGACA
+ATCCTCTGGAGACTTCGAC
 >43_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 44 (length: 205bp) (penalty: 17.1953277) Total F:9.6 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 126-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 44 (length: 205bp) (penalty: 15.7495845) Total F:9.6 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >44_F3
 AACGTCAACTCTTTCTGGA
 >44_B3
@@ -741,14 +741,14 @@ GCGTCTGCATTTGTCTTAACT
 >44_F1
 ATTTCACCRGATGCAGAAGC
 >44_B1
-GCTGGTGAGTGGATCGTTT
+GCTGGTGAGTGGATCGT
 >44_FSTEM
 CCTCTGGAGACTTCGACAA
 >44_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 45 (length: 205bp) (penalty: 17.2870185) Total F:8.9 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 124-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 45 (length: 204bp) (penalty: 15.7495845) Total F:9.6 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >45_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >45_B3
 TGAATCCATAGACACGCC
 >45_F2
@@ -756,14 +756,14 @@ TCTATTGGTAGGAGTGAACAGT
 >45_B2
 GCGTCTGCATTTGTCTTAACT
 >45_F1
-TTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >45_B1
-CTGGTGAGTGGATCGTTTGA
+GCTGGTGAGTGGATCGT
 >45_FSTEM
 CCTCTGGAGACTTCGACAA
 >45_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 46 (length: 205bp) (penalty: 17.5266218) Total F:11.8 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 127-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 46 (length: 205bp) (penalty: 15.752999) Total F:8.7 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >46_F3
 AACGTCAACTCTTTCTGGA
 >46_B3
@@ -773,14 +773,14 @@ TCTATTGGTAGGAGTGAACAGT
 >46_B2
 GCGTCTGCATTTGTCTTAACT
 >46_F1
-CATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >46_B1
-GCTGGTGAGTGGATCGTT
+AGCTGGTGAGTGGATCGT
 >46_FSTEM
 CCTCTGGAGACTTCGACA
 >46_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 47 (length: 204bp) (penalty: 17.5266218) Total F:11.8 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 127-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 47 (length: 204bp) (penalty: 15.752999) Total F:8.7 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >47_F3
 ACGTCAACTCTTTCTGGAA
 >47_B3
@@ -790,14 +790,14 @@ TCTATTGGTAGGAGTGAACAGT
 >47_B2
 GCGTCTGCATTTGTCTTAACT
 >47_F1
-CATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >47_B1
-GCTGGTGAGTGGATCGTT
+AGCTGGTGAGTGGATCGT
 >47_FSTEM
 CCTCTGGAGACTTCGACA
 >47_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 48 (length: 205bp) (penalty: 17.6205122) Total F:11.8 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 129-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 48 (length: 205bp) (penalty: 15.8527451) Total F:9.9 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-142)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
 >48_F3
 AACGTCAACTCTTTCTGGA
 >48_B3
@@ -807,16 +807,16 @@ TCTATTGGTAGGAGTGAACAGT
 >48_B2
 GCGTCTGCATTTGTCTTAACT
 >48_F1
-CATTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >48_B1
-AGCTGGTGAGTGGATCG
+TGGTGAGTGGATCGTTTGA
 >48_FSTEM
-CCTCTGGAGACTTCGACA
+ATCCTCTGGAGACTTCGAC
 >48_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 49 (length: 204bp) (penalty: 17.6205122) Total F:11.8 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 129-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 49 (length: 205bp) (penalty: 15.9153021) Total F:9.6 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 125-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >49_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >49_B3
 TGAATCCATAGACACGCC
 >49_F2
@@ -824,16 +824,16 @@ TCTATTGGTAGGAGTGAACAGT
 >49_B2
 GCGTCTGCATTTGTCTTAACT
 >49_F1
-CATTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >49_B1
-AGCTGGTGAGTGGATCG
+CTGGTGAGTGGATCGTTTG
 >49_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >49_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 50 (length: 205bp) (penalty: 17.7249698) Total F:9.3 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 50 (length: 204bp) (penalty: 15.9153021) Total F:9.6 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 125-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >50_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >50_B3
 TGAATCCATAGACACGCC
 >50_F2
@@ -843,14 +843,14 @@ GCGTCTGCATTTGTCTTAACT
 >50_F1
 ATTTCACCRGATGCAGAAGC
 >50_B1
-CTGGTGAGTGGATCGTTTGA
+CTGGTGAGTGGATCGTTTG
 >50_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >50_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 51 (length: 204bp) (penalty: 17.7249698) Total F:9.3 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 51 (length: 205bp) (penalty: 15.9902325) Total F:8.9 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >51_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >51_B3
 TGAATCCATAGACACGCC
 >51_F2
@@ -858,16 +858,16 @@ TCTATTGGTAGGAGTGAACAGT
 >51_B2
 GCGTCTGCATTTGTCTTAACT
 >51_F1
-ATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >51_B1
-CTGGTGAGTGGATCGTTTGA
+AGCTGGTGAGTGGATCGT
 >51_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >51_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 52 (length: 205bp) (penalty: 17.7320198) Total F:11.8 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-142)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 52 (length: 204bp) (penalty: 15.9902325) Total F:8.9 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >52_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >52_B3
 TGAATCCATAGACACGCC
 >52_F2
@@ -875,16 +875,16 @@ TCTATTGGTAGGAGTGAACAGT
 >52_B2
 GCGTCTGCATTTGTCTTAACT
 >52_F1
-CATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >52_B1
-TGGTGAGTGGATCGTTTGA
+AGCTGGTGAGTGGATCGT
 >52_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >52_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 53 (length: 204bp) (penalty: 17.7320198) Total F:11.8 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-142)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 53 (length: 205bp) (penalty: 16.0848971) Total F:9.9 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-144)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
 >53_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >53_B3
 TGAATCCATAGACACGCC
 >53_F2
@@ -892,14 +892,14 @@ TCTATTGGTAGGAGTGAACAGT
 >53_B2
 GCGTCTGCATTTGTCTTAACT
 >53_F1
-CATTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >53_B1
-TGGTGAGTGGATCGTTTGA
+GCTGGTGAGTGGATCGT
 >53_FSTEM
-CCTCTGGAGACTTCGACA
+ATCCTCTGGAGACTTCGAC
 >53_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 54 (length: 205bp) (penalty: 17.7638553) Total F:12.0 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 127-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 54 (length: 205bp) (penalty: 16.2506147) Total F:9.9 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 125-143)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
 >54_F3
 AACGTCAACTCTTTCTGGA
 >54_B3
@@ -909,14 +909,14 @@ TCTATTGGTAGGAGTGAACAGT
 >54_B2
 GCGTCTGCATTTGTCTTAACT
 >54_F1
-CATTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >54_B1
-GCTGGTGAGTGGATCGTT
+CTGGTGAGTGGATCGTTTG
 >54_FSTEM
-CCTCTGGAGACTTCGACAA
+ATCCTCTGGAGACTTCGAC
 >54_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 55 (length: 205bp) (penalty: 17.8577457) Total F:12.0 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 129-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 55 (length: 205bp) (penalty: 16.2829094) Total F:8.7 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 126-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >55_F3
 AACGTCAACTCTTTCTGGA
 >55_B3
@@ -926,16 +926,16 @@ TCTATTGGTAGGAGTGAACAGT
 >55_B2
 GCGTCTGCATTTGTCTTAACT
 >55_F1
-CATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >55_B1
-AGCTGGTGAGTGGATCG
+GCTGGTGAGTGGATCGTTT
 >55_FSTEM
-CCTCTGGAGACTTCGACAA
+CCTCTGGAGACTTCGACA
 >55_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 56 (length: 205bp) (penalty: 17.9622033) Total F:9.6 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 56 (length: 204bp) (penalty: 16.2829094) Total F:8.7 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 126-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >56_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >56_B3
 TGAATCCATAGACACGCC
 >56_F2
@@ -943,14 +943,14 @@ TCTATTGGTAGGAGTGAACAGT
 >56_B2
 GCGTCTGCATTTGTCTTAACT
 >56_F1
-ATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >56_B1
-CTGGTGAGTGGATCGTTTGA
+GCTGGTGAGTGGATCGTTT
 >56_FSTEM
-CCTCTGGAGACTTCGACAA
+CCTCTGGAGACTTCGACA
 >56_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 57 (length: 205bp) (penalty: 17.9641718) Total F:11.8 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 57 (length: 205bp) (penalty: 16.3255451) Total F:9.2 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 128-145)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
 >57_F3
 AACGTCAACTCTTTCTGGA
 >57_B3
@@ -960,16 +960,16 @@ TCTATTGGTAGGAGTGAACAGT
 >57_B2
 GCGTCTGCATTTGTCTTAACT
 >57_F1
-CATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >57_B1
-GCTGGTGAGTGGATCGT
+AGCTGGTGAGTGGATCGT
 >57_FSTEM
-CCTCTGGAGACTTCGACA
+ATCCTCTGGAGACTTCGAC
 >57_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 58 (length: 204bp) (penalty: 17.9641718) Total F:11.8 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 58 (length: 205bp) (penalty: 16.4281838) Total F:9.3 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >58_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >58_B3
 TGAATCCATAGACACGCC
 >58_F2
@@ -977,16 +977,16 @@ TCTATTGGTAGGAGTGAACAGT
 >58_B2
 GCGTCTGCATTTGTCTTAACT
 >58_F1
-CATTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >58_B1
-GCTGGTGAGTGGATCGT
+AGCTGGTGAGTGGATCGT
 >58_FSTEM
 CCTCTGGAGACTTCGACA
 >58_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 59 (length: 205bp) (penalty: 17.9692533) Total F:12.0 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-142)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 59 (length: 204bp) (penalty: 16.4281838) Total F:9.3 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >59_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >59_B3
 TGAATCCATAGACACGCC
 >59_F2
@@ -994,14 +994,14 @@ TCTATTGGTAGGAGTGAACAGT
 >59_B2
 GCGTCTGCATTTGTCTTAACT
 >59_F1
-CATTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >59_B1
-TGGTGAGTGGATCGTTTGA
+AGCTGGTGAGTGGATCGT
 >59_FSTEM
-CCTCTGGAGACTTCGACAA
+CCTCTGGAGACTTCGACA
 >59_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 60 (length: 205bp) (penalty: 18.1298894) Total F:11.8 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 125-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 60 (length: 205bp) (penalty: 16.5201429) Total F:8.9 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 126-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >60_F3
 AACGTCAACTCTTTCTGGA
 >60_B3
@@ -1011,14 +1011,14 @@ TCTATTGGTAGGAGTGAACAGT
 >60_B2
 GCGTCTGCATTTGTCTTAACT
 >60_F1
-CATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >60_B1
-CTGGTGAGTGGATCGTTTG
+GCTGGTGAGTGGATCGTTT
 >60_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >60_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 61 (length: 204bp) (penalty: 18.1298894) Total F:11.8 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 125-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 61 (length: 204bp) (penalty: 16.5201429) Total F:8.9 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 126-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >61_F3
 ACGTCAACTCTTTCTGGAA
 >61_B3
@@ -1028,14 +1028,14 @@ TCTATTGGTAGGAGTGAACAGT
 >61_B2
 GCGTCTGCATTTGTCTTAACT
 >61_F1
-CATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >61_B1
-CTGGTGAGTGGATCGTTTG
+GCTGGTGAGTGGATCGTTT
 >61_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >61_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 62 (length: 205bp) (penalty: 18.2014053) Total F:12.0 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 62 (length: 205bp) (penalty: 16.6654173) Total F:9.6 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >62_F3
 AACGTCAACTCTTTCTGGA
 >62_B3
@@ -1045,16 +1045,16 @@ TCTATTGGTAGGAGTGAACAGT
 >62_B2
 GCGTCTGCATTTGTCTTAACT
 >62_F1
-CATTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >62_B1
-GCTGGTGAGTGGATCGT
+AGCTGGTGAGTGGATCGT
 >62_FSTEM
 CCTCTGGAGACTTCGACAA
 >62_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 63 (length: 205bp) (penalty: 18.3671229) Total F:12.0 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 125-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 63 (length: 204bp) (penalty: 16.6654173) Total F:9.6 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >63_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >63_B3
 TGAATCCATAGACACGCC
 >63_F2
@@ -1062,14 +1062,14 @@ TCTATTGGTAGGAGTGAACAGT
 >63_B2
 GCGTCTGCATTTGTCTTAACT
 >63_F1
-CATTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >63_B1
-CTGGTGAGTGGATCGTTTG
+AGCTGGTGAGTGGATCGT
 >63_FSTEM
 CCTCTGGAGACTTCGACAA
 >63_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 64 (length: 205bp) (penalty: 18.8800046) Total F:11.8 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 64 (length: 205bp) (penalty: 16.8554555) Total F:9.2 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 126-144)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
 >64_F3
 AACGTCAACTCTTTCTGGA
 >64_B3
@@ -1079,16 +1079,16 @@ TCTATTGGTAGGAGTGAACAGT
 >64_B2
 GCGTCTGCATTTGTCTTAACT
 >64_F1
-CATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >64_B1
-AGCTGGTGAGTGGATCGT
+GCTGGTGAGTGGATCGTTT
 >64_FSTEM
-CCTCTGGAGACTTCGACA
+ATCCTCTGGAGACTTCGAC
 >64_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 65 (length: 204bp) (penalty: 18.8800046) Total F:11.8 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 65 (length: 205bp) (penalty: 16.9580942) Total F:9.3 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 126-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >65_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >65_B3
 TGAATCCATAGACACGCC
 >65_F2
@@ -1096,16 +1096,16 @@ TCTATTGGTAGGAGTGAACAGT
 >65_B2
 GCGTCTGCATTTGTCTTAACT
 >65_F1
-CATTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >65_B1
-AGCTGGTGAGTGGATCGT
+GCTGGTGAGTGGATCGTTT
 >65_FSTEM
 CCTCTGGAGACTTCGACA
 >65_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 66 (length: 205bp) (penalty: 19.1172381) Total F:12.0 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 66 (length: 204bp) (penalty: 16.9580942) Total F:9.3 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 126-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >66_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >66_B3
 TGAATCCATAGACACGCC
 >66_F2
@@ -1113,14 +1113,14 @@ TCTATTGGTAGGAGTGAACAGT
 >66_B2
 GCGTCTGCATTTGTCTTAACT
 >66_F1
-CATTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >66_B1
-AGCTGGTGAGTGGATCGT
+GCTGGTGAGTGGATCGTTT
 >66_FSTEM
-CCTCTGGAGACTTCGACAA
+CCTCTGGAGACTTCGACA
 >66_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 67 (length: 205bp) (penalty: 19.409915) Total F:11.8 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 126-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 67 (length: 205bp) (penalty: 17.0007299) Total F:9.9 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 128-145)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
 >67_F3
 AACGTCAACTCTTTCTGGA
 >67_B3
@@ -1130,16 +1130,16 @@ TCTATTGGTAGGAGTGAACAGT
 >67_B2
 GCGTCTGCATTTGTCTTAACT
 >67_F1
-CATTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >67_B1
-GCTGGTGAGTGGATCGTTT
+AGCTGGTGAGTGGATCGT
 >67_FSTEM
-CCTCTGGAGACTTCGACA
+ATCCTCTGGAGACTTCGAC
 >67_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 68 (length: 204bp) (penalty: 19.409915) Total F:11.8 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 126-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 68 (length: 205bp) (penalty: 17.049785) Total F:8.7 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 124-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >68_F3
-ACGTCAACTCTTTCTGGAA
+AACGTCAACTCTTTCTGGA
 >68_B3
 TGAATCCATAGACACGCC
 >68_F2
@@ -1147,16 +1147,16 @@ TCTATTGGTAGGAGTGAACAGT
 >68_B2
 GCGTCTGCATTTGTCTTAACT
 >68_F1
-CATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >68_B1
-GCTGGTGAGTGGATCGTTT
+CTGGTGAGTGGATCGTTTGA
 >68_FSTEM
 CCTCTGGAGACTTCGACA
 >68_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 69 (length: 205bp) (penalty: 19.6471485) Total F:12.0 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 126-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 69 (length: 204bp) (penalty: 17.049785) Total F:8.7 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 124-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
 >69_F3
-AACGTCAACTCTTTCTGGA
+ACGTCAACTCTTTCTGGAA
 >69_B3
 TGAATCCATAGACACGCC
 >69_F2
@@ -1164,14 +1164,14 @@ TCTATTGGTAGGAGTGAACAGT
 >69_B2
 GCGTCTGCATTTGTCTTAACT
 >69_F1
-CATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >69_B1
-GCTGGTGAGTGGATCGTTT
+CTGGTGAGTGGATCGTTTGA
 >69_FSTEM
-CCTCTGGAGACTTCGACAA
+CCTCTGGAGACTTCGACA
 >69_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 70 (length: 205bp) (penalty: 20.1767906) Total F:11.8 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 70 (length: 205bp) (penalty: 17.1953277) Total F:9.6 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 126-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >70_F3
 AACGTCAACTCTTTCTGGA
 >70_B3
@@ -1181,14 +1181,14 @@ TCTATTGGTAGGAGTGAACAGT
 >70_B2
 GCGTCTGCATTTGTCTTAACT
 >70_F1
-CATTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >70_B1
-CTGGTGAGTGGATCGTTTGA
+GCTGGTGAGTGGATCGTTT
 >70_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >70_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 71 (length: 204bp) (penalty: 20.1767906) Total F:11.8 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+Signature 71 (length: 204bp) (penalty: 17.1953277) Total F:9.6 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 126-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >71_F3
 ACGTCAACTCTTTCTGGAA
 >71_B3
@@ -1198,14 +1198,14 @@ TCTATTGGTAGGAGTGAACAGT
 >71_B2
 GCGTCTGCATTTGTCTTAACT
 >71_F1
-CATTTCACCRGATGCAGAAGC
+ATTTCACCRGATGCAGAAGC
 >71_B1
-CTGGTGAGTGGATCGTTTGA
+GCTGGTGAGTGGATCGTTT
 >71_FSTEM
-CCTCTGGAGACTTCGACA
+CCTCTGGAGACTTCGACAA
 >71_BSTEM
 TGGACCATCTGATTCTGCT
-Signature 72 (length: 205bp) (penalty: 20.4140241) Total F:12.0 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+Signature 72 (length: 205bp) (penalty: 17.2870185) Total F:8.9 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 124-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
 >72_F3
 AACGTCAACTCTTTCTGGA
 >72_B3
@@ -1215,10 +1215,826 @@ TCTATTGGTAGGAGTGAACAGT
 >72_B2
 GCGTCTGCATTTGTCTTAACT
 >72_F1
-CATTTCACCRGATGCAGAAGC
+TTTCACCRGATGCAGAAGC
 >72_B1
 CTGGTGAGTGGATCGTTTGA
 >72_FSTEM
 CCTCTGGAGACTTCGACAA
 >72_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 73 (length: 204bp) (penalty: 17.2870185) Total F:8.9 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 124-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>73_F3
+ACGTCAACTCTTTCTGGAA
+>73_B3
+TGAATCCATAGACACGCC
+>73_F2
+TCTATTGGTAGGAGTGAACAGT
+>73_B2
+GCGTCTGCATTTGTCTTAACT
+>73_F1
+TTTCACCRGATGCAGAAGC
+>73_B1
+CTGGTGAGTGGATCGTTTGA
+>73_FSTEM
+CCTCTGGAGACTTCGACAA
+>73_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 74 (length: 205bp) (penalty: 17.5266218) Total F:11.8 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 127-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>74_F3
+AACGTCAACTCTTTCTGGA
+>74_B3
+TGAATCCATAGACACGCC
+>74_F2
+TCTATTGGTAGGAGTGAACAGT
+>74_B2
+GCGTCTGCATTTGTCTTAACT
+>74_F1
+CATTTCACCRGATGCAGAAGC
+>74_B1
+GCTGGTGAGTGGATCGTT
+>74_FSTEM
+CCTCTGGAGACTTCGACA
+>74_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 75 (length: 204bp) (penalty: 17.5266218) Total F:11.8 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 127-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>75_F3
+ACGTCAACTCTTTCTGGAA
+>75_B3
+TGAATCCATAGACACGCC
+>75_F2
+TCTATTGGTAGGAGTGAACAGT
+>75_B2
+GCGTCTGCATTTGTCTTAACT
+>75_F1
+CATTTCACCRGATGCAGAAGC
+>75_B1
+GCTGGTGAGTGGATCGTT
+>75_FSTEM
+CCTCTGGAGACTTCGACA
+>75_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 76 (length: 205bp) (penalty: 17.5306403) Total F:9.9 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 126-144)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
+>76_F3
+AACGTCAACTCTTTCTGGA
+>76_B3
+TGAATCCATAGACACGCC
+>76_F2
+TCTATTGGTAGGAGTGAACAGT
+>76_B2
+GCGTCTGCATTTGTCTTAACT
+>76_F1
+ATTTCACCRGATGCAGAAGC
+>76_B1
+GCTGGTGAGTGGATCGTTT
+>76_FSTEM
+ATCCTCTGGAGACTTCGAC
+>76_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 77 (length: 205bp) (penalty: 17.6205122) Total F:11.8 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 129-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>77_F3
+AACGTCAACTCTTTCTGGA
+>77_B3
+TGAATCCATAGACACGCC
+>77_F2
+TCTATTGGTAGGAGTGAACAGT
+>77_B2
+GCGTCTGCATTTGTCTTAACT
+>77_F1
+CATTTCACCRGATGCAGAAGC
+>77_B1
+AGCTGGTGAGTGGATCG
+>77_FSTEM
+CCTCTGGAGACTTCGACA
+>77_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 78 (length: 204bp) (penalty: 17.6205122) Total F:11.8 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 129-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>78_F3
+ACGTCAACTCTTTCTGGAA
+>78_B3
+TGAATCCATAGACACGCC
+>78_F2
+TCTATTGGTAGGAGTGAACAGT
+>78_B2
+GCGTCTGCATTTGTCTTAACT
+>78_F1
+CATTTCACCRGATGCAGAAGC
+>78_B1
+AGCTGGTGAGTGGATCG
+>78_FSTEM
+CCTCTGGAGACTTCGACA
+>78_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 79 (length: 205bp) (penalty: 17.6223311) Total F:9.2 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.8 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 47-65, B1: 124-143)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
+>79_F3
+AACGTCAACTCTTTCTGGA
+>79_B3
+TGAATCCATAGACACGCC
+>79_F2
+TCTATTGGTAGGAGTGAACAGT
+>79_B2
+GCGTCTGCATTTGTCTTAACT
+>79_F1
+TTTCACCRGATGCAGAAGC
+>79_B1
+CTGGTGAGTGGATCGTTTGA
+>79_FSTEM
+ATCCTCTGGAGACTTCGAC
+>79_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 80 (length: 205bp) (penalty: 17.7249698) Total F:9.3 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>80_F3
+AACGTCAACTCTTTCTGGA
+>80_B3
+TGAATCCATAGACACGCC
+>80_F2
+TCTATTGGTAGGAGTGAACAGT
+>80_B2
+GCGTCTGCATTTGTCTTAACT
+>80_F1
+ATTTCACCRGATGCAGAAGC
+>80_B1
+CTGGTGAGTGGATCGTTTGA
+>80_FSTEM
+CCTCTGGAGACTTCGACA
+>80_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 81 (length: 204bp) (penalty: 17.7249698) Total F:9.3 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>81_F3
+ACGTCAACTCTTTCTGGAA
+>81_B3
+TGAATCCATAGACACGCC
+>81_F2
+TCTATTGGTAGGAGTGAACAGT
+>81_B2
+GCGTCTGCATTTGTCTTAACT
+>81_F1
+ATTTCACCRGATGCAGAAGC
+>81_B1
+CTGGTGAGTGGATCGTTTGA
+>81_FSTEM
+CCTCTGGAGACTTCGACA
+>81_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 82 (length: 205bp) (penalty: 17.7320198) Total F:11.8 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-142)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>82_F3
+AACGTCAACTCTTTCTGGA
+>82_B3
+TGAATCCATAGACACGCC
+>82_F2
+TCTATTGGTAGGAGTGAACAGT
+>82_B2
+GCGTCTGCATTTGTCTTAACT
+>82_F1
+CATTTCACCRGATGCAGAAGC
+>82_B1
+TGGTGAGTGGATCGTTTGA
+>82_FSTEM
+CCTCTGGAGACTTCGACA
+>82_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 83 (length: 204bp) (penalty: 17.7320198) Total F:11.8 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-142)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>83_F3
+ACGTCAACTCTTTCTGGAA
+>83_B3
+TGAATCCATAGACACGCC
+>83_F2
+TCTATTGGTAGGAGTGAACAGT
+>83_B2
+GCGTCTGCATTTGTCTTAACT
+>83_F1
+CATTTCACCRGATGCAGAAGC
+>83_B1
+TGGTGAGTGGATCGTTTGA
+>83_FSTEM
+CCTCTGGAGACTTCGACA
+>83_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 84 (length: 205bp) (penalty: 17.7638553) Total F:12.0 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 127-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>84_F3
+AACGTCAACTCTTTCTGGA
+>84_B3
+TGAATCCATAGACACGCC
+>84_F2
+TCTATTGGTAGGAGTGAACAGT
+>84_B2
+GCGTCTGCATTTGTCTTAACT
+>84_F1
+CATTTCACCRGATGCAGAAGC
+>84_B1
+GCTGGTGAGTGGATCGTT
+>84_FSTEM
+CCTCTGGAGACTTCGACAA
+>84_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 85 (length: 204bp) (penalty: 17.7638553) Total F:12.0 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 127-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>85_F3
+ACGTCAACTCTTTCTGGAA
+>85_B3
+TGAATCCATAGACACGCC
+>85_F2
+TCTATTGGTAGGAGTGAACAGT
+>85_B2
+GCGTCTGCATTTGTCTTAACT
+>85_F1
+CATTTCACCRGATGCAGAAGC
+>85_B1
+GCTGGTGAGTGGATCGTT
+>85_FSTEM
+CCTCTGGAGACTTCGACAA
+>85_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 86 (length: 205bp) (penalty: 17.8577457) Total F:12.0 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 129-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>86_F3
+AACGTCAACTCTTTCTGGA
+>86_B3
+TGAATCCATAGACACGCC
+>86_F2
+TCTATTGGTAGGAGTGAACAGT
+>86_B2
+GCGTCTGCATTTGTCTTAACT
+>86_F1
+CATTTCACCRGATGCAGAAGC
+>86_B1
+AGCTGGTGAGTGGATCG
+>86_FSTEM
+CCTCTGGAGACTTCGACAA
+>86_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 87 (length: 204bp) (penalty: 17.8577457) Total F:12.0 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 129-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>87_F3
+ACGTCAACTCTTTCTGGAA
+>87_B3
+TGAATCCATAGACACGCC
+>87_F2
+TCTATTGGTAGGAGTGAACAGT
+>87_B2
+GCGTCTGCATTTGTCTTAACT
+>87_F1
+CATTTCACCRGATGCAGAAGC
+>87_B1
+AGCTGGTGAGTGGATCG
+>87_FSTEM
+CCTCTGGAGACTTCGACAA
+>87_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 88 (length: 205bp) (penalty: 17.9622033) Total F:9.6 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>88_F3
+AACGTCAACTCTTTCTGGA
+>88_B3
+TGAATCCATAGACACGCC
+>88_F2
+TCTATTGGTAGGAGTGAACAGT
+>88_B2
+GCGTCTGCATTTGTCTTAACT
+>88_F1
+ATTTCACCRGATGCAGAAGC
+>88_B1
+CTGGTGAGTGGATCGTTTGA
+>88_FSTEM
+CCTCTGGAGACTTCGACAA
+>88_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 89 (length: 204bp) (penalty: 17.9622033) Total F:9.6 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>89_F3
+ACGTCAACTCTTTCTGGAA
+>89_B3
+TGAATCCATAGACACGCC
+>89_F2
+TCTATTGGTAGGAGTGAACAGT
+>89_B2
+GCGTCTGCATTTGTCTTAACT
+>89_F1
+ATTTCACCRGATGCAGAAGC
+>89_B1
+CTGGTGAGTGGATCGTTTGA
+>89_FSTEM
+CCTCTGGAGACTTCGACAA
+>89_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 90 (length: 205bp) (penalty: 17.9641718) Total F:11.8 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>90_F3
+AACGTCAACTCTTTCTGGA
+>90_B3
+TGAATCCATAGACACGCC
+>90_F2
+TCTATTGGTAGGAGTGAACAGT
+>90_B2
+GCGTCTGCATTTGTCTTAACT
+>90_F1
+CATTTCACCRGATGCAGAAGC
+>90_B1
+GCTGGTGAGTGGATCGT
+>90_FSTEM
+CCTCTGGAGACTTCGACA
+>90_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 91 (length: 204bp) (penalty: 17.9641718) Total F:11.8 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>91_F3
+ACGTCAACTCTTTCTGGAA
+>91_B3
+TGAATCCATAGACACGCC
+>91_F2
+TCTATTGGTAGGAGTGAACAGT
+>91_B2
+GCGTCTGCATTTGTCTTAACT
+>91_F1
+CATTTCACCRGATGCAGAAGC
+>91_B1
+GCTGGTGAGTGGATCGT
+>91_FSTEM
+CCTCTGGAGACTTCGACA
+>91_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 92 (length: 205bp) (penalty: 17.9692533) Total F:12.0 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-142)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>92_F3
+AACGTCAACTCTTTCTGGA
+>92_B3
+TGAATCCATAGACACGCC
+>92_F2
+TCTATTGGTAGGAGTGAACAGT
+>92_B2
+GCGTCTGCATTTGTCTTAACT
+>92_F1
+CATTTCACCRGATGCAGAAGC
+>92_B1
+TGGTGAGTGGATCGTTTGA
+>92_FSTEM
+CCTCTGGAGACTTCGACAA
+>92_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 93 (length: 204bp) (penalty: 17.9692533) Total F:12.0 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-142)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>93_F3
+ACGTCAACTCTTTCTGGAA
+>93_B3
+TGAATCCATAGACACGCC
+>93_F2
+TCTATTGGTAGGAGTGAACAGT
+>93_B2
+GCGTCTGCATTTGTCTTAACT
+>93_F1
+CATTTCACCRGATGCAGAAGC
+>93_B1
+TGGTGAGTGGATCGTTTGA
+>93_FSTEM
+CCTCTGGAGACTTCGACAA
+>93_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 94 (length: 205bp) (penalty: 18.0991679) Total F:12.4 R:5.7 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.1 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 127-144)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
+>94_F3
+AACGTCAACTCTTTCTGGA
+>94_B3
+TGAATCCATAGACACGCC
+>94_F2
+TCTATTGGTAGGAGTGAACAGT
+>94_B2
+GCGTCTGCATTTGTCTTAACT
+>94_F1
+CATTTCACCRGATGCAGAAGC
+>94_B1
+GCTGGTGAGTGGATCGTT
+>94_FSTEM
+ATCCTCTGGAGACTTCGAC
+>94_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 95 (length: 205bp) (penalty: 18.1298894) Total F:11.8 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 125-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>95_F3
+AACGTCAACTCTTTCTGGA
+>95_B3
+TGAATCCATAGACACGCC
+>95_F2
+TCTATTGGTAGGAGTGAACAGT
+>95_B2
+GCGTCTGCATTTGTCTTAACT
+>95_F1
+CATTTCACCRGATGCAGAAGC
+>95_B1
+CTGGTGAGTGGATCGTTTG
+>95_FSTEM
+CCTCTGGAGACTTCGACA
+>95_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 96 (length: 204bp) (penalty: 18.1298894) Total F:11.8 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 125-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>96_F3
+ACGTCAACTCTTTCTGGAA
+>96_B3
+TGAATCCATAGACACGCC
+>96_F2
+TCTATTGGTAGGAGTGAACAGT
+>96_B2
+GCGTCTGCATTTGTCTTAACT
+>96_F1
+CATTTCACCRGATGCAGAAGC
+>96_B1
+CTGGTGAGTGGATCGTTTG
+>96_FSTEM
+CCTCTGGAGACTTCGACA
+>96_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 97 (length: 205bp) (penalty: 18.1930583) Total F:12.4 R:5.8 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.2 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 129-145)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
+>97_F3
+AACGTCAACTCTTTCTGGA
+>97_B3
+TGAATCCATAGACACGCC
+>97_F2
+TCTATTGGTAGGAGTGAACAGT
+>97_B2
+GCGTCTGCATTTGTCTTAACT
+>97_F1
+CATTTCACCRGATGCAGAAGC
+>97_B1
+AGCTGGTGAGTGGATCG
+>97_FSTEM
+ATCCTCTGGAGACTTCGAC
+>97_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 98 (length: 205bp) (penalty: 18.2014053) Total F:12.0 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>98_F3
+AACGTCAACTCTTTCTGGA
+>98_B3
+TGAATCCATAGACACGCC
+>98_F2
+TCTATTGGTAGGAGTGAACAGT
+>98_B2
+GCGTCTGCATTTGTCTTAACT
+>98_F1
+CATTTCACCRGATGCAGAAGC
+>98_B1
+GCTGGTGAGTGGATCGT
+>98_FSTEM
+CCTCTGGAGACTTCGACAA
+>98_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 99 (length: 204bp) (penalty: 18.2014053) Total F:12.0 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>99_F3
+ACGTCAACTCTTTCTGGAA
+>99_B3
+TGAATCCATAGACACGCC
+>99_F2
+TCTATTGGTAGGAGTGAACAGT
+>99_B2
+GCGTCTGCATTTGTCTTAACT
+>99_F1
+CATTTCACCRGATGCAGAAGC
+>99_B1
+GCTGGTGAGTGGATCGT
+>99_FSTEM
+CCTCTGGAGACTTCGACAA
+>99_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 100 (length: 205bp) (penalty: 18.2975159) Total F:9.9 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 46-65, B1: 124-143)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
+>100_F3
+AACGTCAACTCTTTCTGGA
+>100_B3
+TGAATCCATAGACACGCC
+>100_F2
+TCTATTGGTAGGAGTGAACAGT
+>100_B2
+GCGTCTGCATTTGTCTTAACT
+>100_F1
+ATTTCACCRGATGCAGAAGC
+>100_B1
+CTGGTGAGTGGATCGTTTGA
+>100_FSTEM
+ATCCTCTGGAGACTTCGAC
+>100_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 101 (length: 205bp) (penalty: 18.3045659) Total F:12.4 R:6.0 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.3 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-142)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
+>101_F3
+AACGTCAACTCTTTCTGGA
+>101_B3
+TGAATCCATAGACACGCC
+>101_F2
+TCTATTGGTAGGAGTGAACAGT
+>101_B2
+GCGTCTGCATTTGTCTTAACT
+>101_F1
+CATTTCACCRGATGCAGAAGC
+>101_B1
+TGGTGAGTGGATCGTTTGA
+>101_FSTEM
+ATCCTCTGGAGACTTCGAC
+>101_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 102 (length: 205bp) (penalty: 18.3671229) Total F:12.0 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 125-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>102_F3
+AACGTCAACTCTTTCTGGA
+>102_B3
+TGAATCCATAGACACGCC
+>102_F2
+TCTATTGGTAGGAGTGAACAGT
+>102_B2
+GCGTCTGCATTTGTCTTAACT
+>102_F1
+CATTTCACCRGATGCAGAAGC
+>102_B1
+CTGGTGAGTGGATCGTTTG
+>102_FSTEM
+CCTCTGGAGACTTCGACAA
+>102_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 103 (length: 204bp) (penalty: 18.3671229) Total F:12.0 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 125-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>103_F3
+ACGTCAACTCTTTCTGGAA
+>103_B3
+TGAATCCATAGACACGCC
+>103_F2
+TCTATTGGTAGGAGTGAACAGT
+>103_B2
+GCGTCTGCATTTGTCTTAACT
+>103_F1
+CATTTCACCRGATGCAGAAGC
+>103_B1
+CTGGTGAGTGGATCGTTTG
+>103_FSTEM
+CCTCTGGAGACTTCGACAA
+>103_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 104 (length: 205bp) (penalty: 18.5367179) Total F:12.4 R:6.2 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.6 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-144)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
+>104_F3
+AACGTCAACTCTTTCTGGA
+>104_B3
+TGAATCCATAGACACGCC
+>104_F2
+TCTATTGGTAGGAGTGAACAGT
+>104_B2
+GCGTCTGCATTTGTCTTAACT
+>104_F1
+CATTTCACCRGATGCAGAAGC
+>104_B1
+GCTGGTGAGTGGATCGT
+>104_FSTEM
+ATCCTCTGGAGACTTCGAC
+>104_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 105 (length: 205bp) (penalty: 18.7024355) Total F:12.4 R:6.3 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:1.7 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 125-143)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
+>105_F3
+AACGTCAACTCTTTCTGGA
+>105_B3
+TGAATCCATAGACACGCC
+>105_F2
+TCTATTGGTAGGAGTGAACAGT
+>105_B2
+GCGTCTGCATTTGTCTTAACT
+>105_F1
+CATTTCACCRGATGCAGAAGC
+>105_B1
+CTGGTGAGTGGATCGTTTG
+>105_FSTEM
+ATCCTCTGGAGACTTCGAC
+>105_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 106 (length: 205bp) (penalty: 18.8800046) Total F:11.8 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>106_F3
+AACGTCAACTCTTTCTGGA
+>106_B3
+TGAATCCATAGACACGCC
+>106_F2
+TCTATTGGTAGGAGTGAACAGT
+>106_B2
+GCGTCTGCATTTGTCTTAACT
+>106_F1
+CATTTCACCRGATGCAGAAGC
+>106_B1
+AGCTGGTGAGTGGATCGT
+>106_FSTEM
+CCTCTGGAGACTTCGACA
+>106_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 107 (length: 204bp) (penalty: 18.8800046) Total F:11.8 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-145)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>107_F3
+ACGTCAACTCTTTCTGGAA
+>107_B3
+TGAATCCATAGACACGCC
+>107_F2
+TCTATTGGTAGGAGTGAACAGT
+>107_B2
+GCGTCTGCATTTGTCTTAACT
+>107_F1
+CATTTCACCRGATGCAGAAGC
+>107_B1
+AGCTGGTGAGTGGATCGT
+>107_FSTEM
+CCTCTGGAGACTTCGACA
+>107_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 108 (length: 205bp) (penalty: 19.1172381) Total F:12.0 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>108_F3
+AACGTCAACTCTTTCTGGA
+>108_B3
+TGAATCCATAGACACGCC
+>108_F2
+TCTATTGGTAGGAGTGAACAGT
+>108_B2
+GCGTCTGCATTTGTCTTAACT
+>108_F1
+CATTTCACCRGATGCAGAAGC
+>108_B1
+AGCTGGTGAGTGGATCGT
+>108_FSTEM
+CCTCTGGAGACTTCGACAA
+>108_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 109 (length: 204bp) (penalty: 19.1172381) Total F:12.0 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-145)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>109_F3
+ACGTCAACTCTTTCTGGAA
+>109_B3
+TGAATCCATAGACACGCC
+>109_F2
+TCTATTGGTAGGAGTGAACAGT
+>109_B2
+GCGTCTGCATTTGTCTTAACT
+>109_F1
+CATTTCACCRGATGCAGAAGC
+>109_B1
+AGCTGGTGAGTGGATCGT
+>109_FSTEM
+CCTCTGGAGACTTCGACAA
+>109_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 110 (length: 205bp) (penalty: 19.409915) Total F:11.8 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 126-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>110_F3
+AACGTCAACTCTTTCTGGA
+>110_B3
+TGAATCCATAGACACGCC
+>110_F2
+TCTATTGGTAGGAGTGAACAGT
+>110_B2
+GCGTCTGCATTTGTCTTAACT
+>110_F1
+CATTTCACCRGATGCAGAAGC
+>110_B1
+GCTGGTGAGTGGATCGTTT
+>110_FSTEM
+CCTCTGGAGACTTCGACA
+>110_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 111 (length: 204bp) (penalty: 19.409915) Total F:11.8 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 126-144)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>111_F3
+ACGTCAACTCTTTCTGGAA
+>111_B3
+TGAATCCATAGACACGCC
+>111_F2
+TCTATTGGTAGGAGTGAACAGT
+>111_B2
+GCGTCTGCATTTGTCTTAACT
+>111_F1
+CATTTCACCRGATGCAGAAGC
+>111_B1
+GCTGGTGAGTGGATCGTTT
+>111_FSTEM
+CCTCTGGAGACTTCGACA
+>111_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 112 (length: 205bp) (penalty: 19.4525507) Total F:12.4 R:7.1 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:2.5 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 128-145)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
+>112_F3
+AACGTCAACTCTTTCTGGA
+>112_B3
+TGAATCCATAGACACGCC
+>112_F2
+TCTATTGGTAGGAGTGAACAGT
+>112_B2
+GCGTCTGCATTTGTCTTAACT
+>112_F1
+CATTTCACCRGATGCAGAAGC
+>112_B1
+AGCTGGTGAGTGGATCGT
+>112_FSTEM
+ATCCTCTGGAGACTTCGAC
+>112_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 113 (length: 205bp) (penalty: 19.6471485) Total F:12.0 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 126-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>113_F3
+AACGTCAACTCTTTCTGGA
+>113_B3
+TGAATCCATAGACACGCC
+>113_F2
+TCTATTGGTAGGAGTGAACAGT
+>113_B2
+GCGTCTGCATTTGTCTTAACT
+>113_F1
+CATTTCACCRGATGCAGAAGC
+>113_B1
+GCTGGTGAGTGGATCGTTT
+>113_FSTEM
+CCTCTGGAGACTTCGACAA
+>113_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 114 (length: 204bp) (penalty: 19.6471485) Total F:12.0 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 126-144)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>114_F3
+ACGTCAACTCTTTCTGGAA
+>114_B3
+TGAATCCATAGACACGCC
+>114_F2
+TCTATTGGTAGGAGTGAACAGT
+>114_B2
+GCGTCTGCATTTGTCTTAACT
+>114_F1
+CATTTCACCRGATGCAGAAGC
+>114_B1
+GCTGGTGAGTGGATCGTTT
+>114_FSTEM
+CCTCTGGAGACTTCGACAA
+>114_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 115 (length: 205bp) (penalty: 19.9824611) Total F:12.4 R:7.6 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.0 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 126-144)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
+>115_F3
+AACGTCAACTCTTTCTGGA
+>115_B3
+TGAATCCATAGACACGCC
+>115_F2
+TCTATTGGTAGGAGTGAACAGT
+>115_B2
+GCGTCTGCATTTGTCTTAACT
+>115_F1
+CATTTCACCRGATGCAGAAGC
+>115_B1
+GCTGGTGAGTGGATCGTTT
+>115_FSTEM
+ATCCTCTGGAGACTTCGAC
+>115_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 116 (length: 205bp) (penalty: 20.1767906) Total F:11.8 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>116_F3
+AACGTCAACTCTTTCTGGA
+>116_B3
+TGAATCCATAGACACGCC
+>116_F2
+TCTATTGGTAGGAGTGAACAGT
+>116_B2
+GCGTCTGCATTTGTCTTAACT
+>116_F1
+CATTTCACCRGATGCAGAAGC
+>116_B1
+CTGGTGAGTGGATCGTTTGA
+>116_FSTEM
+CCTCTGGAGACTTCGACA
+>116_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 117 (length: 204bp) (penalty: 20.1767906) Total F:11.8 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.5 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-143)) STEM (locations: (STEM F: 83-100, STEM B: 105-123))
+>117_F3
+ACGTCAACTCTTTCTGGAA
+>117_B3
+TGAATCCATAGACACGCC
+>117_F2
+TCTATTGGTAGGAGTGAACAGT
+>117_B2
+GCGTCTGCATTTGTCTTAACT
+>117_F1
+CATTTCACCRGATGCAGAAGC
+>117_B1
+CTGGTGAGTGGATCGTTTGA
+>117_FSTEM
+CCTCTGGAGACTTCGACA
+>117_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 118 (length: 205bp) (penalty: 20.4140241) Total F:12.0 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>118_F3
+AACGTCAACTCTTTCTGGA
+>118_B3
+TGAATCCATAGACACGCC
+>118_F2
+TCTATTGGTAGGAGTGAACAGT
+>118_B2
+GCGTCTGCATTTGTCTTAACT
+>118_F1
+CATTTCACCRGATGCAGAAGC
+>118_B1
+CTGGTGAGTGGATCGTTTGA
+>118_FSTEM
+CCTCTGGAGACTTCGACAA
+>118_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 119 (length: 204bp) (penalty: 20.4140241) Total F:12.0 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:0.7 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 1-19, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-143)) STEM (locations: (STEM F: 82-100, STEM B: 105-123))
+>119_F3
+ACGTCAACTCTTTCTGGAA
+>119_B3
+TGAATCCATAGACACGCC
+>119_F2
+TCTATTGGTAGGAGTGAACAGT
+>119_B2
+GCGTCTGCATTTGTCTTAACT
+>119_F1
+CATTTCACCRGATGCAGAAGC
+>119_B1
+CTGGTGAGTGGATCGTTTGA
+>119_FSTEM
+CCTCTGGAGACTTCGACAA
+>119_BSTEM
+TGGACCATCTGATTCTGCT
+Signature 120 (length: 205bp) (penalty: 20.7493367) Total F:12.4 R:8.4 | F{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:5.0 S:1.1 M:5.0 O:1.4]} | R{Spc[I_S:0.0 I_M:0.0 M_O:0.0] Thm[I:3.8 S:0.9 M:3.7 O:0.1]} (coverage: 38seqs/95.00%) (degenerate: 0 bases) (locations: (F3: 0-18, B3: 187-204)(F2: 22-43, B2: 165-185)(F1: 45-65, B1: 124-143)) STEM (locations: (STEM F: 84-102, STEM B: 105-123))
+>120_F3
+AACGTCAACTCTTTCTGGA
+>120_B3
+TGAATCCATAGACACGCC
+>120_F2
+TCTATTGGTAGGAGTGAACAGT
+>120_B2
+GCGTCTGCATTTGTCTTAACT
+>120_F1
+CATTTCACCRGATGCAGAAGC
+>120_B1
+CTGGTGAGTGGATCGTTTGA
+>120_FSTEM
+ATCCTCTGGAGACTTCGAC
+>120_BSTEM
 TGGACCATCTGATTCTGCT

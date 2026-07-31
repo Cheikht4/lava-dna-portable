@@ -304,7 +304,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "min_signatures_for_success" => 1, # Should probably never go lower / Ne devrait probablement jamais descendre plus bas
       "min_primer_spacing" => 1,
       "min_inner_pair_spacing" => 1,
-      "half_signature_candidates" => 3,
+      "half_signature_candidates" => 5,
       # --- NOUVEAUX PARAMÈTRES D'ARCHITECTURE (valeurs par défaut) / NEW ARCHITECTURE PARAMETERS (default values) ---
       "max_dist_outer_middle" => 30,
       "max_dist_middle_inner" => 30,

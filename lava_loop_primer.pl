@@ -300,7 +300,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "inner_pair_target_length" => 50, 
       "max_overlap_percent" => 0,
       "resolve_overlap_by" => "penalty",
-      "half_signature_candidates" => 3,
+      "half_signature_candidates" => 5,
       # Calcul dynamique (porte depuis STEM / ported from STEM)
       "max_dist_outer_middle" => 30,
       "max_dist_middle_inner" => 30,
