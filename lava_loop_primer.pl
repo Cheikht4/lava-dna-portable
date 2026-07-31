@@ -2491,31 +2491,12 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   for(my $i = 0; $i < scalar(@{$masterInnerF_r}); $i++) {
       next unless defined $bestForwardInfos[$i];
       my $innerF = $masterInnerF_r->[$i];
-      foreach my $f_cand (@{$bestForwardInfos[$i]}) {
-          my $f_set_infos = $f_cand->{infos};
-          
-          # InnerF (F1c) Location data
-      # Note: $innerF is a PrimerInfo. 
-      # $innerF->getLocation() is the END of the primer on the Plus strand (for Fwd? No).
-      # Let's verify standard LAVA location semantics:
-      # Forward Primer: Start lowest, End highest. Location = End? 
-      # Reverse Primer: Start lowest (5' on minus), End highest (3' on minus, physical 5' on plus).
-      # Typically LAVA uses "Genome Coordinates".
-      # Let's trust the `enumeratePairs` logic which I replaced or the earlier lookups.
-      # better: use the raw data arrays I prepared
       my $f1c_location = $masterInnerF_data_r->[$i]->[0]; # This is Location 
       my $f1c_length = $masterInnerF_data_r->[$i]->[1];
       my $f1c_tm = $masterInnerF_data_r->[$i]->[3]; # Unpack cached Tm
       
-      # F1c is "Inner Forward". In LAMP, F1c is the complement of F1.
-      # But LAVA PrimerSet::LAMP expects "Inner Info", which contains an "Analyzed Pair".
-      # Each `*_info` is a `LLNL::LAVA::PrimerSetInfo::PCRPair`. 
-      
       for(my $j = 0; $j < scalar(@{$masterInnerR_r}); $j++) {
           next unless defined $bestReverseInfos[$j];
-          my $innerR = $masterInnerR_r->[$j];
-          foreach my $r_cand (@{$bestReverseInfos[$j]}) {
-              my $r_set_infos = $r_cand->{infos};
           
           my $b1c_location = $masterInnerR_data_r->[$j]->[0];
           my $b1c_length = $masterInnerR_data_r->[$j]->[1];
@@ -2538,6 +2519,14 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           # Validity Checks
           next if ($inner_gap < 0); # Overlap
           next if ($inner_gap > 100); # Too far apart (Inner Gap Limit)
+          
+          my $innerR = $masterInnerR_r->[$j];
+
+          foreach my $f_cand (@{$bestForwardInfos[$i]}) {
+              my $f_set_infos = $f_cand->{infos};
+          
+              foreach my $r_cand (@{$bestReverseInfos[$j]}) {
+                  my $r_set_infos = $r_cand->{infos};
 
           my $fStart_v   = $f_set_infos->[2]->getLocation();   # F3, brin plus : bord gauche
           my $rEnd_v     = $r_set_infos->[2]->getLocation();   # B3, brin moins : bord droit

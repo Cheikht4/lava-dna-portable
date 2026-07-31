@@ -2440,17 +2440,15 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       }
 
       my $finnerInfo = $innerForwardSubset_r->[$i];
-      foreach my $f_cand (@{$bestForwardInfos[$i]}) {
-      my ($fstemInfo, $fmiddleInfo, $fouterInfo) = @{$f_cand->{infos}};
-      my ($forwardSpacingPenalty, $forwardPrimer3Penalty, $forwardDetailStr) = 
-        @{$f_cand->{penalties}};
-
-      my $forwardStart = $fouterInfo->getLocation();
       my $forwardEnd = $finnerInfo->getLocation() + $finnerInfo->getLength() - 1;
+      
+      my $minForwardStart = 999999999;
+      foreach my $f_cand (@{$bestForwardInfos[$i]}) {
+          my $loc = $f_cand->{infos}->[2]->getLocation();
+          $minForwardStart = $loc if $loc < $minForwardStart;
+      }
+      my $globalMaxReverseLocation = $minForwardStart + $signatureMaxLength - 1;
 
-      # Used to bound the upper end of the inner iteration search
-      my $maxReverseLocation = $forwardStart + $signatureMaxLength - 1;
-    
       # Used to help bound the lower end of the inner iteration search
       my $previousCompatibleIndexFound = $FALSE;
       
@@ -2461,16 +2459,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
         {
 	  next;
         }
-	my $binnerInfo = $innerReverseSubset_r->[$j];
-	foreach my $r_cand (@{$bestReverseInfos[$j]}) {
-	my ($bstemInfo, $bmiddleInfo, $bouterInfo) = @{$r_cand->{infos}};
-        my ($reverseSpacingPenalty, $reversePrimer3Penalty, $reverseDetailStr) = 
-	  @{$r_cand->{penalties}};
-
-        my $reverseEnd = $bouterInfo->getLocation();
-        my $reverseStart = $binnerInfo->getLocation() - $binnerInfo->getLength() + 1;
         
-        #print "\n  Outer $reverseStart -> $reverseEnd";
+        my $binnerInfo = $innerReverseSubset_r->[$j];
+        my $reverseStart = $binnerInfo->getLocation() - $binnerInfo->getLength() + 1;
 
         # Advance to the next compatible reverse primer by skipping all the
         # primers located too far 5' with respect to the forward primer
@@ -2486,19 +2477,35 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
             $previousCompatibleIndexFound = $TRUE;
           }
         }
-
-	# Stop searching if the inner iteration bounds are exceeded
-        if($reverseStart > $maxReverseLocation)
+        
+        # Stop searching if the inner iteration bounds are exceeded
+        if($reverseStart > $globalMaxReverseLocation)
         {
           last;
         }
  
         # Enforce minimum inner spacing distance
-	my $innerSpacing = $reverseStart - ($forwardEnd + 1);
+        my $innerSpacing = $reverseStart - ($forwardEnd + 1);
         if($innerSpacing < $minInnerPairSpacing)
-	{
-	  next;
-	}
+        {
+          next;
+        }
+        
+        # Now we enter the K x K combinations
+        foreach my $f_cand (@{$bestForwardInfos[$i]}) {
+          my ($fstemInfo, $fmiddleInfo, $fouterInfo) = @{$f_cand->{infos}};
+          my ($forwardSpacingPenalty, $forwardPrimer3Penalty, $forwardDetailStr) = @{$f_cand->{penalties}};
+          
+          my $forwardStart = $fouterInfo->getLocation();
+          my $maxReverseLocation = $forwardStart + $signatureMaxLength - 1;
+          
+          if($reverseStart > $maxReverseLocation) { next; }
+          
+          foreach my $r_cand (@{$bestReverseInfos[$j]}) {
+            my ($bstemInfo, $bmiddleInfo, $bouterInfo) = @{$r_cand->{infos}};
+            my ($reverseSpacingPenalty, $reversePrimer3Penalty, $reverseDetailStr) = @{$r_cand->{penalties}};
+            
+            my $reverseEnd = $bouterInfo->getLocation();
 
         my $totalLen_v = $reverseEnd - $forwardStart + 1;
         
