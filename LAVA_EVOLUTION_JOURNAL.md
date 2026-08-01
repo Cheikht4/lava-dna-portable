@@ -2238,3 +2238,17 @@ Un outil de conception d'amorces diagnostiques doit fournir un résultat stricte
 - **Justification biologique** :
   - L'amplification isotherme (LAMP) possède des contraintes cinétiques optimales pour la synthèse d'ADN. Forcer le système à chercher des signatures étirées pour se conformer au plafond absolu dégradait artificiellement la qualité thermodynamique de la meilleure amorce (taux de couverture et nombre de combinaisons saturées). Permettre au système de viser la longueur optimale (ex: 250 pb) tout en maintenant un plafond laxiste pour ne pas exclure prématurément de bons candidats garantit une sensibilité supérieure et respecte la cinétique enzymatique à 65°C.
 - **Impact attendu** : Augmentation substantielle de la couverture sur des virus très variables comme la Dengue (notamment la Dengue 1), réduction du nombre de candidats saturés (épuisement géométrique) et accélération de la convergence en gardant des bornes thermodynamiques cohérentes.
+
+### [2026-08-01] Suppression des Plafonds Géométriques Artificiels
+- **Fichiers impactés** : `lava_loop_primer.pl`, `lib/LLNL/LAVA/PipelineUtils.pm`
+- **Nature du changement** : [Algorithmique / Architecture]
+- **Explication technique** : 
+  - Remplacement des valeurs par défaut codées en dur pour `max_dist_outer_middle` (60) et `max_dist_middle_inner` (72) par `$signatureMaxLength` dans `lava_loop_primer.pl` si non spécifiées par l'utilisateur.
+  - Suppression de la vérification stricte redondante `next if ($inner_gap > 100);` qui bloquait les espaces internes plus grands.
+  - Retrait du `die` dans `calculateDynamicPairLengths` de `PipelineUtils.pm` pour éviter le plantage lorsque les valeurs de distance maximales excèdent les cibles, cette fonction n'étant plus utilisée qu'à titre informatif pour le log.
+- **Justification biologique** : 
+  - Sur des virus extrêmement divergents comme la Dengue 2, les séquences conservées se raréfient considérablement (~115 amorces générées). Imposer des distances maximales strictes entre les amorces (ex: 72 nt) aboutit à un échec total de l'assemblage (0 signatures) car les amorces valides sont mécaniquement trop éloignées.
+  - En remplaçant ces limites matérielles par le seul plafond global acceptable (`signature_max_length`), le moteur de pénalité thermodynamique peut évaluer et sélectionner les combinaisons "imparfaites" de manière optimale sans les exclure prématurément, permettant ainsi la conception d'amorces LAMP sur des souches pathogènes très hétérogènes.
+- **Impact attendu** : 
+  - Capacité retrouvée du système à générer des signatures sur des jeux de données de haute diversité virale, même s'il doit pour cela accepter des géométries plus étalées (lesquelles seront régulées naturellement par la fonction sigmoïde de pénalité de distance).
+

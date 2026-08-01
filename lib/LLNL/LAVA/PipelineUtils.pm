@@ -1628,9 +1628,7 @@ sub calculateDynamicPairLengths {
   print "  -> Cible Inner Pair calculee : $inner_pair_target nt (distance max: $max_dist_middle_inner nt)\n";
   
   if ($inner_pair_target < $min_inner_pair_spacing) {
-    die "ERREUR: La cible Inner Pair ($inner_pair_target nt) < distance minimale F1-B1 ($min_inner_pair_spacing nt).\n" .
-        "ERROR: Inner Pair target ($inner_pair_target nt) < minimum F1-B1 spacing ($min_inner_pair_spacing nt).\n" .
-        "Veuillez ajuster vos contraintes de distance.\n";
+    print "WARNING: La cible Inner Pair ($inner_pair_target nt) < distance minimale F1-B1 ($min_inner_pair_spacing nt).\n";
   }
   print "--------------------------------------------------\n\n";
   
