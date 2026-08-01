@@ -150,26 +150,11 @@ ok(scalar(@loop_sigs) > 0, "REGRESSION LOOP : 0 signature sur la reference rota"
 # --- Tests d'equivalence baseline LOOP ---
 diag("=== LOOP : comparaison avec baseline ===");
 
-for my $ext (qw(.primers .all_signatures .dash)) {
+for my $ext (qw(.primers .all_signatures .dash _amplified.fasta)) {
     my $generated = "${loop_out}${ext}";
     my $baseline  = "t/baseline/canary_loop${ext}";
     check_or_update_baseline($generated, $baseline,
         "BASELINE LOOP${ext} : sortie identique a la reference");
-}
-
-# Fichiers non-deterministes : on compare seulement le nombre de sequences
-for my $suffix (qw(_amplified.fasta)) {
-    my $got_file      = "${loop_out}${suffix}";
-    my $baseline_file = "t/baseline/canary_loop${suffix}";
-    my $got_n   = count_fasta_sequences($got_file);
-    my $exp_n   = count_fasta_sequences($baseline_file);
-    if ($UPDATE_BASELINE) {
-        copy($got_file, $baseline_file) if -f $got_file;
-        pass("BASELINE LOOP${suffix} : baseline regeneree");
-    } else {
-        is($got_n, $exp_n,
-           "BASELINE LOOP${suffix} : nombre de sequences FASTA amplifie ($got_n vs $exp_n attendu)");
-    }
 }
 
 # =============================================================================
@@ -192,25 +177,11 @@ ok(scalar(@stem_sigs) > 0, "REGRESSION STEM : 0 signature sur la reference rota"
 # --- Tests d'equivalence baseline STEM ---
 diag("=== STEM : comparaison avec baseline ===");
 
-for my $ext (qw(.primers .all_signatures .dash)) {
+for my $ext (qw(.primers .all_signatures .dash _amplified.fasta)) {
     my $generated = "${stem_out}${ext}";
     my $baseline  = "t/baseline/canary_stem${ext}";
     check_or_update_baseline($generated, $baseline,
         "BASELINE STEM${ext} : sortie identique a la reference");
-}
-
-for my $suffix (qw(_amplified.fasta)) {
-    my $got_file      = "${stem_out}${suffix}";
-    my $baseline_file = "t/baseline/canary_stem${suffix}";
-    my $got_n   = count_fasta_sequences($got_file);
-    my $exp_n   = count_fasta_sequences($baseline_file);
-    if ($UPDATE_BASELINE) {
-        copy($got_file, $baseline_file) if -f $got_file;
-        pass("BASELINE STEM${suffix} : baseline regeneree");
-    } else {
-        is($got_n, $exp_n,
-           "BASELINE STEM${suffix} : nombre de sequences FASTA amplifie ($got_n vs $exp_n attendu)");
-    }
 }
 
 # =============================================================================
@@ -237,6 +208,32 @@ if (scalar(@stem_sigs) > 0) {
         my $dimer_len = longest_common_substring($fstem, $rc_bstem);
         cmp_ok($dimer_len, '<', 8,
             "REGRESSION STEM : dimere FSTEM/BSTEM detecte (complementarite = $dimer_len nt)");
+    }
+}
+
+# =============================================================================
+# PARTIE 4 : Reproductibilite stricte
+# =============================================================================
+
+diag("=== DETERMINISME : verification de reproductibilite (RUN 2) ===");
+my $loop_out_run2 = "t/canary_loop_run2";
+my $loop_args_run2 = $common_args .
+    " --output_file $loop_out_run2 --loop_min_gap 20 " .
+    "--loop_primer_min_length 15 --loop_primer_target_length 18 --loop_primer_max_length 22 " .
+    "--loop_primer_min_tm 59.0 --loop_primer_target_tm 60.0 --loop_primer_max_tm 61.0";
+
+my $exit2 = system("perl lava_loop_primer.pl $loop_args_run2 > /dev/null 2>&1");
+is($exit2, 0, "lava_loop_primer.pl (RUN 2) executes successfully");
+
+for my $ext (qw(.primers .all_signatures .dash _amplified.fasta)) {
+    my $run1 = "${loop_out}${ext}";
+    my $run2 = "${loop_out_run2}${ext}";
+    my $err = strict_diff($run2, $run1);
+    if (!defined $err) {
+        pass("DETERMINISME LOOP${ext} : le deuxieme run est strictement identique au premier");
+    } else {
+        fail("DETERMINISME LOOP${ext} : le deuxieme run differe du premier");
+        diag($err);
     }
 }
 

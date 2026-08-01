@@ -1577,7 +1577,7 @@ sub analyzeSignatureCombinations {
       push @combination_results, {
         signatures => \@combination,
         signature_names => \@signature_names,
-        union_sequences => [keys %union_sequences],
+        union_sequences => [sort keys %union_sequences],
         union_count => $union_count,
         union_coverage => $union_coverage
       };
@@ -1770,7 +1770,7 @@ sub calculateSignatureIntersection {
   for my $i (1 .. $#primer_coverage_data) {
     my %primer_set = map { $_ => 1 } @{$primer_coverage_data[$i]->{sequences}};
     my %new_intersection = ();
-    for my $seq_id (keys %intersection_set) {
+    for my $seq_id (sort keys %intersection_set) {
       $new_intersection{$seq_id} = 1 if exists $primer_set{$seq_id};
     }
     %intersection_set = %new_intersection;
@@ -1778,7 +1778,7 @@ sub calculateSignatureIntersection {
   }
   
   # Phase 3: Validation finale / Final validation
-  my @final_ids = keys %intersection_set;
+  my @final_ids = sort keys %intersection_set;
   my $coverage_count = scalar(@final_ids);
   my $coverage_pct = ($total_sequences > 0) ? ($coverage_count / $total_sequences) * 100 : 0.0;
   
@@ -1970,7 +1970,7 @@ sub createAmplificationFiles {
     }
   }
   
-  my @amplified_ids = keys %all_amplified_ids;
+  my @amplified_ids = sort keys %all_amplified_ids;
   my @excluded_ids = ();
   for my $i (0 .. $#{$sequence_objects_ref}) {
     push @excluded_ids, $i unless exists $all_amplified_ids{$i};
@@ -2424,7 +2424,7 @@ sub injectFixedPrimers {
 
         # Control strict anti-rejet silencieux BioPerl
         my %p3_valid_params = map { $_ => 1 } @Bio::Tools::Run::Primer3::PRIMER3_PARAMS;
-        foreach my $k (keys %primer3_args) {
+        foreach my $k (sort keys %primer3_args) {
             die "\n[ERREUR CRITIQUE LAVA] Le parametre Primer3 '$k' est absent de \@Bio::Tools::Run::Primer3::PRIMER3_PARAMS.\n" 
                 unless exists $p3_valid_params{$k};
         }

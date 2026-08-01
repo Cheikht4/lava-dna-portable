@@ -305,12 +305,12 @@ sub checkPrimerMismatchTolerance {
               my %significant_bases = ();
               $significant_bases{$primer_base} = 1;
               
-              foreach my $b (keys %base_counts) {
+              foreach my $b (sort keys %base_counts) {
                   if ($base_counts{$b} >= $min_count_noise) {
                       $significant_bases{$b} = 1;
                   }
               }
-              my @all_bases = keys %significant_bases;
+              my @all_bases = sort keys %significant_bases;
               my $iupac_code = generateIUPACCode(\@all_bases);
               
               if ($iupac_code ne 'N' && $iupac_code ne $primer_base) {

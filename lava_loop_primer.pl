@@ -1287,23 +1287,23 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   # Outer primers sorted 2 ways
   my @outerForwardInfoByLocation =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getLocation()] } 
     @{$outerForwardPrimerMeasurements_r};
   my @outerReverseInfoByLocation =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getLocation()] } 
     @{$outerReversePrimerMeasurements_r};
 
   my @outerForwardInfoByPenalty =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getPenalty()] } 
     @{$outerForwardPrimerMeasurements_r};
   my @outerReverseInfoByPenalty =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getPenalty()] } 
     @{$outerReversePrimerMeasurements_r};
 
@@ -1316,23 +1316,23 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   if($includeLoopPrimers) {
     @loopForwardInfoByLocation =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getLocation()] } 
     @{$loopForwardPrimerMeasurements_r};
     @loopBackInfoByLocation =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getLocation()] } 
     @{$loopBackPrimerMeasurements_r};
 
     @loopForwardInfoByPenalty =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getPenalty()] } 
     @{$loopForwardPrimerMeasurements_r};
     @loopBackInfoByPenalty =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getPenalty()] } 
     @{$loopBackPrimerMeasurements_r};
   }
@@ -1340,46 +1340,46 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   # Middle primers sorted 2 ways
   my @middleForwardInfoByLocation =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getLocation()] } 
     @{$middleForwardPrimerMeasurements_r};
   my @middleReverseInfoByLocation =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getLocation()] } 
     @{$middleReversePrimerMeasurements_r};
 
   my @middleForwardInfoByPenalty =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getPenalty()] } 
     @{$middleForwardPrimerMeasurements_r};
   my @middleReverseInfoByPenalty =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getPenalty()] } 
     @{$middleReversePrimerMeasurements_r};
 
   # Inner primers sorted 2 ways
   my @innerForwardInfoByLocation =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getLocation()] } 
     @{$innerForwardPrimerMeasurements_r};
   my @innerReverseInfoByLocation =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getLocation()] } 
     @{$innerReversePrimerMeasurements_r};
 
   my @innerForwardInfoByPenalty =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getPenalty()] } 
     @{$innerForwardPrimerMeasurements_r};
   my @innerReverseInfoByPenalty =
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1]}
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getLocation() <=> $b->[0]->getLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getSequence() cmp $b->[0]->getSequence() }
     map {[$_, $_->getPenalty()] } 
     @{$innerReversePrimerMeasurements_r};
 
@@ -1576,7 +1576,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   $pm_fwd->run_on_finish(sub {
       my ($pid, $exit_code, $id, $exit_signal, $core_dump, $data_ref) = @_;
       if (defined $data_ref && ref($data_ref) eq 'HASH') {
-          foreach my $idx (keys %{$data_ref->{infos}}) {
+          foreach my $idx (sort { $a <=> $b } keys %{$data_ref->{infos}}) {
               if (!defined $bestForwardInfos[$idx]) {
                   $forwardSetCount++;
               }
@@ -2068,7 +2068,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   $pm_rev->run_on_finish(sub {
       my ($pid, $exit_code, $id, $exit_signal, $core_dump, $data_ref) = @_;
       if (defined $data_ref && ref($data_ref) eq 'HASH') {
-          foreach my $idx (keys %{$data_ref->{infos}}) {
+          foreach my $idx (sort { $a <=> $b } keys %{$data_ref->{infos}}) {
               if (!defined $bestReverseInfos[$idx]) {
                   $reverseSetCount++;
               }
@@ -2672,7 +2672,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 
   my @allSignatures = 
     map {$_->[0]}
-    sort {$a->[1] <=> $b->[1] }
+    sort { $a->[1] <=> $b->[1] || $a->[0]->getStartLocation() <=> $b->[0]->getStartLocation() || $a->[0]->getLength() <=> $b->[0]->getLength() || $a->[0]->getLocationSummary() cmp $b->[0]->getLocationSummary() }
     map {[$_, $_->getTag("lamp_penalty")]}
     @{$allFoundSignatures_r};
 
