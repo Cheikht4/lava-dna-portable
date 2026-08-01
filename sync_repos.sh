@@ -104,7 +104,11 @@ sync_item() {
         # Recursively process files
         find "$src_item" -type f | while read -r src_file; do
             # Ignore certain generated or system files
-            if [[ "$src_file" == *".DS_Store" ]] || [[ "$src_file" == *"_amplified.fasta" ]] || [[ "$src_file" == *"_amplified_noms.txt" ]]; then
+            if [[ "$src_file" == *".DS_Store" ]] || [[ "$src_file" == *"_amplified_noms.txt" ]]; then
+                continue
+            fi
+            # Ignore amplified fasta EXCEPT in baseline directory
+            if [[ "$src_file" == *"_amplified.fasta" ]] && [[ ! "$src_file" =~ "t/baseline/" ]]; then
                 continue
             fi
 

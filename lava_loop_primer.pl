@@ -263,7 +263,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "threads" => "auto",
       "fixed_primer" => [],  # Tableau d'amorces fixees / Array of fixed primers
       "fixed_primer_optimize" => 1,
-      "signature_max_length" => 320,
+      "signature_max_length" => 400,
+      "total_signature_length" => 250,
+      "signature_min_length" => 0,
       "outer_primer_target_length" => 20,
       "outer_primer_min_length" => 18,
       "outer_primer_max_length" => 23,
@@ -476,10 +478,16 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 
   my $signatureMaxLength = 
     optionWithDefault($options_r, "signature_max_length", 
-      300);
+      $optionDefaults{"signature_max_length"});
   my $totalSignatureLength = 
     optionWithDefault($options_r, "total_signature_length",
-      $signatureMaxLength); # Default to max length if not specified
+      $optionDefaults{"total_signature_length"});
+
+  if ($totalSignatureLength > $signatureMaxLength) {
+      print "[ATTENTION] total_signature_length ($totalSignatureLength) est superieur a signature_max_length ($signatureMaxLength).\n";
+      print "            Recadrage de la cible sur le plafond ($signatureMaxLength).\n";
+      $totalSignatureLength = $signatureMaxLength;
+  }
 
   my $maxTotalDegen = optionWithDefault($options_r, "max_total_degenerate_bases", 2);
   my $maxConsecDegen = optionWithDefault($options_r, "max_consecutive_degenerate_bases", 2);
@@ -1445,6 +1453,11 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   
   # Pour Inner->Loop et Loop->Middle, cible 50% de F2-F1 chacun (répartition équilibrée) / For Inner->Loop and Loop->Middle, target 50% of F2-F1 each (balanced distribution)
   my $loop_target = int($geometry->{'f2_f1_target'} / 2);
+  
+  print "INFO: Cibles Géométriques Proportionnelles (Cible = $totalSignatureLength pb) :\n";
+  print "  -> F3-F2 (12%) : " . $geometry->{'f3_f2_target'} . " nt\n";
+  print "  -> F2-F1 (18%) : " . $geometry->{'f2_f1_target'} . " nt\n";
+  print "  -> Empan interne F1-B1 (40%) : " . $geometry->{'inner_target'} . " nt\n";
   
   print "Generating Sigmoid Penalties (Core.pm)...\n";
   # Note: generateSigmoidPenalty is now used inside the loop or via pre-computed table

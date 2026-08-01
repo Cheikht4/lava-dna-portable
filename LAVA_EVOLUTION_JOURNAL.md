@@ -2228,3 +2228,13 @@ Un outil de conception d'amorces diagnostiques doit fournir un résultat stricte
 **Impact attendu** : 
 - **Reproductibilité totale** : Deux exécutions identiques produiront désormais toujours un hash SHA-256 de sortie identique, quel que soit le nombre de cœurs alloués (`--threads 1` ou `--threads 8`) ou l'environnement système.
 - Régénération nécessaire des baselines en raison des variations de départage introduites.
+### [2026-08-01] Découplage de la Géométrie Idéale et du Plafond de Longueur
+- **Fichiers impactés** : `lava_loop_primer.pl`, `lava_stem_primer.pl`, `lava_flask_app.py`, `templates/index.html`
+- **Nature du changement** : [Thermodynamique / Algorithmique]
+- **Explication technique** : 
+  - Séparation explicite du paramètre historique `signature_max_length` (servant à la fois de plafond d'exclusion et de référence géométrique) en deux paramètres distincts : `signature_max_length` (le plafond absolu, dimensionnant la table de pénalités) et `total_signature_length` (la longueur cible, dimensionnant les espacements cibles f3_f2, f2_f1, empan interne).
+  - Implémentation d'un mécanisme de clamping (recadrage) : si l'utilisateur saisit une cible supérieure au plafond, `total_signature_length` est automatiquement rabattu au niveau de `signature_max_length` avec l'émission d'un log `[ATTENTION]`.
+  - Intégration complète dans l'interface Web (Flask/Jinja2), et impression systématique des "Cibles Géométriques Proportionnelles" dans les logs standards (`INFO: Cibles Géométriques Proportionnelles ... -> F3-F2 (12%) ...`).
+- **Justification biologique** :
+  - L'amplification isotherme (LAMP) possède des contraintes cinétiques optimales pour la synthèse d'ADN. Forcer le système à chercher des signatures étirées pour se conformer au plafond absolu dégradait artificiellement la qualité thermodynamique de la meilleure amorce (taux de couverture et nombre de combinaisons saturées). Permettre au système de viser la longueur optimale (ex: 250 pb) tout en maintenant un plafond laxiste pour ne pas exclure prématurément de bons candidats garantit une sensibilité supérieure et respecte la cinétique enzymatique à 65°C.
+- **Impact attendu** : Augmentation substantielle de la couverture sur des virus très variables comme la Dengue (notamment la Dengue 1), réduction du nombre de candidats saturés (épuisement géométrique) et accélération de la convergence en gardant des bornes thermodynamiques cohérentes.
