@@ -2340,8 +2340,24 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     # Now, try to combine forward and reverse primer sets into full signatures
     print "Combining Best F/R Halves to create LAMP Signatures...\n";
     my $previousFirstCompatibleIndex = 0; # Bound the lower end of the inner iteration
+    
+    my $combine_total = $innerForwardCount;
+    my $combine_done = 0;
+    my $combine_t0 = time();
+
     for(my $i = 0; $i < $innerForwardCount; $i++)
     {
+      $combine_done++;
+      if (($_LAVA_IS_TTY || 1) && ($combine_done % 100 == 0 || $combine_done == $combine_total)) {
+          my $elapsed = time() - $combine_t0 + 0.001;
+          my $rate = $combine_done / $elapsed;
+          my $eta = ($combine_done < $combine_total) ? int(($combine_total - $combine_done) / $rate) : 0;
+          my $current_sigs = scalar(@{$allFoundSignatures_r});
+          printf("[LAVA-PROGRESS] Combinaison|%d|%d|Sigs: %d|%.1f it/s|%d\r", 
+                 $combine_done, $combine_total, $current_sigs, $rate, $eta);
+          my $old_h = select(STDOUT); $| = 1; select($old_h);
+      }
+
       # Skip inner primers without primer sets
       if(! exists($bestForwardInfos[$i]))
       {
@@ -2522,6 +2538,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       } # End forward sets iteration
     } # End reverse sets iteration
 
+  print "\n"; # Clear the progress bar line
   print "Found " .
     scalar(@{$allFoundSignatures_r}) .
     " total signatures across all iterations\n";

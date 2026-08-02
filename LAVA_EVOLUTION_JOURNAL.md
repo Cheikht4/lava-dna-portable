@@ -2301,3 +2301,14 @@ Un outil de conception d'amorces diagnostiques doit fournir un résultat stricte
   - La validation des génomes hautement variables (ex: Dengue) générait plus de 31 millions de lignes de logs vers STDOUT. Bien que le moteur Perl gère parfaitement la mémoire des données, le tampon du terminal client saturait la RAM système (plus de 94 Go consommés par Terminal.app). Cette refonte limite drastiquement le trafic I/O texte sans perte d'information utile. Les données détaillées restent disponibles à la demande pour l'analyse des cas marginaux via `--verbose_validation`.
 - **Impact attendu** :
   - Disparition totale des plantages du terminal et des logs monstrueux impossibles à ouvrir. La console n'affiche plus que la progression propre et un résumé analytique actionnable.
+
+### Date/Étape : 2026-08-02 - Amélioration UX de la phase de Combinaison
+- **Fichiers impactés** : `lava_loop_primer.pl`, `lava_stem_primer.pl`
+- **Nature du changement** : Architecture / UX
+- **Explication technique** : 
+  1. Ajout d'une barre de progression interactive `[LAVA-PROGRESS]` dans la boucle `for` principale de la phase `Combining Best F/R Halves to create LAMP Signatures...` pour les deux scripts (Loop et Stem).
+  2. Le suivi affiche désormais le nombre de combinaisons évaluées, le total, le nombre de signatures créées, la vitesse (itérations par seconde) et le temps restant estimé (ETA).
+- **Justification biologique** : 
+  - Lors de la combinaison des moitiés Forward et Reverse, l'espace des possibles peut être extrêmement vaste (plusieurs dizaines de milliers de paires potentielles), surtout sur des alignements permissifs. Auparavant, l'utilisateur restait face à un terminal figé sans savoir si le programme cherchait activement ou était bloqué. Cette barre de progression rend cette étape de calcul combinatoire transparente.
+- **Impact attendu** :
+  - Meilleure expérience utilisateur avec un retour visuel sur l'avancement de la création des signatures avant de passer à l'étape de validation.

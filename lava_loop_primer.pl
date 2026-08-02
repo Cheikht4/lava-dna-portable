@@ -2398,8 +2398,22 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   print "Combining Best F/R Halves to create LAMP Signatures...\n";
   
   my $combinedSignatureCount = 0;
+  
+  my $combine_total = scalar(@{$masterInnerF_r});
+  my $combine_done = 0;
+  my $combine_t0 = time();
 
   for(my $i = 0; $i < scalar(@{$masterInnerF_r}); $i++) {
+      $combine_done++;
+      if (($_LAVA_IS_TTY || 1) && ($combine_done % 100 == 0 || $combine_done == $combine_total)) {
+          my $elapsed = time() - $combine_t0 + 0.001;
+          my $rate = $combine_done / $elapsed;
+          my $eta = ($combine_done < $combine_total) ? int(($combine_total - $combine_done) / $rate) : 0;
+          printf("[LAVA-PROGRESS] Combinaison|%d|%d|Sigs: %d|%.1f it/s|%d\r", 
+                 $combine_done, $combine_total, $combinedSignatureCount, $rate, $eta);
+          my $old_h = select(STDOUT); $| = 1; select($old_h);
+      }
+
       next unless defined $bestForwardInfos[$i]; # Skip if no valid F-half found
       
       my $innerF = $masterInnerF_r->[$i];
@@ -2553,6 +2567,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       }
   }
   
+  print "\n"; # Clear the progress bar line
   print "Created $combinedSignatureCount complete LAMP signatures.\n";
   
   print "Found " .
