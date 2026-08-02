@@ -2602,6 +2602,11 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   foreach my $chunk (@val_chunks) {
       $val_pm->start and next;
       
+      my $verbose_fh;
+      if ($verbose_val) {
+          open($verbose_fh, "| gzip >> ${verbose_base}.$$" . ".log.gz") or warn "Cannot open verbose log";
+      }
+      
       my @results_for_chunk;
       my ($start, $end) = @$chunk;
       for(my $idx = $start; $idx <= $end; $idx++) {
@@ -2612,11 +2617,16 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               scalar(@sequences), 
               $signatureCommonTargetMinPercent,
               $includeStemPrimers,
-              "stem"
+              "stem",
+              $verbose_val,
+              $verbose_fh
           );
           
           # NE TRANSMETTRE QUE DES SCALAIRES pour eviter l'explosion memoire
           push @results_for_chunk, [$idx, $coverage, $status, scalar(@$final_ids_r)];
+      }
+      if ($verbose_val && defined $verbose_fh) {
+          close($verbose_fh);
       }
       $val_pm->finish(0, \@results_for_chunk);
   }
