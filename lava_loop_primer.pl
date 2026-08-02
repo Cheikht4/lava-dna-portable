@@ -66,6 +66,7 @@ use Time::HiRes qw(time);
 use warnings;
 use Carp;
 $| = 1;  # Autoflush STDOUT pour l'envoi en temps réel vers Flask
+use POSIX;
 use lib 'lib';
 
 use Getopt::Long;
@@ -2570,12 +2571,11 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_r) = @_;
       if (defined($data_r) && ref($data_r) eq 'ARRAY') {
           foreach my $res (@$data_r) {
-              my ($idx, $cov, $status, $final_ids_r, $primer_cov_r) = @$res;
+              my ($idx, $cov, $status, $target_count) = @$res;
               $validation_results{$idx} = {
                   coverage => $cov,
                   status   => $status,
-                  final_ids => $final_ids_r,
-                  primer_cov => $primer_cov_r
+                  target_count => $target_count
               };
           }
       }
@@ -2591,58 +2591,40 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       $end = $total_sigs_to_validate - 1 if $end >= $total_sigs_to_validate;
       push @val_chunks, [$i, $end];
   }
-  
-  # Distribuer en round-robin
-  my @val_worker_batches;
-  for(my $i = 0; $i < $actual_threads; $i++) {
-      push @val_worker_batches, [];
-  }
-  for(my $i = 0; $i < scalar(@val_chunks); $i++) {
-      my $worker_idx = $i % $actual_threads;
-      push @{$val_worker_batches[$worker_idx]}, $val_chunks[$i];
-  }
 
-  for(my $w = 0; $w < $actual_threads; $w++) {
-      my $batch = $val_worker_batches[$w];
-      next if scalar(@$batch) == 0;
-      
+  # Traitement par chunk avec ForkManager (un processus enfant par chunk)
+  foreach my $chunk (@val_chunks) {
       $val_pm->start and next;
       
-      my @results_for_worker;
-      foreach my $chunk (@$batch) {
-          my ($start, $end) = @$chunk;
-          for(my $idx = $start; $idx <= $end; $idx++) {
-              my $signature = $allFoundSignatures_r->[$idx];
-              
-              my ($final_ids_r, $coverage, $status) = calculateSignatureIntersection(
-                  $signature, 
-                  $inputMSA->num_sequences(), 
-                  $signatureCommonTargetMinPercent,
-                  $includeLoopPrimers,
-                  "loop"
-              );
-              
-              my $primer_cov_r = [];
-              eval { $primer_cov_r = $signature->getTag("primer_coverage_details"); };
-              
-              push @results_for_worker, [$idx, $coverage, $status, $final_ids_r, $primer_cov_r];
-          }
+      my @results_for_chunk;
+      my ($start, $end) = @$chunk;
+      for(my $idx = $start; $idx <= $end; $idx++) {
+          my $signature = $allFoundSignatures_r->[$idx];
+          
+          my ($final_ids_r, $coverage, $status) = calculateSignatureIntersection(
+              $signature, 
+              $inputMSA->num_sequences(), 
+              $signatureCommonTargetMinPercent,
+              $includeLoopPrimers,
+              "loop"
+          );
+          
+          # NE TRANSMETTRE QUE DES SCALAIRES pour eviter l'explosion memoire
+          push @results_for_chunk, [$idx, $coverage, $status, scalar(@$final_ids_r)];
       }
-      $val_pm->finish(0, \@results_for_worker);
+      $val_pm->finish(0, \@results_for_chunk);
   }
   
   $val_pm->wait_all_children;
 
-  # Ré-appliquer les résultats dans le parent
+  # Re-appliquer les resultats scalaires dans le parent
   for(my $idx = 0; $idx < $total_sigs_to_validate; $idx++) {
       my $signature = $allFoundSignatures_r->[$idx];
       if (exists $validation_results{$idx}) {
           my $res = $validation_results{$idx};
-          $signature->setTag("signature_intersection_ids", $res->{final_ids});
           $signature->setTag("signature_coverage_percent", sprintf("%.2f", $res->{coverage}));
-          $signature->setTag("signature_target_count", scalar(@{$res->{final_ids}}));
           $signature->setTag("validation_status", $res->{status});
-          $signature->setTag("primer_coverage_details", $res->{primer_cov});
+          $signature->setTag("signature_target_count", $res->{target_count});
           $validated_count++;
           
           if ($validated_count % 1000 == 0 || $validated_count == $total_sigs_to_validate) {
@@ -2774,6 +2756,18 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 
   # Remplacer la référence globale par la nouvelle liste triée / Replace global reference with sorted list
   $possibleSignatures_r = \@possibleSignatures;
+
+  # RECALCUL des intersections complètes (arrays) UNIQUEMENT pour les signatures survivantes
+  print "Recalculating complete intersections for " . scalar(@possibleSignatures) . " surviving signatures...\n";
+  foreach my $signature (@possibleSignatures) {
+      calculateSignatureIntersection(
+          $signature, 
+          $inputMSA->num_sequences(), 
+          $signatureCommonTargetMinPercent,
+          $includeLoopPrimers,
+          "loop"
+      );
+  }
 
   # Analyser les combinaisons de signatures (SUR LES SIGNATURES RÉDUITES ET VALIDÉES)
   if (scalar(@possibleSignatures) > 0) {
