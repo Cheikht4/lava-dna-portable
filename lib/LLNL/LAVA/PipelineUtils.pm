@@ -1668,8 +1668,9 @@ sub _build_bit_vector {
 }
 
 sub calculateSignatureIntersection {
-  my ($signature, $total_sequences, $min_signature_coverage, $include_extra_primers, $extra_primer_type, $verbose, $verbose_fh) = @_;
+  my ($signature, $total_sequences, $min_signature_coverage, $include_extra_primers, $extra_primer_type, $verbose, $verbose_fh, $return_list) = @_;
   
+  $return_list = 1 unless defined $return_list;
   # Valeurs par defaut / Default values
   $min_signature_coverage = 70 unless defined $min_signature_coverage;
   $extra_primer_type = "" unless defined $extra_primer_type;
@@ -1793,12 +1794,7 @@ sub calculateSignatureIntersection {
   }
   
   # Phase 3: Validation finale / Final validation
-  my @final_ids = ();
-  for (my $id = 0; $id < $total_sequences; $id++) {
-      push @final_ids, $id if vec($intersection_vec, $id, 1);
-  }
-  
-  my $coverage_count = scalar(@final_ids);
+  my $coverage_count = unpack("%32b*", $intersection_vec);
   my $coverage_pct = ($total_sequences > 0) ? ($coverage_count / $total_sequences) * 100 : 0.0;
   
   if ($verbose && defined $verbose_fh) {
@@ -1816,14 +1812,24 @@ sub calculateSignatureIntersection {
     $validation_status = "REJETEE - Couverture insuffisante";
   }
   
-  # Stocker les tags de validation / Store validation tags
-  $signature->setTag("signature_intersection_ids", \@final_ids);
-  $signature->setTag("signature_coverage_percent", sprintf("%.2f", $coverage_pct));
-  $signature->setTag("signature_target_count", $coverage_count);
-  $signature->setTag("validation_status", $validation_status);
-  $signature->setTag("primer_coverage_details", \@primer_coverage_data);
-  
-  return (\@final_ids, $coverage_pct, $validation_status);
+  if ($return_list) {
+      my @final_ids = ();
+      for (my $id = 0; $id < $total_sequences; $id++) {
+          push @final_ids, $id if vec($intersection_vec, $id, 1);
+      }
+      
+      # Stocker les tags de validation / Store validation tags
+      $signature->setTag("signature_intersection_ids", \@final_ids);
+      $signature->setTag("signature_coverage_percent", sprintf("%.2f", $coverage_pct));
+      $signature->setTag("signature_target_count", $coverage_count);
+      $signature->setTag("validation_status", $validation_status);
+      $signature->setTag("primer_coverage_details", \@primer_coverage_data);
+      
+      return (\@final_ids, $coverage_pct, $validation_status);
+  } else {
+      # Return count instead of array reference
+      return ($coverage_count, $coverage_pct, $validation_status);
+  }
 }
 
 #-------------------------------------------------------------------------------

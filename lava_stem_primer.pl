@@ -2426,16 +2426,17 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
             my ($start, $end) = @$chunk;
             for(my $idx = $start; $idx <= $end; $idx++) {
                 my $signature = $batch_r->[$idx];
-                my ($final_ids_r, $coverage, $status) = calculateSignatureIntersection(
+                my ($target_count, $coverage, $status) = calculateSignatureIntersection(
                     $signature, 
                     scalar(@sequences), 
                     $signatureCommonTargetMinPercent,
                     $includeStemPrimers,
                     "stem",
                     $verbose_val,
-                    $verbose_fh
+                    $verbose_fh,
+                    0 # return_list = 0
                 );
-                push @results_for_chunk, [$idx, $coverage, $status, scalar(@$final_ids_r)];
+                push @results_for_chunk, [$idx, $coverage, $status, $target_count];
             }
             if ($verbose_val && defined $verbose_fh) {
                 close($verbose_fh);
@@ -2835,7 +2836,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           scalar(@sequences), 
           $signatureCommonTargetMinPercent,
           $includeStemPrimers,
-          "stem"
+          "stem",
+          0,
+          undef,
+          1 # return_list = 1
       );
   }
 
