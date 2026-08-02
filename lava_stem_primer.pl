@@ -179,6 +179,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "threads|cpu=s" => \$options{"threads"},
       "signature_max_length=i" => \$options{"signature_max_length"},
       "total_signature_length=i" => \$options{"total_signature_length"},
+      "verbose_validation" => \$options{"verbose_validation"},
 
       "outer_primer_target_length=i" => \$options{"outer_primer_target_length"},
       "outer_primer_min_length=i" => \$options{"outer_primer_min_length"},
@@ -2540,6 +2541,16 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $actual_threads = $val_pm->{max_processes};
   my %validation_results;
 
+  my $verbose_val = $options_r->{"verbose_validation"} ? 1 : 0;
+  my $verbose_base = $options_r->{"output_file"} . "_validation_detail";
+
+  my $val_t0 = time();
+  my $val_done = 0;
+  my $val_passed = 0;
+  my $val_rejected = 0;
+  my %val_distribution = ("<20%"=>0, "20-40%"=>0, "40-60%"=>0, "60-80%"=>0, ">=80%"=>0);
+  my $max_rejected_cov = -1;
+
   $val_pm->run_on_finish(sub {
       my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_r) = @_;
       if (defined($data_r) && ref($data_r) eq 'ARRAY') {
@@ -2550,6 +2561,28 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   status   => $status,
                   target_count => $target_count
               };
+              $val_done++;
+              if ($status eq "VALIDEE") {
+                  $val_passed++;
+              } else {
+                  $val_rejected++;
+                  $max_rejected_cov = $cov if $cov > $max_rejected_cov;
+              }
+              
+              if ($cov < 20) { $val_distribution{"<20%"}++; }
+              elsif ($cov < 40) { $val_distribution{"20-40%"}++; }
+              elsif ($cov < 60) { $val_distribution{"40-60%"}++; }
+              elsif ($cov < 80) { $val_distribution{"60-80%"}++; }
+              else { $val_distribution{">=80%"}++; }
+          }
+          
+          if ($_LAVA_IS_TTY || 1) {
+              my $elapsed = time() - $val_t0 + 0.001;
+              my $rate = $val_done / $elapsed;
+              my $eta = ($val_done < $total_sigs_to_validate) ? int(($total_sigs_to_validate - $val_done) / $rate) : 0;
+              printf("[LAVA-PROGRESS] Validation|%d|%d|Valid: %d / Rejet: %d|%.1f it/s|%d\r", 
+                     $val_done, $total_sigs_to_validate, $val_passed, $val_rejected, $rate, $eta);
+              my $old_h = select(STDOUT); $| = 1; select($old_h);
           }
       }
   });
@@ -2589,6 +2622,33 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   }
   
   $val_pm->wait_all_children;
+  print "\n"; # Clear the progress bar line
+  
+  if ($verbose_val) {
+      print "Aggregating verbose logs...\n";
+      system("cat ${verbose_base}.*.log.gz > ${verbose_base}.log.gz 2>/dev/null");
+      system("rm -f ${verbose_base}.*.log.gz");
+      print "Verbose log saved to ${verbose_base}.log.gz\n";
+  }
+
+  print "============================================================\n";
+  print "RESUME STATISTIQUE DE LA VALIDATION\n";
+  print "============================================================\n";
+  my $pct_val = $total_sigs_to_validate > 0 ? ($val_passed / $total_sigs_to_validate * 100) : 0;
+  my $pct_rej = $total_sigs_to_validate > 0 ? ($val_rejected / $total_sigs_to_validate * 100) : 0;
+  printf("Total evalue : %d\n", $total_sigs_to_validate);
+  printf("Validees     : %d (%.1f%%)\n", $val_passed, $pct_val);
+  printf("Rejetees     : %d (%.1f%%)\n", $val_rejected, $pct_rej);
+  printf("Seuil requis : %.1f%%\n", $signatureCommonTargetMinPercent);
+  if ($val_rejected > 0) {
+      my $ecart = $signatureCommonTargetMinPercent - $max_rejected_cov;
+      printf("Couverture MAX (rejetees) : %.2f%% (ecart au seuil : -%.2f%%)\n", $max_rejected_cov, $ecart);
+  }
+  print "Distribution des couvertures :\n";
+  foreach my $bin ("<20%", "20-40%", "40-60%", "60-80%", ">=80%") {
+      printf("  %s : %d\n", $bin, $val_distribution{$bin});
+  }
+  print "============================================================\n";
 
   # Re-appliquer les resultats scalaires dans le parent
   for(my $idx = 0; $idx < $total_sigs_to_validate; $idx++) {
@@ -2598,11 +2658,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           $signature->setTag("signature_coverage_percent", sprintf("%.2f", $res->{coverage}));
           $signature->setTag("validation_status", $res->{status});
           $signature->setTag("signature_target_count", $res->{target_count});
-          $validated_count++;
-          
-          if ($validated_count % 1000 == 0 || $validated_count == $total_sigs_to_validate) {
-              print "[LAVA-PROGRESS] Validated $validated_count / $total_sigs_to_validate signatures...\n";
-          }
       }
   }
 

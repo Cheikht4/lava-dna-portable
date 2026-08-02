@@ -2289,3 +2289,15 @@ Un outil de conception d'amorces diagnostiques doit fournir un résultat stricte
   - La sérialisation d'objets extrêmement lourds tels que la cartographie complète de l'intersection de toutes les amorces avec toutes les séquences Dengue cibles pour chaque signature engorgeait les processus (1.2 million de signatures * 100 séquences = saturation de la RAM et surcharge CPU IPC). Ce correctif sépare le screening rapide de la couverture (multi-thread) de l'extraction des données métaboliques de l'intersection (mono-thread post-filtrage).
 - **Impact attendu** :
   - Disparition totale des plantages par dépassement de mémoire (OOM) lors des runs sur les virus à large spectre (Dengue). Les 20 tests Canary et de Déterminisme confirment la préservation de l'exactitude stricte de la sortie.
+
+### Date/Étape : 2026-08-02 - Refonte de la Journalisation de Validation
+- **Fichiers impactés** : `lava_loop_primer.pl`, `lava_stem_primer.pl`, `lib/LLNL/LAVA/PipelineUtils.pm`
+- **Nature du changement** : Architecture / Bug Fix
+- **Explication technique** : 
+  1. Remplacement des `print` STDOUT exhaustifs pour chaque signature évaluée par une barre de progression en temps réel `[LAVA-PROGRESS]` dans le processus parent `ForkManager`.
+  2. Implémentation d'un bloc de résumé statistique de la validation (Validées, Rejetées, Couverture MAX des rejetées, Distribution).
+  3. Ajout de l'option `--verbose_validation` qui redirige les logs détaillés de `calculateSignatureIntersection` directement vers un fichier compressé à la volée (`<output_base>_validation_detail.log.gz`), évitant toute saturation de la mémoire du terminal.
+- **Justification biologique** : 
+  - La validation des génomes hautement variables (ex: Dengue) générait plus de 31 millions de lignes de logs vers STDOUT. Bien que le moteur Perl gère parfaitement la mémoire des données, le tampon du terminal client saturait la RAM système (plus de 94 Go consommés par Terminal.app). Cette refonte limite drastiquement le trafic I/O texte sans perte d'information utile. Les données détaillées restent disponibles à la demande pour l'analyse des cas marginaux via `--verbose_validation`.
+- **Impact attendu** :
+  - Disparition totale des plantages du terminal et des logs monstrueux impossibles à ouvrir. La console n'affiche plus que la progression propre et un résumé analytique actionnable.

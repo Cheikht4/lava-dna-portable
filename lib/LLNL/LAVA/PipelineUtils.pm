@@ -1655,15 +1655,19 @@ sub calculateDynamicPairLengths {
 =cut
 
 sub calculateSignatureIntersection {
-  my ($signature, $total_sequences, $min_signature_coverage, $include_extra_primers, $extra_primer_type) = @_;
+  my ($signature, $total_sequences, $min_signature_coverage, $include_extra_primers, $extra_primer_type, $verbose, $verbose_fh) = @_;
   
   # Valeurs par defaut / Default values
   $min_signature_coverage = 70 unless defined $min_signature_coverage;
   $extra_primer_type = "" unless defined $extra_primer_type;
+  $verbose = 0 unless defined $verbose;
   
   my $type_label = uc($extra_primer_type) || "CLASSIC";
   my $mode_text = $include_extra_primers ? "LAMP+$type_label" : "LAMP classique (6 primers)";
-  print "\n  VALIDATION DE SIGNATURE $mode_text (seuil: ${min_signature_coverage}%)\n";
+  
+  if ($verbose && defined $verbose_fh) {
+    print $verbose_fh "\n  VALIDATION DE SIGNATURE $mode_text (seuil: ${min_signature_coverage}%)\n";
+  }
   
   # Primers principaux : F3/B3 (outer), F2/B2 (middle), F1/B1 (inner)
   my @all_primers = ();
@@ -1697,7 +1701,7 @@ sub calculateSignatureIntersection {
       # Creer le tag par defaut si absent / Create default tag if missing
       eval { $f_primer->getTag("compatible_sequence_ids"); };
       if ($@) {
-        print "   [FIX] $F_label sans tag compatible_sequence_ids - creation par defaut\n";
+        print $verbose_fh "   [FIX] $F_label sans tag compatible_sequence_ids - creation par defaut\n" if $verbose && defined $verbose_fh;
         my @all_seq_ids = (0 .. $total_sequences - 1);
         $f_primer->setTag("compatible_sequence_ids", \@all_seq_ids);
       }
@@ -1711,7 +1715,7 @@ sub calculateSignatureIntersection {
       my $b_primer = $b_info->getAnalyzedPrimer();
       eval { $b_primer->getTag("compatible_sequence_ids"); };
       if ($@) {
-        print "   [FIX] $B_label sans tag compatible_sequence_ids - creation par defaut\n";
+        print $verbose_fh "   [FIX] $B_label sans tag compatible_sequence_ids - creation par defaut\n" if $verbose && defined $verbose_fh;
         my @all_seq_ids = (0 .. $total_sequences - 1);
         $b_primer->setTag("compatible_sequence_ids", \@all_seq_ids);
       }
@@ -1719,14 +1723,18 @@ sub calculateSignatureIntersection {
       push @primer_names, $B_label;
     }
     
-    if (!defined $f_info && !defined $b_info) {
-      print "   [WARN] $type_label primers demandes mais non trouves dans la signature\n";
-    } else {
-      print "   $type_label primers ajoutes a l'analyse\n";
+    if ($verbose && defined $verbose_fh) {
+      if (!defined $f_info && !defined $b_info) {
+        print $verbose_fh "   [WARN] $type_label primers demandes mais non trouves dans la signature\n";
+      } else {
+        print $verbose_fh "   $type_label primers ajoutes a l'analyse\n";
+      }
     }
   }
   
-  print "   Primers a analyser: " . scalar(@all_primers) . " (" . join(", ", @primer_names) . ")\n";
+  if ($verbose && defined $verbose_fh) {
+    print $verbose_fh "   Primers a analyser: " . scalar(@all_primers) . " (" . join(", ", @primer_names) . ")\n";
+  }
   return ([], 0.0, "Aucun primer disponible") if @all_primers == 0;
   
   # Phase 1: Verifier les sequences compatibles de chaque primer
@@ -1740,13 +1748,13 @@ sub calculateSignatureIntersection {
     eval { $compatible_sequences_ref = $primer->getTag("compatible_sequence_ids"); };
     
     if ($@ || !defined $compatible_sequences_ref) {
-      print "   [FAIL] $primer_name: PAS de tag 'compatible_sequence_ids'\n";
+      print $verbose_fh "   [FAIL] $primer_name: PAS de tag 'compatible_sequence_ids'\n" if $verbose && defined $verbose_fh;
       return ([], 0.0, "Primer $primer_name sans sequences compatibles");
     }
     
     my $count = scalar(@{$compatible_sequences_ref});
     my $pct = ($total_sequences > 0) ? ($count / $total_sequences) * 100 : 0.0;
-    print "   [OK] $primer_name: $count sequences compatibles (${pct}%)\n";
+    print $verbose_fh "   [OK] $primer_name: $count sequences compatibles (${pct}%)\n" if $verbose && defined $verbose_fh;
     
     push @primer_coverage_data, {
       name => $primer_name, sequences => $compatible_sequences_ref,
@@ -1755,7 +1763,7 @@ sub calculateSignatureIntersection {
   }
   
   # Phase 2: Intersection successive / Successive intersection
-  print "\n  CALCUL DE L'INTERSECTION:\n";
+  print $verbose_fh "\n  CALCUL DE L'INTERSECTION:\n" if $verbose && defined $verbose_fh;
   my %intersection_set = map { $_ => 1 } @{$primer_coverage_data[0]->{sequences}};
   
   for my $i (1 .. $#primer_coverage_data) {
@@ -1773,16 +1781,18 @@ sub calculateSignatureIntersection {
   my $coverage_count = scalar(@final_ids);
   my $coverage_pct = ($total_sequences > 0) ? ($coverage_count / $total_sequences) * 100 : 0.0;
   
-  print "\n  RESULTAT FINAL:\n";
-  print "   Sequences amplifiees par TOUTES les amorces: $coverage_count/$total_sequences\n";
-  printf "   Pourcentage de couverture: %.2f%%\n", $coverage_pct;
+  if ($verbose && defined $verbose_fh) {
+    print $verbose_fh "\n  RESULTAT FINAL:\n";
+    print $verbose_fh "   Sequences amplifiees par TOUTES les amorces: $coverage_count/$total_sequences\n";
+    printf $verbose_fh ("   Pourcentage de couverture: %.2f%%\n", $coverage_pct);
+  }
   
   my $validation_status;
   if ($coverage_pct >= $min_signature_coverage) {
-    print "   [PASS] SIGNATURE VALIDEE (${coverage_pct}% >= ${min_signature_coverage}%)\n";
+    print $verbose_fh "   [PASS] SIGNATURE VALIDEE (${coverage_pct}% >= ${min_signature_coverage}%)\n" if $verbose && defined $verbose_fh;
     $validation_status = "VALIDEE";
   } else {
-    print "   [FAIL] SIGNATURE REJETEE (${coverage_pct}% < ${min_signature_coverage}%)\n";
+    print $verbose_fh "   [FAIL] SIGNATURE REJETEE (${coverage_pct}% < ${min_signature_coverage}%)\n" if $verbose && defined $verbose_fh;
     $validation_status = "REJETEE - Couverture insuffisante";
   }
   
