@@ -2252,3 +2252,14 @@ Un outil de conception d'amorces diagnostiques doit fournir un résultat stricte
 - **Impact attendu** : 
   - Capacité retrouvée du système à générer des signatures sur des jeux de données de haute diversité virale, même s'il doit pour cela accepter des géométries plus étalées (lesquelles seront régulées naturellement par la fonction sigmoïde de pénalité de distance).
 
+
+### Date/Étape : 2026-08-02 - Découplage de la géométrie et du plafond de longueur pour LOOP
+- **Fichiers impactés** : `lava_loop_primer.pl`
+- **Nature du changement** : Thermodynamique / Architecture
+- **Explication technique** : 
+  - Application du même découplage que dans `lava_stem_primer.pl` : `signature_max_length` sert de plafond physique, et `total_signature_length` (défaut: 250) sert de référence pour les cibles proportionnelles (F3-F2: 12%, F2-F1: 18%, F1-B1: 40%).
+  - Rétablissement de la valeur par défaut pour `max_dist_outer_middle` et `max_dist_middle_inner` à 30 (alignement strict sur STEM) au lieu du fallback sur `$signatureMaxLength`.
+  - Ajout du mécanisme de recadrage (clamping) qui bride `total_signature_length` à la valeur de `signature_max_length` s'il lui est supérieur.
+  - Ajout de l'impression `INFO: Cibles Géométriques Proportionnelles` en début de calcul pour le suivi du découplage.
+- **Justification biologique** : Uniformisation des deux moteurs (STEM et LOOP) pour le calcul des pénalités thermodynamiques d'espacement. Respect de la cinétique enzymatique en visant une taille cible de 250 pb même lorsque le plafond d'exclusion est très élevé (ex: 600 pb pour capter les variants).
+- **Impact attendu** : Une couverture optimisée sans épuisement de l'espace de recherche. Les tests de reproductibilité (déterminisme) restent 100% au vert et la baseline historique est parfaitement respectée grâce au mécanisme de recadrage.
