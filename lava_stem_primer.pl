@@ -209,7 +209,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "inner_primer_min_tm=f" => \$options{"inner_primer_min_tm"},
       "inner_primer_max_tm=f" => \$options{"inner_primer_max_tm"},
     
-      "max_poly_bases=i" => \$options{"max_poly_bases"}, 
+      "max_poly_bases=i" => \$options{"max_poly_bases"},
+      "assembly_batch_size=i" => \$options{"assembly_batch_size"},
+      "max_retained_signatures=i" => \$options{"max_retained_signatures"}, 
       
       "max_total_degenerate_bases=i" => \$options{"max_total_degenerate_bases"},
       "max_consecutive_degenerate_bases=i" => \$options{"max_consecutive_degenerate_bases"},
@@ -2338,12 +2340,130 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     #}
 
     # Now, try to combine forward and reverse primer sets into full signatures
-    print "Combining Best F/R Halves to create LAMP Signatures...\n";
+    print "Combining Best F/R Halves to create LAMP Signatures (in batches)...\n";
     my $previousFirstCompatibleIndex = 0; # Bound the lower end of the inner iteration
     
     my $combine_total = $innerForwardCount;
     my $combine_done = 0;
     my $combine_t0 = time();
+
+    my $assembly_batch_size = $options_r->{"assembly_batch_size"} || 50000;
+    my $max_retained_signatures = $options_r->{"max_retained_signatures"} || 10000;
+    my @retained_signatures;
+    my @batch;
+    my $combinedSignatureCount = 0;
+    
+    my $val_pm = LLNL::LAVA::ForkManager->new($options_r->{"threads"});
+    my $actual_threads = $val_pm->{max_processes};
+    my $verbose_val = $options_r->{"verbose_validation"} ? 1 : 0;
+    my $verbose_base = $options_r->{"output_file"} . "_validation_detail";
+    my $val_done = 0;
+    my $val_passed = 0;
+    my $val_rejected = 0;
+    my $immediate_rejections = 0;
+    my %val_distribution = ("<20%"=>0, "20-40%"=>0, "40-60%"=>0, "60-80%"=>0, ">=80%"=>0);
+    my $max_rejected_cov = -1;
+    my $eviction_occurred = 0;
+    my $batches_processed = 0;
+
+    if ($_LAVA_IS_TTY || 1) {
+        printf("[LAVA-PROGRESS] Combinaison & Validation|0|%d|Retenues: 0|0.0 it/s|0\r", $combine_total);
+        my $old_h = select(STDOUT); $| = 1; select($old_h);
+    }
+
+    sub process_batch {
+        my ($batch_r) = @_;
+        return if scalar(@$batch_r) == 0;
+        $batches_processed++;
+        
+        my $batch_size = scalar(@$batch_r);
+        my $chunk_size = POSIX::ceil($batch_size / ($actual_threads * 4));
+        $chunk_size = 100 if $chunk_size < 100;
+        
+        my @chunks;
+        for(my $i = 0; $i < $batch_size; $i += $chunk_size) {
+            my $end = $i + $chunk_size - 1;
+            $end = $batch_size - 1 if $end >= $batch_size;
+            push @chunks, [$i, $end];
+        }
+        
+        my %batch_results;
+        
+        $val_pm->run_on_finish(sub {
+            my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_r) = @_;
+            if (defined($data_r) && ref($data_r) eq 'ARRAY') {
+                foreach my $res (@$data_r) {
+                    my ($idx, $cov, $status, $target_count) = @$res;
+                    $batch_results{$idx} = {
+                        coverage => $cov,
+                        status   => $status,
+                        target_count => $target_count
+                    };
+                    $val_done++;
+                    if ($status eq "VALIDEE") {
+                        $val_passed++;
+                    } else {
+                        $val_rejected++;
+                        $max_rejected_cov = $cov if $cov > $max_rejected_cov;
+                    }
+                    
+                    if ($cov < 20) { $val_distribution{"<20%"}++; }
+                    elsif ($cov < 40) { $val_distribution{"20-40%"}++; }
+                    elsif ($cov < 60) { $val_distribution{"40-60%"}++; }
+                    elsif ($cov < 80) { $val_distribution{"60-80%"}++; }
+                    else { $val_distribution{">=80%"}++; }
+                }
+            }
+        });
+        
+        foreach my $chunk (@chunks) {
+            $val_pm->start and next;
+            my $verbose_fh;
+            if ($verbose_val) {
+                open($verbose_fh, "| gzip >> ${verbose_base}.$$" . ".log.gz") or warn "Cannot open verbose log";
+            }
+            my @results_for_chunk;
+            my ($start, $end) = @$chunk;
+            for(my $idx = $start; $idx <= $end; $idx++) {
+                my $signature = $batch_r->[$idx];
+                my ($final_ids_r, $coverage, $status) = calculateSignatureIntersection(
+                    $signature, 
+                    scalar(@sequences), 
+                    $signatureCommonTargetMinPercent,
+                    $includeStemPrimers,
+                    "stem",
+                    $verbose_val,
+                    $verbose_fh
+                );
+                push @results_for_chunk, [$idx, $coverage, $status, scalar(@$final_ids_r)];
+            }
+            if ($verbose_val && defined $verbose_fh) {
+                close($verbose_fh);
+            }
+            $val_pm->finish(0, \@results_for_chunk);
+        }
+        
+        $val_pm->wait_all_children;
+        
+        for(my $idx = 0; $idx < $batch_size; $idx++) {
+            if (exists $batch_results{$idx}) {
+                my $res = $batch_results{$idx};
+                my $signature = $batch_r->[$idx];
+                if ($res->{status} eq "VALIDEE") {
+                    $signature->setTag("signature_coverage_percent", sprintf("%.2f", $res->{coverage}));
+                    $signature->setTag("validation_status", $res->{status});
+                    $signature->setTag("signature_target_count", $res->{target_count});
+                    push @retained_signatures, $signature;
+                }
+            }
+        }
+        
+        if (scalar(@retained_signatures) > $max_retained_signatures) {
+            $eviction_occurred = 1;
+            @retained_signatures = sort { $a->getTag("lamp_penalty") <=> $b->getTag("lamp_penalty") } @retained_signatures;
+            splice(@retained_signatures, $max_retained_signatures);
+        }
+    }
 
     for(my $i = 0; $i < $innerForwardCount; $i++)
     {
@@ -2352,9 +2472,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           my $elapsed = time() - $combine_t0 + 0.001;
           my $rate = $combine_done / $elapsed;
           my $eta = ($combine_done < $combine_total) ? int(($combine_total - $combine_done) / $rate) : 0;
-          my $current_sigs = scalar(@{$allFoundSignatures_r});
-          printf("[LAVA-PROGRESS] Combinaison|%d|%d|Sigs: %d|%.1f it/s|%d\r", 
-                 $combine_done, $combine_total, $current_sigs, $rate, $eta);
+          printf("[LAVA-PROGRESS] Combinaison & Validation|%d|%d|Retenues: %d|%.1f it/s|%d\r", 
+                 $combine_done, $combine_total, scalar(@retained_signatures), $rate, $eta);
           my $old_h = select(STDOUT); $| = 1; select($old_h);
       }
 
@@ -2367,15 +2486,12 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       my $finnerInfo = $innerForwardSubset_r->[$i];
       my ($fstemInfo, $fmiddleInfo, $fouterInfo) = @{$bestForwardInfos[$i]};
       my ($forwardSpacingPenalty, $forwardPrimer3Penalty, $forwardDetailStr) = 
-        @{$bestForwardPenalties[$i]};
+	  @{$bestForwardPenalties[$i]};
 
       my $forwardStart = $fouterInfo->getLocation();
       my $forwardEnd = $finnerInfo->getLocation() + $finnerInfo->getLength() - 1;
 
-      # Used to bound the upper end of the inner iteration search
       my $maxReverseLocation = $forwardStart + $signatureMaxLength - 1;
-    
-      # Used to help bound the lower end of the inner iteration search
       my $previousCompatibleIndexFound = $FALSE;
       
       for(my $j = $previousFirstCompatibleIndex; $j < $innerReverseCount; $j++)
@@ -2393,8 +2509,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
         my $reverseEnd = $bouterInfo->getLocation();
         my $reverseStart = $binnerInfo->getLocation() - $binnerInfo->getLength() + 1;
         
-        #print "\n  Outer $reverseStart -> $reverseEnd";
-
         # Advance to the next compatible reverse primer by skipping all the
         # primers located too far 5' with respect to the forward primer
         if($previousCompatibleIndexFound == $FALSE)
@@ -2454,10 +2568,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
         
         # Utiliser la validation complète d'espacement / Use complete spacing validation
         if (!validateCompleteSignatureSpacing(\@forwardPrimers, \@reversePrimers, $minPrimerSpacing)) {
+            $immediate_rejections++;
             next;
         }
-       
-        
        
         # Enforce max signature length
         if($reverseEnd - ($forwardStart + 1) > $signatureMaxLength)
@@ -2465,9 +2578,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 	  next;
 	}
 
-        #print "*";
-    
-        # TODO: Spacing penalty should probably exclude minimum required spacings?
         my $innerSpacingPenalty = 
           (penaltyAt($innerToInnerPenalties_r, $innerSpacing, 'innerToInner') *
 	   $innerForwardToReversePenaltyWeight);
@@ -2531,126 +2641,22 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           $signature->setTag("has_stem_primers", $TRUE);
         }
         
-        # Tags STEM définis, la validation sera effectuée en bloc post-collecte
-        # STEM tags set, validation will be done in the post-collection batch
-         
-        push(@{$allFoundSignatures_r}, $signature);
-      } # End forward sets iteration
-    } # End reverse sets iteration
+        push(@batch, $signature);
+        $combinedSignatureCount++;
 
-  print "\n"; # Clear the progress bar line
-  print "Found " .
-    scalar(@{$allFoundSignatures_r}) .
-    " total signatures across all iterations\n";
+        if (scalar(@batch) >= $assembly_batch_size) {
+            process_batch(\@batch);
+            @batch = ();
+        }
+      } # End reverse sets iteration
+    } # End forward sets iteration
 
-  if(scalar(@{$allFoundSignatures_r}) == 0)
-  {
-    print "Failed to identify signatures - exiting normally\n";
-    exit(0);
-  }
+  # Process remaining batch
+  process_batch(\@batch) if scalar(@batch) > 0;
 
-  # --- VALIDATION PAR SIGNATURE (Essential for correct tagging) ---
-  my $total_sigs_to_validate = scalar(@{$allFoundSignatures_r});
-  print "Validating and calculating coverage for $total_sigs_to_validate signatures...\n";
-  my $validated_count = 0;
+  print "\n"; 
+  print "Created $combinedSignatureCount LAMP signatures candidates.\n";
 
-  my $val_pm = LLNL::LAVA::ForkManager->new($options_r->{"threads"});
-  my $actual_threads = $val_pm->{max_processes};
-  my %validation_results;
-
-  my $verbose_val = $options_r->{"verbose_validation"} ? 1 : 0;
-  my $verbose_base = $options_r->{"output_file"} . "_validation_detail";
-
-  my $val_t0 = time();
-  my $val_done = 0;
-  my $val_passed = 0;
-  my $val_rejected = 0;
-  my %val_distribution = ("<20%"=>0, "20-40%"=>0, "40-60%"=>0, "60-80%"=>0, ">=80%"=>0);
-  my $max_rejected_cov = -1;
-
-  $val_pm->run_on_finish(sub {
-      my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_r) = @_;
-      if (defined($data_r) && ref($data_r) eq 'ARRAY') {
-          foreach my $res (@$data_r) {
-              my ($idx, $cov, $status, $target_count) = @$res;
-              $validation_results{$idx} = {
-                  coverage => $cov,
-                  status   => $status,
-                  target_count => $target_count
-              };
-              $val_done++;
-              if ($status eq "VALIDEE") {
-                  $val_passed++;
-              } else {
-                  $val_rejected++;
-                  $max_rejected_cov = $cov if $cov > $max_rejected_cov;
-              }
-              
-              if ($cov < 20) { $val_distribution{"<20%"}++; }
-              elsif ($cov < 40) { $val_distribution{"20-40%"}++; }
-              elsif ($cov < 60) { $val_distribution{"40-60%"}++; }
-              elsif ($cov < 80) { $val_distribution{"60-80%"}++; }
-              else { $val_distribution{">=80%"}++; }
-          }
-          
-          if ($_LAVA_IS_TTY || 1) {
-              my $elapsed = time() - $val_t0 + 0.001;
-              my $rate = $val_done / $elapsed;
-              my $eta = ($val_done < $total_sigs_to_validate) ? int(($total_sigs_to_validate - $val_done) / $rate) : 0;
-              printf("[LAVA-PROGRESS] Validation|%d|%d|Valid: %d / Rejet: %d|%.1f it/s|%d\r", 
-                     $val_done, $total_sigs_to_validate, $val_passed, $val_rejected, $rate, $eta);
-              my $old_h = select(STDOUT); $| = 1; select($old_h);
-          }
-      }
-  });
-
-  # Chunking
-  my $val_chunk_size = POSIX::ceil($total_sigs_to_validate / ($actual_threads * 4)); # Entrelacement
-  $val_chunk_size = 100 if $val_chunk_size < 100;
-  
-  my @val_chunks;
-  for(my $i = 0; $i < $total_sigs_to_validate; $i += $val_chunk_size) {
-      my $end = $i + $val_chunk_size - 1;
-      $end = $total_sigs_to_validate - 1 if $end >= $total_sigs_to_validate;
-      push @val_chunks, [$i, $end];
-  }
-  
-  # Traitement par chunk avec ForkManager (un processus enfant par chunk)
-  foreach my $chunk (@val_chunks) {
-      $val_pm->start and next;
-      
-      my $verbose_fh;
-      if ($verbose_val) {
-          open($verbose_fh, "| gzip >> ${verbose_base}.$$" . ".log.gz") or warn "Cannot open verbose log";
-      }
-      
-      my @results_for_chunk;
-      my ($start, $end) = @$chunk;
-      for(my $idx = $start; $idx <= $end; $idx++) {
-          my $signature = $allFoundSignatures_r->[$idx];
-          
-          my ($final_ids_r, $coverage, $status) = calculateSignatureIntersection(
-              $signature, 
-              scalar(@sequences), 
-              $signatureCommonTargetMinPercent,
-              $includeStemPrimers,
-              "stem",
-              $verbose_val,
-              $verbose_fh
-          );
-          
-          # NE TRANSMETTRE QUE DES SCALAIRES pour eviter l'explosion memoire
-          push @results_for_chunk, [$idx, $coverage, $status, scalar(@$final_ids_r)];
-      }
-      if ($verbose_val && defined $verbose_fh) {
-          close($verbose_fh);
-      }
-      $val_pm->finish(0, \@results_for_chunk);
-  }
-  
-  $val_pm->wait_all_children;
-  print "\n"; # Clear the progress bar line
-  
   if ($verbose_val) {
       print "Aggregating verbose logs...\n";
       system("cat ${verbose_base}.*.log.gz > ${verbose_base}.log.gz 2>/dev/null");
@@ -2659,14 +2665,16 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   }
 
   print "============================================================\n";
-  print "RESUME STATISTIQUE DE LA VALIDATION\n";
+  print "RESUME STATISTIQUE DE L'ASSEMBLAGE ET VALIDATION\n";
   print "============================================================\n";
-  my $pct_val = $total_sigs_to_validate > 0 ? ($val_passed / $total_sigs_to_validate * 100) : 0;
-  my $pct_rej = $total_sigs_to_validate > 0 ? ($val_rejected / $total_sigs_to_validate * 100) : 0;
-  printf("Total evalue : %d\n", $total_sigs_to_validate);
-  printf("Validees     : %d (%.1f%%)\n", $val_passed, $pct_val);
-  printf("Rejetees     : %d (%.1f%%)\n", $val_rejected, $pct_rej);
-  printf("Seuil requis : %.1f%%\n", $signatureCommonTargetMinPercent);
+  my $pct_val = $combinedSignatureCount > 0 ? ($val_passed / $combinedSignatureCount * 100) : 0;
+  my $pct_rej = $combinedSignatureCount > 0 ? ($val_rejected / $combinedSignatureCount * 100) : 0;
+  printf("Total candidat crees : %d\n", $combinedSignatureCount);
+  printf("Rejets immediats     : %d (espacement invalide)\n", $immediate_rejections);
+  printf("Total evalue         : %d (en %d lots)\n", $val_done, $batches_processed);
+  printf("Validees             : %d (%.1f%%)\n", $val_passed, $pct_val);
+  printf("Rejetees (couverture): %d (%.1f%%)\n", $val_rejected, $pct_rej);
+  printf("Seuil requis         : %.1f%%\n", $signatureCommonTargetMinPercent);
   if ($val_rejected > 0) {
       my $ecart = $signatureCommonTargetMinPercent - $max_rejected_cov;
       printf("Couverture MAX (rejetees) : %.2f%% (ecart au seuil : -%.2f%%)\n", $max_rejected_cov, $ecart);
@@ -2675,18 +2683,15 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   foreach my $bin ("<20%", "20-40%", "40-60%", "60-80%", ">=80%") {
       printf("  %s : %d\n", $bin, $val_distribution{$bin});
   }
+  print "------------------------------------------------------------\n";
+  printf("Signatures retenues  : %d\n", scalar(@retained_signatures));
+  if ($eviction_occurred) {
+      printf("ATTENTION: Le plafond de retenue (%d) a ete atteint.\n", $max_retained_signatures);
+      printf("Des candidates valides mais de moindre qualite ont ete evincees.\n");
+  }
   print "============================================================\n";
 
-  # Re-appliquer les resultats scalaires dans le parent
-  for(my $idx = 0; $idx < $total_sigs_to_validate; $idx++) {
-      my $signature = $allFoundSignatures_r->[$idx];
-      if (exists $validation_results{$idx}) {
-          my $res = $validation_results{$idx};
-          $signature->setTag("signature_coverage_percent", sprintf("%.2f", $res->{coverage}));
-          $signature->setTag("validation_status", $res->{status});
-          $signature->setTag("signature_target_count", $res->{target_count});
-      }
-  }
+  $allFoundSignatures_r = \@retained_signatures;
 
   print "Validation complete.\n";
 
