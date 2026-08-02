@@ -83,6 +83,12 @@ sync_item() {
 
     # If it's a file
     if [ -f "$src_item" ]; then
+        if [[ "$target_repo" == *"lava-virus-public"* ]]; then
+            if [[ "$src_item" == *"lava_flask_app.py"* ]] || [[ "$src_item" == *"templates"* ]] || [[ "$src_item" == *"deployment"* ]]; then
+                return
+            fi
+        fi
+
         local target_item="$target_repo/$src_item"
         local src_md5=$(compute_md5 "$src_item")
         
@@ -102,6 +108,12 @@ sync_item() {
         fi
     # If it's a directory
     elif [ -d "$src_item" ]; then
+        if [[ "$target_repo" == *"lava-virus-public"* ]]; then
+            if [[ "$src_item" == *"templates"* ]] || [[ "$src_item" == *"deployment"* ]]; then
+                return
+            fi
+        fi
+
         # Recursively process files
         find "$src_item" -type f | while read -r src_file; do
             # Ignore certain generated or system files
@@ -215,6 +227,12 @@ for file in "${FILES_TO_CHECK[@]}"; do
     ref_md5=$(compute_md5 "$file")
     for target in "${TARGETS[@]}"; do
         if [ ! -d "$target" ]; then continue; fi
+        
+        # Skip UI files for LAVA-Virus
+        if [[ "$target" == *"lava-virus-public"* ]] && [[ "$file" == *"lava_flask_app.py"* ]]; then
+            continue
+        fi
+
         tgt_md5=$(compute_md5 "$target/$file")
         if [[ "$ref_md5" != "$tgt_md5" ]]; then
             echo "DIVERGENCE DETECTEE: $file differe entre principal et $target"
