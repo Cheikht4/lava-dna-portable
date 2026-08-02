@@ -2424,7 +2424,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $batches_processed = 0;
 
   if ($_LAVA_IS_TTY || 1) {
-      printf("[LAVA-PROGRESS] Combinaison & Validation|0|%d|Retenues: 0|0.0 it/s|0\r", $combine_total);
+      printf("[LAVA-PROGRESS] Combinaison & Validation|0|%d|Eval: 0, Retenues: 0|0.0 it/s|0\r", $combine_total);
       my $old_h = select(STDOUT); $| = 1; select($old_h);
   }
 
