@@ -358,12 +358,14 @@ sub getOligosWithMismatchTolerance {
           $validatedPrimer->setTag("original_sequence", $original_sequence);
           $validatedPrimer->setTag("iupac_coverage", sprintf("%.1f", $coverage_percent));
           $validatedPrimer->setTag("compatible_sequence_ids", $compatible_seq_ids);
+          $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatible_seq_ids));
           $chunk_degen++;
           push @chunk_logs, "DEGENERATE PRIMER acceptee - Pos: $location, Couv: " . sprintf("%.1f", $coverage_percent) . "%, Seq: $final_sequence\n";
         } else {
           $validatedPrimer->setTag("is_degenerate", 0);
           $validatedPrimer->setTag("iupac_coverage", "100.0");
           $validatedPrimer->setTag("compatible_sequence_ids", $compatible_seq_ids);
+          $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatible_seq_ids));
           $chunk_strict++;
           push @chunk_logs, "STRICT PRIMER acceptee     - Pos: $location, Couv: 100.0%, Seq: $final_sequence\n" if ($chunk_strict <= 10);
         }
@@ -599,12 +601,14 @@ sub buildNativeReversePool {
           $validatedPrimer->setTag("original_sequence", $origSeq);
           $validatedPrimer->setTag("iupac_coverage", sprintf("%.1f", $coveragePct));
           $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
+          $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatibleIds));
           $chunk_degen++;
           push @chunk_logs, "REVERSE DEGENERATE acceptee - PosRC: $posInRC -> GenomPos: $genomicLocation, Couv: " . sprintf("%.1f", $coveragePct) . "%, Seq: $finalSeq\n";
         } else {
           $validatedPrimer->setTag("is_degenerate", 0);
           $validatedPrimer->setTag("iupac_coverage", "100.0");
           $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
+          $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatibleIds));
           $chunk_strict++;
           push @chunk_logs, "REVERSE STRICT acceptee   - PosRC: $posInRC -> GenomPos: $genomicLocation, Couv: 100.0%, Seq: $finalSeq\n";
         }
@@ -1654,6 +1658,15 @@ sub calculateDynamicPairLengths {
 
 =cut
 
+sub _build_bit_vector {
+    my ($ids_ref) = @_;
+    my $vec = "";
+    foreach my $id (@$ids_ref) {
+        vec($vec, $id, 1) = 1;
+    }
+    return $vec;
+}
+
 sub calculateSignatureIntersection {
   my ($signature, $total_sequences, $min_signature_coverage, $include_extra_primers, $extra_primer_type, $verbose, $verbose_fh) = @_;
   
@@ -1704,6 +1717,7 @@ sub calculateSignatureIntersection {
         print $verbose_fh "   [FIX] $F_label sans tag compatible_sequence_ids - creation par defaut\n" if $verbose && defined $verbose_fh;
         my @all_seq_ids = (0 .. $total_sequences - 1);
         $f_primer->setTag("compatible_sequence_ids", \@all_seq_ids);
+        $f_primer->setTag("compatible_sequence_vec", _build_bit_vector(\@all_seq_ids));
       }
       push @all_primers, $f_primer;
       push @primer_names, $F_label;
@@ -1718,6 +1732,7 @@ sub calculateSignatureIntersection {
         print $verbose_fh "   [FIX] $B_label sans tag compatible_sequence_ids - creation par defaut\n" if $verbose && defined $verbose_fh;
         my @all_seq_ids = (0 .. $total_sequences - 1);
         $b_primer->setTag("compatible_sequence_ids", \@all_seq_ids);
+        $b_primer->setTag("compatible_sequence_vec", _build_bit_vector(\@all_seq_ids));
       }
       push @all_primers, $b_primer;
       push @primer_names, $B_label;
@@ -1747,37 +1762,42 @@ sub calculateSignatureIntersection {
     my $compatible_sequences_ref;
     eval { $compatible_sequences_ref = $primer->getTag("compatible_sequence_ids"); };
     
-    if ($@ || !defined $compatible_sequences_ref) {
+    if ($@ || !defined $compatible_sequences_ref || @$compatible_sequences_ref == 0) {
       print $verbose_fh "   [FAIL] $primer_name: PAS de tag 'compatible_sequence_ids'\n" if $verbose && defined $verbose_fh;
-      return ([], 0.0, "Primer $primer_name sans sequences compatibles");
+      return ([], 0.0, "Echec: pas de sequences compatibles pour $primer_name");
     }
     
-    my $count = scalar(@{$compatible_sequences_ref});
+    my $compatible_sequences_vec;
+    eval { $compatible_sequences_vec = $primer->getTag("compatible_sequence_vec"); };
+    if (!defined $compatible_sequences_vec) {
+      $compatible_sequences_vec = _build_bit_vector($compatible_sequences_ref);
+      $primer->setTag("compatible_sequence_vec", $compatible_sequences_vec);
+    }
+    
+    my $count = scalar(@$compatible_sequences_ref);
     my $pct = ($total_sequences > 0) ? ($count / $total_sequences) * 100 : 0.0;
-    print $verbose_fh "   [OK] $primer_name: $count sequences compatibles (${pct}%)\n" if $verbose && defined $verbose_fh;
     
     push @primer_coverage_data, {
-      name => $primer_name, sequences => $compatible_sequences_ref,
+      name => $primer_name, sequences => $compatible_sequences_ref, vec => $compatible_sequences_vec,
       count => $count, percent => $pct
     };
   }
   
-  # Phase 2: Intersection successive / Successive intersection
+  # Phase 2: Intersection successive (Optimisation par vecteur de bits)
   print $verbose_fh "\n  CALCUL DE L'INTERSECTION:\n" if $verbose && defined $verbose_fh;
-  my %intersection_set = map { $_ => 1 } @{$primer_coverage_data[0]->{sequences}};
+  my $intersection_vec = $primer_coverage_data[0]->{vec};
   
   for my $i (1 .. $#primer_coverage_data) {
-    my %primer_set = map { $_ => 1 } @{$primer_coverage_data[$i]->{sequences}};
-    my %new_intersection = ();
-    for my $seq_id (keys %intersection_set) {
-      $new_intersection{$seq_id} = 1 if exists $primer_set{$seq_id};
-    }
-    %intersection_set = %new_intersection;
-    last if scalar(keys %intersection_set) == 0;
+    $intersection_vec = $intersection_vec & $primer_coverage_data[$i]->{vec};
+    last if unpack("%32b*", $intersection_vec) == 0;
   }
   
   # Phase 3: Validation finale / Final validation
-  my @final_ids = sort keys %intersection_set;
+  my @final_ids = ();
+  for (my $id = 0; $id < $total_sequences; $id++) {
+      push @final_ids, $id if vec($intersection_vec, $id, 1);
+  }
+  
   my $coverage_count = scalar(@final_ids);
   my $coverage_pct = ($total_sequences > 0) ? ($coverage_count / $total_sequences) * 100 : 0.0;
   
@@ -2397,6 +2417,7 @@ sub injectFixedPrimers {
     $fixed_oligo->setTag("is_degenerate",         $is_degenerate ? 1 : 0);
     $fixed_oligo->setTag("iupac_coverage",         sprintf("%.1f", $coverage_percent));
     $fixed_oligo->setTag("compatible_sequence_ids", $compatible_seq_ids);
+    $fixed_oligo->setTag("compatible_sequence_vec", _build_bit_vector($compatible_seq_ids));
     $fixed_oligo->setTag("original_sequence",      $primer_seq);
 
     # Tags specific to fixed primers
