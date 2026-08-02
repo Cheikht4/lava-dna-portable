@@ -1769,7 +1769,7 @@ sub calculateSignatureIntersection {
   for my $i (1 .. $#primer_coverage_data) {
     my %primer_set = map { $_ => 1 } @{$primer_coverage_data[$i]->{sequences}};
     my %new_intersection = ();
-    for my $seq_id (sort keys %intersection_set) {
+    for my $seq_id (keys %intersection_set) {
       $new_intersection{$seq_id} = 1 if exists $primer_set{$seq_id};
     }
     %intersection_set = %new_intersection;
