@@ -25,7 +25,12 @@ jobs:
         run: which primer3_core || echo "primer3_core not found in PATH"
 
       - name: Run UI Form Names Audit
-        run: python3 t/test_form_names.py
+        run: |
+          if [ -f templates/index.html ] && [ -f t/test_form_names.py ]; then
+            python3 t/test_form_names.py
+          else
+            echo "Pas de formulaire dans ce depot : audit ignore."
+          fi
 
       - name: Run Canary Regression Test
         run: |

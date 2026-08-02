@@ -35,6 +35,7 @@ WHITELIST=(
     "t/baseline"
     "t/canary_regression.t"
     "t/fixtures"
+    "t/test_form_names.py"
     ".github/workflows/canary.yml"
 )
 
