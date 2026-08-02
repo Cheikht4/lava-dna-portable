@@ -1,0 +1,19 @@
+================================================================================
+DIAGNOSTIC LAVA : AUCUNE DEMI-SIGNATURE Forward TROUVÉE
+================================================================================
+
+[CAS 2] PROBLÈME D'ASSEMBLAGE : Incompatibilité des contraintes.
+Les pools sont non vides (ex: 103 amorces F1c/B1c), mais aucune combinaison
+ne respecte toutes les contraintes de température et d'espacement.
+
+-> Cause principale : Thermodynamique (Loop/Middle) (53.8% des rejets)
+   - Meilleur écart atteignable : 59.03 °C.
+   - Votre limite --max_tm_diff est : 5.00 °C.
+   => SUGGESTION : Les séquences sont très divergentes. Une valeur > 10 °C n'est pas recommandée.
+      Envisagez de segmenter la cible ou de relâcher les paramètres d'amont.
+
+-> Cause secondaire : Espacement / Géométrie (Trop court) (45.1% des rejets)
+   - Empan minimal nécessaire : 999999 nt.
+
+Le scan Reverse n'a pas été exécuté car aucune demi-signature Forward n'a été trouvée.
+================================================================================

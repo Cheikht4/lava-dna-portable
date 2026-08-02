@@ -1,9 +1,17 @@
-import os
+import sys
 
-with open('LAVA_EVOLUTION_JOURNAL.md', 'a') as f:
-    f.write("\n### Date/Étape : 2026-07-25 - Correction finale des compteurs de progression\n")
-    f.write("- **Fichiers impactés** : `lava_loop_primer.pl`, `lava_stem_primer.pl`, `apply_optimizations.py`\n")
-    f.write("- **Nature du changement** : [Bug Fix]\n")
-    f.write("- **Explication technique** : Le système d'affichage de la progression LAVA-PROGRESS a été restructuré. Au lieu de cumuler le statut de chaque chunk via `flock` sur un fichier unique (ce qui provoquait des verrous lents et une lecture asymétrique aboutissant à des compteurs incohérents), le script crée désormais un répertoire de progression avec un fichier `.prog` distinct par chunk (`chunk_$chunk_id.prog`). La boucle de lecture utilise `glob` pour lire dynamiquement l'état agrégé.\n")
-    f.write("- **Justification biologique** : Les affichages incohérents de l'avancement induisent en erreur l'utilisateur lors de grands runs combinatoires. Ce correctif redonne un indicateur fiable et proportionné sans affecter les performances.\n")
-    f.write("- **Impact attendu** : Affichage correct et strictement borné à 100% dans l'interface de chargement.\n")
+with open("LAVA_EVOLUTION_JOURNAL.md", "a") as f:
+    f.write("""
+### Date/Étape : 2026-08-02 - Parallélisation de la validation finale et suppression de min_signatures_for_success
+- **Fichiers impactés** : `lava_loop_primer.pl`, `lava_stem_primer.pl`, `lava_flask_app.py`, `templates/index.html`, `LAVA_PARAMETERS_REFERENCE.txt`, `t/canary_regression.t`
+- **Nature du changement** : Architecture / Bug Fix / Thermodynamique
+- **Explication technique** : 
+  1. Suppression totale du paramètre fantôme `min_signatures_for_success` de la chaîne de traitement complète (IHM, CLI, scripts Perl, documentation), car il n'avait jamais été lu ni utilisé par le moteur.
+  2. Implémentation d'une boucle de parallélisation (ForkManager) au niveau de la phase finale de validation (juste avant l'écriture de `all_signatures`). Le moteur découpe désormais la liste de dizaines de milliers de signatures en lots entrelacés (chunking round-robin) et les valide simultanément.
+  3. Conservation rigoureuse de la synchronisation par indices dans le processus parent, en ne transférant que des scalaires (`[$idx, $coverage, $status, \@final_ids, \@primer_cov]`) pour éviter la sérialisation des objets `LAMP` lourds, puis reconstruction manuelle des tags `getTag`/`setTag`.
+- **Justification biologique** : 
+  - La validation post-réduction était mono-thread et devenait un goulot d'étranglement majeur bloquant des serveurs sur de très grosses souches comme la Dengue (temps d'exécution excessifs menant à des annulations). En parallélisant strictement cette étape lourde en calcul (intersection de sets de séquences), on accélère l'obtention des résultats finaux sans modifier l'algorithmique de sélection des amorces.
+- **Impact attendu** :
+  - Déblocage des goulots d'étranglement de fin de run sur les gros jeux de données. 
+  - Le système d'intégration continue `canary_regression.t` confirme la parfaite équivalence bit-à-bit et le respect total du déterminisme entre des exécutions `--threads 1` et `--threads 8`.
+""")

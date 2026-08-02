@@ -1,0 +1,201 @@
+  }
+
+  #-----------------------------------------------------------------------------
+  # 5. COMBINE HALVES & CREATE SIGNATURES
+  #-----------------------------------------------------------------------------
+  print "Combining Best F/R Halves to create LAMP Signatures...\n";
+  
+  my $combinedSignatureCount = 0;
+  my $rejected_max_len = 0;
+  my $rejected_min_len = 0;
+
+  for(my $i = 0; $i < scalar(@{$masterInnerF_r}); $i++) {
+      next unless defined $bestForwardInfos[$i]; # Skip if no valid F-half found
+      
+      my $innerF = $masterInnerF_r->[$i];
+      my $f_set_infos = $bestForwardInfos[$i]; # [LoopF, MidF, OutF]
+       
+      # InnerF (F1c) Location data
+      # Note: $innerF is a PrimerInfo. 
+      # $innerF->getLocation() is the END of the primer on the Plus strand (for Fwd? No).
+      # Let's verify standard LAVA location semantics:
+      # Forward Primer: Start lowest, End highest. Location = End? 
+      # Reverse Primer: Start lowest (5' on minus), End highest (3' on minus, physical 5' on plus).
+      # Typically LAVA uses "Genome Coordinates".
+      # Let's trust the `enumeratePairs` logic which I replaced or the earlier lookups.
+      # better: use the raw data arrays I prepared
+      my $f1c_location = $masterInnerF_data_r->[$i]->[0]; # This is Location 
+      my $f1c_length = $masterInnerF_data_r->[$i]->[1];
+      my $f1c_tm = $masterInnerF_data_r->[$i]->[3]; # Unpack cached Tm
+      
+      # F1c is "Inner Forward". In LAMP, F1c is the complement of F1.
+      # But LAVA PrimerSet::LAMP expects "Inner Info", which contains an "Analyzed Pair".
+      # Each `*_info` is a `LLNL::LAVA::PrimerSetInfo::PCRPair`. 
+      
+      for(my $j = 0; $j < scalar(@{$masterInnerR_r}); $j++) {
+          next unless defined $bestReverseInfos[$j];
+          
+          my $innerR = $masterInnerR_r->[$j];
+          my $r_set_infos = $bestReverseInfos[$j]; # [LoopR, MidR, OutR]
+          
+          my $b1c_location = $masterInnerR_data_r->[$j]->[0];
+          my $b1c_length = $masterInnerR_data_r->[$j]->[1];
+          my $b1c_tm = $masterInnerR_data_r->[$j]->[3]; # Unpack cached Tm
+          
+          # --- DYNAMIC THERMAL FILTER (Inner Pair) ---
+          next if (abs($f1c_tm - $b1c_tm) > $maxTmDiff);
+          
+          # Check Inner Distance (Target: 0-50 usually, or just non-overlapping)
+          # F1c (InnerF) is upstream of B1c (InnerR).
+          
+          # Gap Calculation
+          # Forward End = $f1c_location
+          # Reverse Start = $b1c_location - $b1c_length + 1
+          # Gap = ReverseStart - ForwardEnd - 1
+          
+          my $b1c_start_genome = $b1c_location - $b1c_length + 1;
+          my $inner_gap = $b1c_start_genome - $f1c_location - 1;
+          
+          # Validity Checks
+          next if ($inner_gap < 0); # Overlap
+          next if ($inner_gap > 100); # Too far apart (Inner Gap Limit)
+
+          my $fStart_v   = $f_set_infos->[2]->getLocation();   # F3, brin plus : bord gauche
+          my $rEnd_v     = $r_set_infos->[2]->getLocation();   # B3, brin moins : bord droit
+          my $totalLen_v = $rEnd_v - $fStart_v + 1;
+          
+          $rejected_max_len++ if ($totalLen_v > $signatureMaxLength);
+          next if ($totalLen_v > $signatureMaxLength);
+          
+          $rejected_min_len++ if ($signatureMinLength > 0 && $totalLen_v < $signatureMinLength);
+          next if ($signatureMinLength > 0 && $totalLen_v < $signatureMinLength);
+
+          # VALIDATION COMPLETE D'ESPACEMENT - tous les primers de la signature
+          # Full spacing validation - all primers in the signature (mirrors STEM behavior)
+          # Sans ce guard, des primers cross-strand (F3/B3, F2/B2) peuvent se chevaucher
+          # Without this guard, cross-strand primers (F3/B3, F2/B2) can overlap
+          my @fwdPrimers = ();
+          my @revPrimers = ();
+
+          my $outF_v = $f_set_infos->[2];  # F3
+          my $midF_v = $f_set_infos->[1];  # F2
+          $outF_v->{name} = 'F3';
+          $midF_v->{name} = 'F2';
+          $innerF->{name} = 'F1';
+          push @fwdPrimers, $outF_v, $midF_v, $innerF;
+          if ($includeLoopPrimers) {
+            my $loopF_v = $f_set_infos->[0];
+            $loopF_v->{name} = 'FL';
+            push @fwdPrimers, $loopF_v;
+          }
+
+          my $outR_v = $r_set_infos->[2];  # B3
+          my $midR_v = $r_set_infos->[1];  # B2
+          $innerR->{name} = 'B1';
+          $midR_v->{name} = 'B2';
+          $outR_v->{name} = 'B3';
+          push @revPrimers, $innerR, $midR_v, $outR_v;
+          if ($includeLoopPrimers) {
+            my $loopR_v = $r_set_infos->[0];
+            $loopR_v->{name} = 'BL';
+            unshift @revPrimers, $loopR_v;
+          }
+
+          next if (!validateCompleteSignatureSpacing(\@fwdPrimers, \@revPrimers, $minPrimerSpacing));
+
+          # Construct PCR Pairs
+          # 1. Inner Pair (F1c, B1c)
+          my $innerPair = LLNL::LAVA::PrimerSet::PCRPair->new({
+              "forward_info" => $innerF,
+              "reverse_info" => $innerR
+          });
+          my $innerSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({
+              "analyzed_pair" => $innerPair,
+              "penalty" => $innerF->getPenalty() + $innerR->getPenalty()
+          });
+          
+          # 2. Middle Pair (F2, B2)
+          my $midF = $f_set_infos->[1];
+          my $midR = $r_set_infos->[1];
+          my $middlePair = LLNL::LAVA::PrimerSet::PCRPair->new({
+              "forward_info" => $midF,
+              "reverse_info" => $midR
+          });
+          my $middleSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({
+              "analyzed_pair" => $middlePair,
+              "penalty" => $midF->getPenalty() + $midR->getPenalty()
+          });
+
+          # 3. Outer Pair (F3, B3)
+          my $outF = $f_set_infos->[2];
+          my $outR = $r_set_infos->[2];
+          my $outerPair = LLNL::LAVA::PrimerSet::PCRPair->new({
+              "forward_info" => $outF,
+              "reverse_info" => $outR
+          });
+          my $outerSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({
+              "analyzed_pair" => $outerPair,
+              "penalty" => $outF->getPenalty() + $outR->getPenalty()
+          });
+          
+          # Create LAMP Signature
+          # Note: Loop primers are attached as TAGS on the signature object usually, 
+          # OR passed in specifically if the class supports it.
+          # LAMP.pm documentation implies it manages Inner, Middle, Outer.
+          # Loops are usually added via tags or setters.
+          
+          my $lampSignature = LLNL::LAVA::PrimerSet::LAMP->new({
+              "inner_info" => $innerSetInfo,
+              "middle_info" => $middleSetInfo,
+              "outer_info" => $outerSetInfo,
+          });
+          
+          # Add Loop Primers
+          if($includeLoopPrimers) {
+               my $loopF = $f_set_infos->[0]; # LoopF
+               my $loopR = $r_set_infos->[0]; # LoopR
+               
+               $lampSignature->setTag("has_loop_primers", $TRUE);
+               $lampSignature->setTag("floop_info", $loopF);
+               $lampSignature->setTag("bloop_info", $loopR);
+          } else {
+               $lampSignature->setTag("has_loop_primers", $FALSE);
+          }
+          
+          # Add total penalty tag
+          my $f_penalty = $bestForwardPenalties[$i]->[0] + $bestForwardPenalties[$i]->[1];
+          my $r_penalty = $bestReversePenalties[$j]->[0] + $bestReversePenalties[$j]->[1];
+          $lampSignature->setTag("lamp_penalty", $f_penalty + $r_penalty);
+          $lampSignature->setTag("penalty_notes", sprintf("Total F:%.1f R:%.1f | F{%s} | R{%s}", $f_penalty, $r_penalty, $bestForwardPenalties[$i]->[2], $bestReversePenalties[$j]->[2]));
+          
+          push(@{$allFoundSignatures_r}, $lampSignature);
+          $combinedSignatureCount++;
+      }
+  }
+  
+  print "Created $combinedSignatureCount complete LAMP signatures.\n";
+  printf("Assemblage : %d signatures retenues, %d rejetees (longueur > %d), %d rejetees (longueur < min).\n", 
+         $combinedSignatureCount, $rejected_max_len, $signatureMaxLength, $rejected_min_len);
+  
+  print "Found " .
+    scalar(@{$allFoundSignatures_r}) .
+    " total signatures across all iterations\n";
+
+  # --- VALIDATION STEP (Essential for correct tagging) ---
+  print "Validating and calculating coverage for " . scalar(@{$allFoundSignatures_r}) . " signatures...\n";
+  my $validated_count = 0;
+  foreach my $signature (@{$allFoundSignatures_r}) {
+      # Calculate Intersection and Coverage
+      # Calculer l'intersection des sequences compatibles (PipelineUtils unifie)
+      # Calculate compatible sequence intersection (unified PipelineUtils)
+      my ($amplified_seqs, $coverage, $status) = calculateSignatureIntersection(
+          $signature, 
+          $inputMSA->num_sequences(), 
+          $signatureCommonTargetMinPercent,
+          $includeLoopPrimers,
+          "loop"
+      );
+      $validated_count++;
+  }
+  print "Validation complete.\n";
+

@@ -1,0 +1,46 @@
+"my" variable $middleToOuterDistance masks earlier declaration in same scope at lava_loop_primer.pl line 2245.
+"my" variable @guard_msgs masks earlier declaration in same scope at lava_loop_primer.pl line 2358.
+Config: Min Base Frequency = 0.2
+[FIXED PRIMER] Spec enregistree: TYPE=F3 SEQ=AACGTCAACTCTTTCTGGA POS=auto
+
+WARNING: max_dist_middle_inner (30) est trop petit pour accommoder loop_min_gap (20).
+WARNING: Pour eviter un conflit geometrique bloquant, max_dist_middle_inner est ajuste automatiquement a 38.
+
+INFO: Calcul dynamique des longueurs cibles active.
+INFO: Dynamic target length calculation activated.
+  -> Cible Middle Pair calculee : 140 nt (distance max: 30 nt)
+  -> Cible Inner Pair calculee : 64 nt (distance max: 38 nt)
+--------------------------------------------------
+
+Configuration tolérance mismatches:
+  - Match strict minimum: 70.0%
+  - Couverture IUPAC minimum: 80.0%
+  - Seuil élimination primer: 70.0%
+
+
+[FIXED PRIMER WINDOW] Resolution anticipee des positions / Early position resolution...
+[FIXED PRIMER] Sequence trouvee par scan complet a la position 0 (brin plus).
+[FIXED PRIMER] Sequence found by full scan at position 0 (strand plus).
+[FIXED PRIMER WINDOW] F3 'AACGTCAACTCTTTCTGGA' -> position resolue : 0 (brin plus)
+[FIXED PRIMER WINDOW] Amorce F3@0 -> fenetre contrainte [0, 205] (sig_max=206 + marge=200)
+[FIXED PRIMER WINDOW] Primer F3@0 -> constraint window [0, 205] (sig_max=206 + margin=200)
+[FIXED PRIMER WINDOW] Fenetre globale retenue : [0, 205] (100.0% de l alignement)
+[FIXED PRIMER WINDOW] Global window retained  : [0, 205] (100.0% of alignment)
+[FIXED PRIMER WINDOW] Passing SEQUENCE_INCLUDED_REGION=0,206 to Primer3
+Enumerating outer forward primers
+Skipping outer forward (F3) enumeration because it is fixed.
+Enumerating outer NATIVE reverse primers (Option B)
+  [NativeReverse] Longueur alignement / Alignment length: 205 nt
+  [NativeReverse] RC MSA construit avec 40 sequences / RC MSA built with 40 sequences
+  [NativeReverse] Fractionnement physique de l'alignement RC : 1 à 205
+
+------------- EXCEPTION: Bio::Root::Exception -------------
+MSG: Cannot find executable for nonexistent_primer3. path="/bin/nonexistent_primer3"
+STACK: Error::throw
+STACK: Bio::Root::Root::throw /Library/Perl/5.34/Bio/Root/Root.pm:449
+STACK: Bio::Tools::Run::WrapperBase::executable /Library/Perl/5.34/Bio/Tools/Run/WrapperBase.pm:341
+STACK: Bio::Tools::Run::Primer3::run lib/Bio/Tools/Run/Primer3.pm:476
+STACK: LLNL::LAVA::OligoEnumerator::Primer3Conserved::getOligos lib/LLNL/LAVA/OligoEnumerator/Primer3Conserved.pm:373
+STACK: LLNL::LAVA::PipelineUtils::buildNativeReversePool lib/LLNL/LAVA/PipelineUtils.pm:505
+STACK: lava_loop_primer.pl:949
+-----------------------------------------------------------

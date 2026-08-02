@@ -1,0 +1,69 @@
+    for(my $i = 0; $i < $innerForwardCount; $i++)
+    {
+      # Skip inner primers without primer sets
+      if(! exists($bestForwardInfos[$i]))
+      {
+	next;
+      }
+
+      my $finnerInfo = $innerForwardSubset_r->[$i];
+      my ($fstemInfo, $fmiddleInfo, $fouterInfo) = @{$bestForwardInfos[$i]};
+      my ($forwardSpacingPenalty, $forwardPrimer3Penalty, $forwardDetailStr) = 
+        @{$bestForwardPenalties[$i]};
+
+      my $forwardStart = $fouterInfo->getLocation();
+      my $forwardEnd = $finnerInfo->getLocation() + $finnerInfo->getLength() - 1;
+
+      # Used to bound the upper end of the inner iteration search
+      my $maxReverseLocation = $forwardStart + $signatureMaxLength - 1;
+    
+      # Used to help bound the lower end of the inner iteration search
+      my $previousCompatibleIndexFound = $FALSE;
+      
+      for(my $j = $previousFirstCompatibleIndex; $j < $innerReverseCount; $j++)
+      {
+        # Skip reverse primers without primer sets
+        if(! exists($bestReverseInfos[$j]))
+        {
+	  next;
+        }
+	my $binnerInfo = $innerReverseSubset_r->[$j];
+	my ($bstemInfo, $bmiddleInfo, $bouterInfo) = @{$bestReverseInfos[$j]};
+        my ($reverseSpacingPenalty, $reversePrimer3Penalty, $reverseDetailStr) = 
+	  @{$bestReversePenalties[$j]};
+
+        my $reverseEnd = $bouterInfo->getLocation();
+        my $reverseStart = $binnerInfo->getLocation() - $binnerInfo->getLength() + 1;
+        
+        #print "\n  Outer $reverseStart -> $reverseEnd";
+
+        # Advance to the next compatible reverse primer by skipping all the
+        # primers located too far 5' with respect to the forward primer
+        if($previousCompatibleIndexFound == $FALSE)
+        {
+          if($reverseStart <= $forwardEnd)
+          {
+            next;
+          }
+          else
+          {
+            $previousFirstCompatibleIndex = $j;
+            $previousCompatibleIndexFound = $TRUE;
+          }
+        }
+
+	# Stop searching if the inner iteration bounds are exceeded
+        if($reverseStart > $maxReverseLocation)
+        {
+          last;
+        }
+ 
+        # Enforce minimum inner spacing distance
+	my $innerSpacing = $reverseStart - ($forwardEnd + 1);
+        if($innerSpacing < $minInnerPairSpacing)
+	{
+	  next;
+	}
+
+        my $totalLen_v = $reverseEnd - $forwardStart + 1;
+        

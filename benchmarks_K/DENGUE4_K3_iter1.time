@@ -1,0 +1,21 @@
+Unknown option: target_sequence_files
+Unknown option: signature_output_prefix
+FATAL: Options de ligne de commande invalides (Unknown option).
+        0.09 real         0.07 user         0.01 sys
+            32391168  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+                2357  page reclaims
+                   4  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                   0  voluntary context switches
+                  99  involuntary context switches
+           738982809  instructions retired
+           278063363  cycles elapsed
+            29311336  peak memory footprint

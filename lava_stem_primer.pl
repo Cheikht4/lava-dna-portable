@@ -223,7 +223,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 
       "include_stem_primers=i" => \$options{"include_stem_primers"},
       "stem_orientation=i" => \$options{"stem_orientation"},  # 0=conventionnel (defaut), 1=oppose
-      "min_signatures_for_success=i" => \$options{"min_signatures_for_success"},
+
       "min_primer_spacing=i" => \$options{"min_primer_spacing"},
       "min_inner_pair_spacing=i" => \$options{"min_inner_pair_spacing"},
       "max_overlap_percent=f" => \$options{"max_overlap_percent"},
@@ -298,7 +298,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "max_poly_bases" => 2,
       "include_stem_primers" => 1,
       "stem_orientation" => 0,
-      "min_signatures_for_success" => 1, # Should probably never go lower / Ne devrait probablement jamais descendre plus bas
+
       "min_primer_spacing" => 1,
       "min_inner_pair_spacing" => 1,
       # --- NOUVEAUX PARAMÈTRES D'ARCHITECTURE (valeurs par défaut) / NEW ARCHITECTURE PARAMETERS (default values) ---
@@ -425,9 +425,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "    [--include_stem_primers <length, default=" .
         $optionDefaults{"include_stem_primers"} .
 	">]\n" .
-      "    [--min_signatures_for_success <length, default=" .
-        $optionDefaults{"min_signatures_for_success"} .
-  ">]\n" .
+
     "    [--max_overlap_percent <length, default=" .
       $optionDefaults{"max_overlap_percent"} .
   ">]\n" .
@@ -686,8 +684,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $signatureCommonTargetMinPercent =
     optionWithDefault($options_r, "signature_common_target_min_percent",
       $optionDefaults{"signature_common_target_min_percent"});
-  # Lit signature_common_target_min_percent si fourni, sinon se replie sur min_signatures_for_success envoyé par l'IHM Flask
-  # Reads signature_common_target_min_percent if provided, otherwise falls back to min_signatures_for_success sent by the Flask GUI
+  # Lit signature_common_target_min_percent si fourni.
+  # Reads signature_common_target_min_percent if provided.
   my $maxSigOverlapPercent = 
     optionWithDefault($options_r, "max_overlap_percent",
       $optionDefaults{"max_overlap_percent"});
@@ -768,8 +766,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     $optionDefaults{"primer_min_iupac_percent"});
   my $minPrimerCoverage = optionWithDefault($options_r, "primer_min_coverage_percent", 
     $optionDefaults{"primer_min_coverage_percent"});
-  # $signatureCommonTargetMinPercent deja declare via min_signatures_for_success (GUI)
-  # Already declared above via min_signatures_for_success (GUI parameter)
+  # $signatureCommonTargetMinPercent deja declare
+  # Already declared above
   
   print "Configuration tolérance mismatches:\n";
   print "  - Match strict minimum: ${primerMinMatchPercent}%\n";
@@ -2535,20 +2533,99 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   # --- VALIDATION PAR SIGNATURE (Essential for correct tagging) ---
   # Validation individuelle de chaque signature avant reduction
   # Individual per-signature validation before reduction (mirrors LOOP behaviour)
-  print "Validating and calculating coverage for " . scalar(@{$allFoundSignatures_r}) . " signatures...\n";
+  my $total_sigs_to_validate = scalar(@{$allFoundSignatures_r});
+  print "Validating and calculating coverage for $total_sigs_to_validate signatures...\n";
   my $validated_count = 0;
-  foreach my $signature (@{$allFoundSignatures_r}) {
-      # Recalcule l'intersection et met a jour les tags de couverture
-      # Recalculate intersection and update coverage tags
-      my ($amplified_seqs, $coverage, $status) = calculateSignatureIntersection(
-          $signature,
-          scalar(@sequences),
-          $signatureCommonTargetMinPercent,
-          $includeStemPrimers,
-          "stem"
-      );
-      $validated_count++;
+
+  my $val_pm = LLNL::LAVA::ForkManager->new($options_r->{"threads"});
+  my $actual_threads = $val_pm->{max_processes};
+  my %validation_results;
+
+  $val_pm->run_on_finish(sub {
+      my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_r) = @_;
+      if (defined($data_r) && ref($data_r) eq 'ARRAY') {
+          foreach my $res (@$data_r) {
+              my ($idx, $cov, $status, $final_ids_r, $primer_cov_r) = @$res;
+              $validation_results{$idx} = {
+                  coverage => $cov,
+                  status   => $status,
+                  final_ids => $final_ids_r,
+                  primer_cov => $primer_cov_r
+              };
+          }
+      }
+  });
+
+  # Chunking
+  my $val_chunk_size = POSIX::ceil($total_sigs_to_validate / ($actual_threads * 4)); # Entrelacement
+  $val_chunk_size = 100 if $val_chunk_size < 100;
+  
+  my @val_chunks;
+  for(my $i = 0; $i < $total_sigs_to_validate; $i += $val_chunk_size) {
+      my $end = $i + $val_chunk_size - 1;
+      $end = $total_sigs_to_validate - 1 if $end >= $total_sigs_to_validate;
+      push @val_chunks, [$i, $end];
   }
+  
+  # Distribuer en round-robin
+  my @val_worker_batches;
+  for(my $i = 0; $i < $actual_threads; $i++) {
+      push @val_worker_batches, [];
+  }
+  for(my $i = 0; $i < scalar(@val_chunks); $i++) {
+      my $worker_idx = $i % $actual_threads;
+      push @{$val_worker_batches[$worker_idx]}, $val_chunks[$i];
+  }
+
+  for(my $w = 0; $w < $actual_threads; $w++) {
+      my $batch = $val_worker_batches[$w];
+      next if scalar(@$batch) == 0;
+      
+      $val_pm->start and next;
+      
+      my @results_for_worker;
+      foreach my $chunk (@$batch) {
+          my ($start, $end) = @$chunk;
+          for(my $idx = $start; $idx <= $end; $idx++) {
+              my $signature = $allFoundSignatures_r->[$idx];
+              
+              my ($final_ids_r, $coverage, $status) = calculateSignatureIntersection(
+                  $signature, 
+                  scalar(@sequences), 
+                  $signatureCommonTargetMinPercent,
+                  $includeStemPrimers,
+                  "stem"
+              );
+              
+              my $primer_cov_r = [];
+              eval { $primer_cov_r = $signature->getTag("primer_coverage_details"); };
+              
+              push @results_for_worker, [$idx, $coverage, $status, $final_ids_r, $primer_cov_r];
+          }
+      }
+      $val_pm->finish(0, \@results_for_worker);
+  }
+  
+  $val_pm->wait_all_children;
+
+  # Ré-appliquer les résultats dans le parent
+  for(my $idx = 0; $idx < $total_sigs_to_validate; $idx++) {
+      my $signature = $allFoundSignatures_r->[$idx];
+      if (exists $validation_results{$idx}) {
+          my $res = $validation_results{$idx};
+          $signature->setTag("signature_intersection_ids", $res->{final_ids});
+          $signature->setTag("signature_coverage_percent", sprintf("%.2f", $res->{coverage}));
+          $signature->setTag("signature_target_count", scalar(@{$res->{final_ids}}));
+          $signature->setTag("validation_status", $res->{status});
+          $signature->setTag("primer_coverage_details", $res->{primer_cov});
+          $validated_count++;
+          
+          if ($validated_count % 1000 == 0 || $validated_count == $total_sigs_to_validate) {
+              print "[LAVA-PROGRESS] Validated $validated_count / $total_sigs_to_validate signatures...\n";
+          }
+      }
+  }
+
   print "Validation complete.\n";
 
   # Sort signatures by score BEFORE reduction for the complete file

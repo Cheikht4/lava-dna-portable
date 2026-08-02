@@ -1,0 +1,9 @@
+Config: Min Base Frequency = 0.05
+
+INFO: Calcul dynamique des longueurs cibles active.
+INFO: Dynamic target length calculation activated.
+  -> Cible Middle Pair calculee : -200 nt (distance max: 200 nt)
+  -> Cible Inner Pair calculee : -600 nt (distance max: 200 nt)
+ERREUR: La cible Inner Pair (-600 nt) < distance minimale F1-B1 (1 nt).
+ERROR: Inner Pair target (-600 nt) < minimum F1-B1 spacing (1 nt).
+Veuillez ajuster vos contraintes de distance.

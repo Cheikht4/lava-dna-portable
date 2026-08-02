@@ -538,19 +538,12 @@
                                     <h6 class="text-secondary mt-2"><i class="fas fa-cogs me-2"></i>{{
                                         'execution_config'|t }}</h6>
                                     <div class="row g-3">
-                                        <div class="col-md-6">
+                                        <div class="col-md-12">
                                             <label class="form-label small">{{ 'signature_common_target_min_percent'|t }}</label>
                                             <input type="number" class="form-control form-control-sm"
                                                 name="signature_common_target_min_percent"
-                                                value="{{ params.signature_common_target_min_percent }}" min="0" max="100">
+                                                value="{{ params.signature_common_target_min_percent }}" step="0.1" min="0" max="100">
                                             <div class="form-text x-small">{{ 'signature_common_target_min_percent_desc'|t }}</div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label small">{{ 'min_signatures'|t }}</label>
-                                            <input type="number" class="form-control form-control-sm"
-                                                name="min_signatures_for_success"
-                                                value="{{ params.min_signatures_for_success }}" min="1">
-                                            <div class="form-text x-small">{{ 'min_signatures_desc'|t }}</div>
                                         </div>
                                     </div>
                                     <div class="row g-3 mt-1">

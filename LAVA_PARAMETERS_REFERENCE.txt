@@ -19,7 +19,7 @@ Ce document liste l'ensemble des paramètres modifiables via la ligne de command
 | Paramètre | Défaut | Label Interface (FR) | Description |
 |-----------|--------|----------------------|-------------|
 | `--signature_max_length` | 400 | Longueur max signature | Longueur maximale totale de la signature LAMP (de F3 à B3). |
-| `--min_signatures_for_success` | 1 | Nb Signatures Min | Nombre de signatures valides à trouver avant d'arrêter la recherche (si >1, le script continue). |
+
 | `--min_primer_spacing` | 1 | N/A | Distance minimale (en bases) entre deux amorces adjacentes. |
 | `--min_inner_pair_spacing` | 1 | N/A | Distance minimale entre F1c et B1c (Spacer central). |
 | `--max_overlap_percent` | 0 | Chevauchement Max (%) | Pourcentage maximum de chevauchement autorisé entre deux signatures pour qu'elles soient considérées distinctes. |

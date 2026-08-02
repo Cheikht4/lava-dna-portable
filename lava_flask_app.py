@@ -91,7 +91,7 @@ TRANSLATIONS = {
         'dna_conc': 'ADN (nM)',
         'max_tm_diff': 'Différence Tm Max (°C)',
         'signature_common_target_min_percent': 'Couverture Cible Minimum (%)',
-        'min_signatures': 'Nombre minimal de signatures',
+
         'max_overlap': 'Chevauchement Max (%)',
         'entropy_threshold': 'Seuil Entropie',
         'max_poly_bases': 'Max Poly-Bases',
@@ -119,7 +119,7 @@ TRANSLATIONS = {
         'threads_desc': "Nombre de cœurs CPU alloués ('auto' ou entier ex: 4).",
         'penalty_slope_desc': 'Pente sigmoïde (ex: 0.15)',
         'signature_common_target_min_percent_desc': '% minimum de séquences cibles que la signature doit amplifier. Ex: 40 = tolérant, 100 = strict.',
-        'min_signatures_desc': 'Nombre de signatures requises pour considérer l\'analyse réussie.',
+
         'spatial_reduction_title': 'Réduction spatiale des candidats',
         'window_size_label': 'Taille de fenêtre (nt)',
         'window_size_desc': 'Largeur de fenêtre génomique en nt. 0 = désactivé. Ex: 10 = fenêtre de 10nt.',
@@ -313,7 +313,7 @@ TRANSLATIONS = {
         'dna_conc': 'DNA (nM)',
         'max_tm_diff': 'Max Tm Diff (°C)',
         'signature_common_target_min_percent': 'Min Target Coverage (%)',
-        'min_signatures': 'Min Signatures for Success',
+
         'max_overlap': 'Max Overlap (%)',
         'entropy_threshold': 'Entropy Threshold',
         'max_poly_bases': 'Max Poly-Bases',
@@ -338,7 +338,7 @@ TRANSLATIONS = {
         'threads_desc': "Number of allocated CPU cores ('auto' or integer e.g. 4).",
         'penalty_slope_desc': 'Sigmoid slope (e.g. 0.15)',
         'signature_common_target_min_percent_desc': 'Minimum % of target sequences the signature must amplify. E.g. 40 = tolerant, 100 = strict.',
-        'min_signatures_desc': 'Number of signatures required to consider the run successful.',
+
         'spatial_reduction_title': 'Spatial Candidate Reduction',
         'window_size_label': 'Window size (nt)',
         'window_size_desc': 'Genomic window width in nt. 0 = disabled. E.g. 10 = 10nt window.',
@@ -688,7 +688,7 @@ def get_default_params():
         'three_prime_zone_size': 3,
         'max_poly_bases': 5,
         'signature_common_target_min_percent': 70.0,
-        'min_signatures_for_success': 1,
+
         'max_overlap_percent': 0.0,
         'resolve_overlap_by': 'coverage',
         'stem_orientation': 0,
@@ -1200,7 +1200,7 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
         common_params = {
             'signature_max_length', 'total_signature_length', 'max_primer_gen', 'primer_min_match_percent',
             'primer_iupac_min_percent', 'primer_min_iupac_percent', 'min_primer_coverage', 'primer_min_coverage_percent', 'min_base_frequency',
-            'signature_common_target_min_percent', 'min_signatures_for_success', 'max_overlap_percent', 'resolve_overlap_by',
+            'signature_common_target_min_percent', 'max_overlap_percent', 'resolve_overlap_by',
             'primer3_executable', 'thermodynamic_path', 'alignment_format',
             'dntp_conc', 'dna_conc', 'salt_monovalent', 'salt_divalent',
             'max_poly_bases', 'entropy_threshold', 

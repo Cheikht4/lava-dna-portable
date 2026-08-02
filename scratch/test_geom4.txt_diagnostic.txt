@@ -1,0 +1,17 @@
+================================================================================
+DIAGNOSTIC LAVA : AUCUNE DEMI-SIGNATURE Forward TROUVÉE
+================================================================================
+
+[CAS 1] PROBLÈME EN AMONT : Pools d'amorces vides.
+Aucune amorce n'a passé la validation initiale (0 candidat généré).
+Le problème se situe avant l'assemblage : vos séquences sont probablement trop
+divergentes dans cette région, ou les contraintes sont trop strictes.
+
+Pistes de résolution :
+  - Abaisser --min_primer_coverage (actuel : 100%)
+  - Augmenter --max_total_degenerate_bases (actuel : 0)
+  - Augmenter --max_tolerated_mismatches (actuel : 0)
+  - Élargir la plage de Tm (tm_min, tm_max) des amorces individuelles.
+
+Le scan Reverse n'a pas été exécuté car aucune demi-signature Forward n'a été trouvée.
+================================================================================

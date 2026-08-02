@@ -1,0 +1,17 @@
+================================================================================
+DIAGNOSTIC LAVA : AUCUNE DEMI-SIGNATURE Forward TROUVÉE
+================================================================================
+
+[CAS 2] PROBLÈME D'ASSEMBLAGE : Incompatibilité des contraintes.
+Les pools sont non vides (ex: 81 amorces F1c/B1c), mais aucune combinaison
+ne respecte toutes les contraintes de température et d'espacement.
+
+-> Cause principale : Espacement / Géométrie (Trop court) (99.9% des rejets)
+   - Empan minimal nécessaire : 999999 nt.
+   - Votre --signature_max_length est : 130 nt.
+   => SUGGESTION : Essayez --signature_max_length 1000019
+
+-> Cause secondaire : Contraintes Géométriques Générales (0.1% des rejets)
+
+Le scan Reverse n'a pas été exécuté car aucune demi-signature Forward n'a été trouvée.
+================================================================================
