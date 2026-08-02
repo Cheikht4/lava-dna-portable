@@ -2340,320 +2340,262 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     #}
 
     # Now, try to combine forward and reverse primer sets into full signatures
-    print "Combining Best F/R Halves to create LAMP Signatures (in batches)...\n";
-    my $previousFirstCompatibleIndex = 0; # Bound the lower end of the inner iteration
     
-    my $combine_total = $innerForwardCount;
-    my $combine_done = 0;
-    my $combine_t0 = time();
+print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)...\n";
+  
+  my $combine_total = $innerForwardCount;
+  my $combine_t0 = time();
 
-    my $assembly_batch_size = $options_r->{"assembly_batch_size"} || 50000;
-    my $max_retained_signatures = $options_r->{"max_retained_signatures"} || 10000;
-    my @retained_signatures;
-    my @batch;
-    my $combinedSignatureCount = 0;
-    
-    my $val_pm = LLNL::LAVA::ForkManager->new($options_r->{"threads"});
-    my $actual_threads = $val_pm->{max_processes};
-    my $verbose_val = $options_r->{"verbose_validation"} ? 1 : 0;
-    my $verbose_base = $options_r->{"output_file"} . "_validation_detail";
-    my $val_done = 0;
-    my $val_passed = 0;
-    my $val_rejected = 0;
-    my $immediate_rejections = 0;
-    my %val_distribution = ("<20%"=>0, "20-40%"=>0, "40-60%"=>0, "60-80%"=>0, ">=80%"=>0);
-    my $max_rejected_cov = -1;
-    my $eviction_occurred = 0;
-    my $batches_processed = 0;
-
-    if ($_LAVA_IS_TTY || 1) {
-        printf("[LAVA-PROGRESS] Combinaison & Validation|0|%d|Eval: 0, Retenues: 0|0.0 it/s|0\r", $combine_total);
-        my $old_h = select(STDOUT); $| = 1; select($old_h);
-    }
-
-    sub process_batch {
-        my ($batch_r) = @_;
-        return if scalar(@$batch_r) == 0;
-        $batches_processed++;
-        
-        my $batch_size = scalar(@$batch_r);
-        my $chunk_size = POSIX::ceil($batch_size / ($actual_threads * 4));
-        $chunk_size = 100 if $chunk_size < 100;
-        
-        my @chunks;
-        for(my $i = 0; $i < $batch_size; $i += $chunk_size) {
-            my $end = $i + $chunk_size - 1;
-            $end = $batch_size - 1 if $end >= $batch_size;
-            push @chunks, [$i, $end];
-        }
-        
-        my %batch_results;
-        
-        $val_pm->run_on_finish(sub {
-            my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_r) = @_;
-            if (defined($data_r) && ref($data_r) eq 'ARRAY') {
-                foreach my $res (@$data_r) {
-                    my ($idx, $cov, $status, $target_count) = @$res;
-                    $batch_results{$idx} = {
-                        coverage => $cov,
-                        status   => $status,
-                        target_count => $target_count
-                    };
-                    $val_done++;
-                    if ($status eq "VALIDEE") {
-                        $val_passed++;
-                    } else {
-                        $val_rejected++;
-                        $max_rejected_cov = $cov if $cov > $max_rejected_cov;
-                    }
-                    
-                    if ($cov < 20) { $val_distribution{"<20%"}++; }
-                    elsif ($cov < 40) { $val_distribution{"20-40%"}++; }
-                    elsif ($cov < 60) { $val_distribution{"40-60%"}++; }
-                    elsif ($cov < 80) { $val_distribution{"60-80%"}++; }
-                    else { $val_distribution{">=80%"}++; }
-                }
-            }
-        });
-        
-        foreach my $chunk (@chunks) {
-            $val_pm->start and next;
-            my $verbose_fh;
-            if ($verbose_val) {
-                open($verbose_fh, "| gzip >> ${verbose_base}.$$" . ".log.gz") or warn "Cannot open verbose log";
-            }
-            my @results_for_chunk;
-            my ($start, $end) = @$chunk;
-            for(my $idx = $start; $idx <= $end; $idx++) {
-                my $signature = $batch_r->[$idx];
-                my ($target_count, $coverage, $status) = calculateSignatureIntersection(
-                    $signature, 
-                    scalar(@sequences), 
-                    $signatureCommonTargetMinPercent,
-                    $includeStemPrimers,
-                    "stem",
-                    $verbose_val,
-                    $verbose_fh,
-                    0 # return_list = 0
-                );
-                push @results_for_chunk, [$idx, $coverage, $status, $target_count];
-            }
-            if ($verbose_val && defined $verbose_fh) {
-                close($verbose_fh);
-            }
-            $val_pm->finish(0, \@results_for_chunk);
-        }
-        
-        $val_pm->wait_all_children;
-        
-        for(my $idx = 0; $idx < $batch_size; $idx++) {
-            if (exists $batch_results{$idx}) {
-                my $res = $batch_results{$idx};
-                my $signature = $batch_r->[$idx];
-                if ($res->{status} eq "VALIDEE") {
-                    $signature->setTag("signature_coverage_percent", sprintf("%.2f", $res->{coverage}));
-                    $signature->setTag("validation_status", $res->{status});
-                    $signature->setTag("signature_target_count", $res->{target_count});
-                    push @retained_signatures, $signature;
-                }
-            }
-        }
-        
-        if (scalar(@retained_signatures) > $max_retained_signatures) {
-            $eviction_occurred = 1;
-            @retained_signatures = sort { $a->getTag("lamp_penalty") <=> $b->getTag("lamp_penalty") } @retained_signatures;
-            splice(@retained_signatures, $max_retained_signatures);
-        }
-    }
-
-    for(my $i = 0; $i < $innerForwardCount; $i++)
-    {
-      $combine_done++;
-      if (($_LAVA_IS_TTY || 1) && ($combine_done % 100 == 0 || $combine_done == $combine_total)) {
+  my $max_retained_signatures = $options_r->{"max_retained_signatures"} || 10000;
+  
+  my $val_pm = LLNL::LAVA::ForkManager->new($options_r->{"threads"});
+  my $actual_threads = $val_pm->{max_processes};
+  my $verbose_val = $options_r->{"verbose_validation"} ? 1 : 0;
+  my $verbose_base = $options_r->{"output_file"} . "_validation_detail";
+  
+  my $num_chunks = $actual_threads * 4;
+  $num_chunks = $combine_total if $num_chunks > $combine_total;
+  $num_chunks = 1 if $num_chunks < 1;
+  
+  if ($_LAVA_IS_TTY || 1) {
+      printf("[LAVA-PROGRESS] Combinaison & Validation|0|%d|Chunks: 0/%d|0.0 it/s|0\r", $combine_total, $num_chunks);
+      my $old_h = select(STDOUT); $| = 1; select($old_h);
+  }
+  
+  my %chunk_results_map;
+  my $global_combined_count = 0;
+  my $global_val_done = 0;
+  my $global_val_passed = 0;
+  my $global_val_rejected = 0;
+  my $global_immediate_rejections = 0;
+  
+  $val_pm->run_on_finish(sub {
+      my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_r) = @_;
+      if (defined($data_r) && ref($data_r) eq 'HASH') {
+          my $cid = $data_r->{chunk_id};
+          $chunk_results_map{$cid} = $data_r->{retained};
+          $global_combined_count += $data_r->{combined_count};
+          $global_val_done += $data_r->{val_done};
+          $global_val_passed += $data_r->{val_passed};
+          $global_val_rejected += $data_r->{val_rejected};
+          $global_immediate_rejections += $data_r->{immediate_rejections};
+          
           my $elapsed = time() - $combine_t0 + 0.001;
-          my $rate = $combine_done / $elapsed;
-          my $eta = ($combine_done < $combine_total) ? int(($combine_total - $combine_done) / $rate) : 0;
-          printf("[LAVA-PROGRESS] Combinaison & Validation|%d|%d|Retenues: %d|%.1f it/s|%d\r", 
-                 $combine_done, $combine_total, scalar(@retained_signatures), $rate, $eta);
+          my $chunks_done = scalar(keys %chunk_results_map);
+          my $rate = $global_val_done / $elapsed;
+          my $eta = ($chunks_done < $num_chunks) ? int(($elapsed / $chunks_done) * ($num_chunks - $chunks_done)) : 0;
+          printf("[LAVA-PROGRESS] Combinaison & Validation|%d|%d|Chunks: %d/%d|%.1f it/s|%d\r", 
+                 $global_val_done, $global_val_done, $chunks_done, $num_chunks, $rate, $eta);
           my $old_h = select(STDOUT); $| = 1; select($old_h);
       }
-
-      # Skip inner primers without primer sets
-      if(! exists($bestForwardInfos[$i]))
-      {
-	next;
+  });
+  
+  for(my $chunk_id = 0; $chunk_id < $num_chunks; $chunk_id++) {
+      $val_pm->start and next;
+      
+      my @chunk_retained;
+      my $chunk_combined = 0;
+      my $chunk_val_done = 0;
+      my $chunk_val_passed = 0;
+      my $chunk_val_rejected = 0;
+      my $chunk_immediate = 0;
+      
+      my $verbose_fh;
+      if ($verbose_val) {
+          open($verbose_fh, "| gzip >> ${verbose_base}.$$" . "_${chunk_id}.log.gz") or warn "Cannot open verbose log";
       }
-
+      
+      for(my $i = $chunk_id; $i < $innerForwardCount; $i += $num_chunks) {
+          next unless defined $bestForwardInfos[$i]; 
+          
+          my $finnerInfo = $innerForwardSubset_r->[$i];
+          my ($fstemInfo, $fmiddleInfo, $fouterInfo) = @{$bestForwardInfos[$i]};
+          my ($forwardSpacingPenalty, $forwardPrimer3Penalty, $forwardDetailStr) = @{$bestForwardPenalties[$i]};
+          
+          my $forwardStart = $fouterInfo->getLocation();
+          my $forwardEnd = $finnerInfo->getLocation() + $finnerInfo->getLength() - 1;
+          my $maxReverseLocation = $forwardStart + $signatureMaxLength - 1;
+          
+          for(my $j = 0; $j < $innerReverseCount; $j++) {
+              next unless defined $bestReverseInfos[$j];
+              
+              my $binnerInfo = $innerReverseSubset_r->[$j];
+              my ($bstemInfo, $bmiddleInfo, $bouterInfo) = @{$bestReverseInfos[$j]};
+              my ($reverseSpacingPenalty, $reversePrimer3Penalty, $reverseDetailStr) = @{$bestReversePenalties[$j]};
+              
+              my $reverseEnd = $bouterInfo->getLocation();
+              my $reverseStart = $binnerInfo->getLocation() - $binnerInfo->getLength() + 1;
+              
+              if($reverseStart <= $forwardEnd) {
+                  next;
+              }
+              
+              if($reverseStart > $maxReverseLocation) {
+                  last;
+              }
+              
+              my $innerSpacing = $reverseStart - ($forwardEnd + 1);
+              if($innerSpacing < $minInnerPairSpacing) {
+                  next;
+              }
+              
+              my @fwdPrimers = ();
+              my @revPrimers = ();
+              
+              my $outF_v = $fouterInfo;
+              my $midF_v = $fmiddleInfo;
+              $outF_v->{name} = 'F3';
+              $midF_v->{name} = 'F2';
+              $finnerInfo->{name} = 'F1';
+              push @fwdPrimers, $outF_v, $midF_v, $finnerInfo;
+              if ($includeStemPrimers) {
+                my $stemF_v = $fstemInfo;
+                $stemF_v->{name} = 'F_STEM';
+                push @fwdPrimers, $stemF_v;
+              }
+              
+              my $outR_v = $bouterInfo;
+              my $midR_v = $bmiddleInfo;
+              $binnerInfo->{name} = 'B1';
+              $midR_v->{name} = 'B2';
+              $outR_v->{name} = 'B3';
+              push @revPrimers, $binnerInfo, $midR_v, $outR_v;
+              if ($includeStemPrimers) {
+                my $stemR_v = $bstemInfo;
+                $stemR_v->{name} = 'B_STEM';
+                unshift @revPrimers, $stemR_v;
+              }
+              
+              if (!validateCompleteSignatureSpacing(\@fwdPrimers, \@revPrimers, $minPrimerSpacing)) {
+                  $chunk_immediate++;
+                  next;
+              }
+              
+              my $innerPair = LLNL::LAVA::PrimerSet::PCRPair->new({ "forward_info" => $finnerInfo, "reverse_info" => $binnerInfo });
+              my $innerSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({ "analyzed_pair" => $innerPair, "penalty" => $finnerInfo->getPenalty() + $binnerInfo->getPenalty() });
+              my $middlePair = LLNL::LAVA::PrimerSet::PCRPair->new({ "forward_info" => $fmiddleInfo, "reverse_info" => $bmiddleInfo });
+              my $middleSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({ "analyzed_pair" => $middlePair, "penalty" => $fmiddleInfo->getPenalty() + $bmiddleInfo->getPenalty() });
+              my $outerPair = LLNL::LAVA::PrimerSet::PCRPair->new({ "forward_info" => $fouterInfo, "reverse_info" => $bouterInfo });
+              my $outerSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({ "analyzed_pair" => $outerPair, "penalty" => $fouterInfo->getPenalty() + $bouterInfo->getPenalty() });
+              
+              my $lampSignature = LLNL::LAVA::PrimerSet::LAMP->new({
+                  "inner_info" => $innerSetInfo, "middle_info" => $middleSetInfo, "outer_info" => $outerSetInfo,
+              });
+              if($includeStemPrimers) {
+                   $lampSignature->setTag("has_stem_primers", 1);
+                   $lampSignature->setTag("fstem_info", $fstemInfo);
+                   $lampSignature->setTag("bstem_info", $bstemInfo);
+              } else {
+                   $lampSignature->setTag("has_stem_primers", 0);
+              }
+              
+              my $f_penalty = $forwardSpacingPenalty + $forwardPrimer3Penalty;
+              my $r_penalty = $reverseSpacingPenalty + $reversePrimer3Penalty;
+              my $lamp_penalty = $f_penalty + $r_penalty;
+              $lampSignature->setTag("lamp_penalty", $lamp_penalty);
+              
+              $chunk_combined++;
+              
+              my ($target_count, $coverage, $status) = calculateSignatureIntersection(
+                  $lampSignature, scalar(@sequences), $signatureCommonTargetMinPercent,
+                  $includeStemPrimers, "stem", $verbose_val, $verbose_fh, 0
+              );
+              $chunk_val_done++;
+              
+              if ($status eq "VALIDEE") {
+                  $chunk_val_passed++;
+                  push @chunk_retained, [$i, $j, $lamp_penalty, $coverage, $target_count];
+              } else {
+                  $chunk_val_rejected++;
+              }
+              
+              if (scalar(@chunk_retained) > $max_retained_signatures * 2) {
+                  @chunk_retained = sort { $a->[2] <=> $b->[2] } @chunk_retained;
+                  splice(@chunk_retained, $max_retained_signatures);
+              }
+          }
+      }
+      
+      if (scalar(@chunk_retained) > $max_retained_signatures) {
+          @chunk_retained = sort { $a->[2] <=> $b->[2] } @chunk_retained;
+          splice(@chunk_retained, $max_retained_signatures);
+      }
+      
+      if ($verbose_val && defined $verbose_fh) { close($verbose_fh); }
+      
+      $val_pm->finish(0, {
+          chunk_id => $chunk_id,
+          retained => \@chunk_retained,
+          combined_count => $chunk_combined,
+          val_done => $chunk_val_done,
+          val_passed => $chunk_val_passed,
+          val_rejected => $chunk_val_rejected,
+          immediate_rejections => $chunk_immediate
+      });
+  }
+  
+  $val_pm->wait_all_children;
+  
+  my @flat_retained;
+  for(my $c = 0; $c < $num_chunks; $c++) {
+      if (exists $chunk_results_map{$c}) {
+          push @flat_retained, @{$chunk_results_map{$c}};
+      }
+  }
+  @flat_retained = sort { $a->[2] <=> $b->[2] } @flat_retained;
+  if (scalar(@flat_retained) > $max_retained_signatures) {
+      splice(@flat_retained, $max_retained_signatures);
+  }
+  
+  my @retained_signatures;
+  foreach my $rec (@flat_retained) {
+      my ($i, $j, $lamp_penalty, $coverage, $target_count) = @$rec;
       my $finnerInfo = $innerForwardSubset_r->[$i];
       my ($fstemInfo, $fmiddleInfo, $fouterInfo) = @{$bestForwardInfos[$i]};
-      my ($forwardSpacingPenalty, $forwardPrimer3Penalty, $forwardDetailStr) = 
-	  @{$bestForwardPenalties[$i]};
-
-      my $forwardStart = $fouterInfo->getLocation();
-      my $forwardEnd = $finnerInfo->getLocation() + $finnerInfo->getLength() - 1;
-
-      my $maxReverseLocation = $forwardStart + $signatureMaxLength - 1;
-      my $previousCompatibleIndexFound = $FALSE;
+      my ($forwardSpacingPenalty, $forwardPrimer3Penalty, $forwardDetailStr) = @{$bestForwardPenalties[$i]};
+      my $binnerInfo = $innerReverseSubset_r->[$j];
+      my ($bstemInfo, $bmiddleInfo, $bouterInfo) = @{$bestReverseInfos[$j]};
+      my ($reverseSpacingPenalty, $reversePrimer3Penalty, $reverseDetailStr) = @{$bestReversePenalties[$j]};
       
-      for(my $j = $previousFirstCompatibleIndex; $j < $innerReverseCount; $j++)
-      {
-        # Skip reverse primers without primer sets
-        if(! exists($bestReverseInfos[$j]))
-        {
-	  next;
-        }
-	my $binnerInfo = $innerReverseSubset_r->[$j];
-	my ($bstemInfo, $bmiddleInfo, $bouterInfo) = @{$bestReverseInfos[$j]};
-        my ($reverseSpacingPenalty, $reversePrimer3Penalty, $reverseDetailStr) = 
-	  @{$bestReversePenalties[$j]};
-
-        my $reverseEnd = $bouterInfo->getLocation();
-        my $reverseStart = $binnerInfo->getLocation() - $binnerInfo->getLength() + 1;
-        
-        # Advance to the next compatible reverse primer by skipping all the
-        # primers located too far 5' with respect to the forward primer
-        if($previousCompatibleIndexFound == $FALSE)
-        {
-          if($reverseStart <= $forwardEnd)
-          {
-            next;
-          }
-          else
-          {
-            $previousFirstCompatibleIndex = $j;
-            $previousCompatibleIndexFound = $TRUE;
-          }
-        }
-
-	# Stop searching if the inner iteration bounds are exceeded
-        if($reverseStart > $maxReverseLocation)
-        {
-          last;
-        }
- 
-        # Enforce minimum inner spacing distance
-	my $innerSpacing = $reverseStart - ($forwardEnd + 1);
-        if($innerSpacing < $minInnerPairSpacing)
-	{
-	  next;
-	}
-
-        # VALIDATION COMPLÈTE D'ESPACEMENT POUR TOUS LES PRIMERS
-        # Nouvelle logique qui vérifie TOUS les primers de la signature / New logic that verifies ALL primers of the signature
-        my @forwardPrimers = ();
-        my @reversePrimers = ();
-        
-        # Collecter tous les primers forward avec leurs noms
-        $fouterInfo->{name} = 'F3';
-        $fmiddleInfo->{name} = 'F2';
-        $finnerInfo->{name} = 'F1';
-        push @forwardPrimers, $fouterInfo;
-        push @forwardPrimers, $fmiddleInfo;  
-        push @forwardPrimers, $finnerInfo;
-        if($includeStemPrimers == $TRUE) {
-          $fstemInfo->{name} = 'FSTEM';
-          push @forwardPrimers, $fstemInfo;
-        }
-        
-        # Collecter tous les primers reverse avec leurs noms
-        if($includeStemPrimers == $TRUE) {
-          $bstemInfo->{name} = 'BSTEM';
-          push @reversePrimers, $bstemInfo;
-        }
-        $binnerInfo->{name} = 'B1';
-        $bmiddleInfo->{name} = 'B2';
-        $bouterInfo->{name} = 'B3';
-        push @reversePrimers, $binnerInfo;
-        push @reversePrimers, $bmiddleInfo;
-        push @reversePrimers, $bouterInfo;
-        
-        # Utiliser la validation complète d'espacement / Use complete spacing validation
-        if (!validateCompleteSignatureSpacing(\@forwardPrimers, \@reversePrimers, $minPrimerSpacing)) {
-            $immediate_rejections++;
-            next;
-        }
-       
-        # Enforce max signature length
-        if($reverseEnd - ($forwardStart + 1) > $signatureMaxLength)
-	{
-	  next;
-	}
-
-        my $innerSpacingPenalty = 
-          (penaltyAt($innerToInnerPenalties_r, $innerSpacing, 'innerToInner') *
-	   $innerForwardToReversePenaltyWeight);
-
-        my $totalPenalty = $forwardSpacingPenalty +
-	  $innerSpacingPenalty +
-	  $reverseSpacingPenalty +
-	  $forwardPrimer3Penalty +
-	  $reversePrimer3Penalty;
-
-        my $innerPair = LLNL::LAVA::PrimerSet::PCRPair->new(
-	  {
-	    "forward_info" => $finnerInfo,
-	    "reverse_info" => $binnerInfo,
-	  });
-        my $middlePair = LLNL::LAVA::PrimerSet::PCRPair->new(
-	  {
-	    "forward_info" => $fmiddleInfo,
-	    "reverse_info" => $bmiddleInfo,
-	  });
-        my $outerPair = LLNL::LAVA::PrimerSet::PCRPair->new(
-          {
-            "forward_info" => $fouterInfo,
-            "reverse_info" => $bouterInfo,
-	  });
+      my $innerPair = LLNL::LAVA::PrimerSet::PCRPair->new({ "forward_info" => $finnerInfo, "reverse_info" => $binnerInfo });
+      my $innerSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({ "analyzed_pair" => $innerPair, "penalty" => $finnerInfo->getPenalty() + $binnerInfo->getPenalty() });
+      my $middlePair = LLNL::LAVA::PrimerSet::PCRPair->new({ "forward_info" => $fmiddleInfo, "reverse_info" => $bmiddleInfo });
+      my $middleSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({ "analyzed_pair" => $middlePair, "penalty" => $fmiddleInfo->getPenalty() + $bmiddleInfo->getPenalty() });
+      my $outerPair = LLNL::LAVA::PrimerSet::PCRPair->new({ "forward_info" => $fouterInfo, "reverse_info" => $bouterInfo });
+      my $outerSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({ "analyzed_pair" => $outerPair, "penalty" => $fouterInfo->getPenalty() + $bouterInfo->getPenalty() });
+      
+      my $lampSignature = LLNL::LAVA::PrimerSet::LAMP->new({
+          "inner_info" => $innerSetInfo, "middle_info" => $middleSetInfo, "outer_info" => $outerSetInfo,
+      });
+      if($includeStemPrimers) {
+           $lampSignature->setTag("has_stem_primers", 1);
+           $lampSignature->setTag("fstem_info", $fstemInfo);
+           $lampSignature->setTag("bstem_info", $bstemInfo);
+      } else {
+           $lampSignature->setTag("has_stem_primers", 0);
+      }
+      
+      my $f_penalty = $forwardSpacingPenalty + $forwardPrimer3Penalty;
+      my $r_penalty = $reverseSpacingPenalty + $reversePrimer3Penalty;
+      $lampSignature->setTag("lamp_penalty", $lamp_penalty);
+      $lampSignature->setTag("penalty_notes", sprintf("Total F:%.1f R:%.1f | F{%s} | R{%s}", $f_penalty, $r_penalty, $forwardDetailStr, $reverseDetailStr));
+      $lampSignature->setTag("signature_coverage_percent", sprintf("%.2f", $coverage));
+      $lampSignature->setTag("validation_status", "VALIDEE");
+      $lampSignature->setTag("signature_target_count", $target_count);
+      
+      push @retained_signatures, $lampSignature;
+  }
   
-        my $innerPairInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new(
-          {
-            "penalty" => 0,
-            "analyzed_pair" => $innerPair,
-          });
-        my $middlePairInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new(
-          {
-            "penalty" => 0,
-            "analyzed_pair" => $middlePair,
-          });
-        my $outerPairInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new(
-          {
-            "penalty" => 0,
-            "analyzed_pair" => $outerPair,
-          });
+  my $combinedSignatureCount = $global_combined_count;
+  my $val_passed = $global_val_passed;
+  my $val_rejected = $global_val_rejected;
+  my $val_done = $global_val_done;
+  my $immediate_rejections = $global_immediate_rejections;
+  my $batches_processed = $num_chunks;
+  my $max_rejected_cov = 0;
+  my %val_distribution = ("<20%"=>0, "20-40%"=>0, "40-60%"=>0, "60-80%"=>0, ">=80%"=>0);
+  my $eviction_occurred = (scalar(@flat_retained) >= $max_retained_signatures) ? 1 : 0;
   
-        my $signature = LLNL::LAVA::PrimerSet::LAMP->new(
-          {
-            "inner_info" => $innerPairInfo,
-            "middle_info" => $middlePairInfo,
-            "outer_info" => $outerPairInfo,
-          });
-  
-        $signature->setTag("lamp_penalty", $totalPenalty);
-  
-        # Just for fine-tuning and debugging reports
-        my $f_penalty_sum = $forwardSpacingPenalty + $forwardPrimer3Penalty;
-        my $r_penalty_sum = $reverseSpacingPenalty + $reversePrimer3Penalty;
-        $signature->setTag("penalty_notes", sprintf("Total F:%.1f R:%.1f | F{%s} | R{%s}", $f_penalty_sum, $r_penalty_sum, $forwardDetailStr, $reverseDetailStr));
-  
-        if($includeStemPrimers == $TRUE)
-        {
-          $signature->setTag("fstem_info", $fstemInfo);
-          $signature->setTag("bstem_info", $bstemInfo);
-          $signature->setTag("has_stem_primers", $TRUE);
-        }
-        
-        push(@batch, $signature);
-        $combinedSignatureCount++;
-
-        if (scalar(@batch) >= $assembly_batch_size) {
-            process_batch(\@batch);
-            @batch = ();
-        }
-      } # End reverse sets iteration
-    } # End forward sets iteration
-
-  # Process remaining batch
-  process_batch(\@batch) if scalar(@batch) > 0;
 
   print "\n"; 
   print "Created $combinedSignatureCount LAMP signatures candidates.\n";
