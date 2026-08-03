@@ -2355,3 +2355,29 @@ Un outil de conception d'amorces diagnostiques doit fournir un résultat stricte
 J'ai branché cette pénalité dans la boucle de combinaison Map-Reduce de `lava_loop_primer.pl` (`my $inner_span_penalty = penaltyAt(...)`). Par ailleurs, le détail de cette pénalité est désormais explicitement affiché dans le diagnostic des signatures sous l'étiquette `Spc[I_I:%.1f]`.
 **Justification biologique** : Un empan interne de taille démesurée (ex: 900+ nucléotides) allonge considérablement la signature. Sans contrôle sur ce segment (le plus long de la boucle LAMP), le moteur sélectionnait des designs d'amplification excessivement longs, ce qui contredit la cinétique enzymatique rapide à 65°C recherchée en LAMP, qui favorise des amplicons courts (200-300 pb). La sigmoïde sanctionne désormais l'étirement démesuré avec une pénalité sévère (+50 au-delà de 300 nt).
 **Impact attendu** : Les signatures dont les moitiés Forward et Reverse sont espacées de plusieurs centaines de bases (comme la signature aberrante de 916 pb sur le virus Dengue 4) accumulent désormais une lourde pénalité spatiale et tombent au bas du classement. Seules les signatures respectant la longueur cible (ex: 250 pb) remontent en première position avec des scores compétitifs. La lisibilité est accrue grâce au diagnostic `Spc[I_I:X.X]`.
+
+### Date/Étape : 2026-08-02 - Refonte de la Journalisation de Validation
+- **Fichiers impactés** : `lava_loop_primer.pl`, `lava_stem_primer.pl`, `lib/LLNL/LAVA/PipelineUtils.pm`
+- **Nature du changement** : Architecture / Bug Fix
+- **Explication technique** : 
+  1. Remplacement des `print` STDOUT exhaustifs pour chaque signature évaluée par une barre de progression en temps réel `[LAVA-PROGRESS]` dans le processus parent `ForkManager`.
+  2. Implémentation d'un bloc de résumé statistique de la validation (Validées, Rejetées, Couverture MAX des rejetées, Distribution).
+  3. Ajout de l'option `--verbose_validation` qui redirige les logs détaillés de `calculateSignatureIntersection` directement vers un fichier compressé à la volée (`<output_base>_validation_detail.log.gz`), évitant toute saturation de la mémoire du terminal.
+- **Justification biologique** : 
+  - La validation des génomes hautement variables (ex: Dengue) générait plus de 31 millions de lignes de logs vers STDOUT. Bien que le moteur Perl gère parfaitement la mémoire des données, le tampon du terminal client saturait la RAM système (plus de 94 Go consommés par Terminal.app). Cette refonte limite drastiquement le trafic I/O texte sans perte d'information utile. Les données détaillées restent disponibles à la demande pour l'analyse des cas marginaux via `--verbose_validation`.
+- **Impact attendu** :
+  - Disparition totale des plantages du terminal et des logs monstrueux impossibles à ouvrir. La console n'affiche plus que la progression propre et un résumé analytique actionnable.
+
+### [2026-08-03] Ajout d'une Borne Dure de Longueur Maximale et Minimale
+**Fichiers impactés** : `lava_loop_primer.pl`, `lava_stem_primer.pl`
+**Nature du changement** : [Algorithmique / Thermodynamique]
+
+**Explication technique** :
+Implémentation d'une restriction dure (hard limit) sur la longueur totale d'une signature candidate (`totalLen_v`), définie par l'écart géométrique total entre l'extrémité 5' de F3 et l'extrémité 5' de B3. Le plafond est contrôlé par `--signature_max_length` (par défaut 400), et le plancher par `--signature_min_length` (par défaut 0). Les candidats hors limites sont instantanément rejetés lors de la phase de combinaison `Combining Best F/R Halves`. Les compteurs globaux `$global_rejected_max_len` et `$global_rejected_min_len` ont été ajoutés pour remonter précisément la cause de l'échec dans les résumés finaux, distinguant ce rejet des rejets d'espacement de sous-parties.
+
+**Justification biologique** :
+Dans le cadre de l'amplification LAMP à 65°C, la dynamique d'hybridation des amorces dépend drastiquement de la vitesse de la Bst polymérase. Si une signature (l'amplicon final généré) est démesurément longue (par exemple > 6000 pb en raison d'une dérive combinatoire d'alignements non contraints), l'enzyme n'aura ni le temps ni la processivité nécessaires pour répliquer le brin avec la fréquence fulgurante propre au protocole LAMP. Un plafond de longueur (généralement 200 à 400 nt) garantit que l'amplicon reste dans une taille compatible avec une cinétique de détection ultrarapide, une stabilité thermodynamique gérable (réduction des structures secondaires du produit) et un signal fluorescent robuste.
+
+**Impact attendu** :
+- Disparition complète des signatures "géantes" (ex: plusieurs milliers de nucléotides) qui polluaient le top des résultats par des scores artificiellement bas sur certaines variables.
+- Les rapports de fin affichent explicitement "Rejets (max length) : X (> Y nt)" pour guider les utilisateurs.

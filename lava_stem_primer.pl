@@ -2368,6 +2368,8 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
   my $global_val_passed = 0;
   my $global_val_rejected = 0;
   my $global_immediate_rejections = 0;
+  my $global_rejected_max_len = 0;
+  my $global_rejected_min_len = 0;
   
   $val_pm->run_on_finish(sub {
       my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_r) = @_;
@@ -2379,6 +2381,8 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
           $global_val_passed += $data_r->{val_passed};
           $global_val_rejected += $data_r->{val_rejected};
           $global_immediate_rejections += $data_r->{immediate_rejections};
+          $global_rejected_max_len += $data_r->{rejected_max_len} if defined $data_r->{rejected_max_len};
+          $global_rejected_min_len += $data_r->{rejected_min_len} if defined $data_r->{rejected_min_len};
           
           my $elapsed = time() - $combine_t0 + 0.001;
           my $chunks_done = scalar(keys %chunk_results_map);
@@ -2399,6 +2403,8 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
       my $chunk_val_passed = 0;
       my $chunk_val_rejected = 0;
       my $chunk_immediate = 0;
+      my $chunk_rejected_max_len = 0;
+      my $chunk_rejected_min_len = 0;
       
       my $verbose_fh;
       if ($verbose_val) {
@@ -2470,6 +2476,18 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
                   $chunk_immediate++;
                   next;
               }
+
+              my $fStart_v   = $fouterInfo->getLocation();   # F3, brin plus : bord gauche
+              my $rEnd_v     = $bouterInfo->getLocation();   # B3, brin moins : bord droit
+              my $totalLen_v = $rEnd_v - $fStart_v + 1;
+              if ($totalLen_v > $signatureMaxLength) {
+                  $chunk_rejected_max_len++;
+                  next;
+              }
+              if ($signatureMinLength > 0 && $totalLen_v < $signatureMinLength) {
+                  $chunk_rejected_min_len++;
+                  next;
+              }
               
               my $innerPair = LLNL::LAVA::PrimerSet::PCRPair->new({ "forward_info" => $finnerInfo, "reverse_info" => $binnerInfo });
               my $innerSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({ "analyzed_pair" => $innerPair, "penalty" => $finnerInfo->getPenalty() + $binnerInfo->getPenalty() });
@@ -2530,7 +2548,9 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
           val_done => $chunk_val_done,
           val_passed => $chunk_val_passed,
           val_rejected => $chunk_val_rejected,
-          immediate_rejections => $chunk_immediate
+          immediate_rejections => $chunk_immediate,
+          rejected_max_len => $chunk_rejected_max_len,
+          rejected_min_len => $chunk_rejected_min_len
       });
   }
   
@@ -2591,6 +2611,8 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
   my $val_rejected = $global_val_rejected;
   my $val_done = $global_val_done;
   my $immediate_rejections = $global_immediate_rejections;
+  my $rejected_max_len = $global_rejected_max_len;
+  my $rejected_min_len = $global_rejected_min_len;
   my $batches_processed = $num_chunks;
   my $max_rejected_cov = 0;
   my %val_distribution = ("<20%"=>0, "20-40%"=>0, "40-60%"=>0, "60-80%"=>0, ">=80%"=>0);
@@ -2614,6 +2636,8 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
   my $pct_rej = $combinedSignatureCount > 0 ? ($val_rejected / $combinedSignatureCount * 100) : 0;
   printf("Total candidat crees : %d\n", $combinedSignatureCount);
   printf("Rejets immediats     : %d (espacement invalide)\n", $immediate_rejections);
+  printf("Rejets (max length)  : %d (> %d nt)\n", $rejected_max_len, $signatureMaxLength);
+  printf("Rejets (min length)  : %d (< %d nt)\n", $rejected_min_len, $signatureMinLength) if $signatureMinLength > 0;
   printf("Total evalue         : %d (en %d lots)\n", $val_done, $batches_processed);
   printf("Validees             : %d (%.1f%%)\n", $val_passed, $pct_val);
   printf("Rejetees (couverture): %d (%.1f%%)\n", $val_rejected, $pct_rej);
