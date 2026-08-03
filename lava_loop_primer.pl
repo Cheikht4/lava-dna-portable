@@ -2405,7 +2405,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $combine_total = scalar(@{$masterInnerF_r});
   my $combine_t0 = time();
 
-  my $max_retained_signatures = $options_r->{"max_retained_signatures"} || 10000;
+  my $max_retained_signatures = $options_r->{"max_retained_signatures"} || 100000;
   
   my $val_pm = LLNL::LAVA::ForkManager->new($options_r->{"threads"});
   my $actual_threads = $val_pm->{max_processes};
