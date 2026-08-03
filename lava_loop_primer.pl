@@ -2540,7 +2540,11 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               
               my $f_penalty = $bestForwardPenalties[$i]->[0] + $bestForwardPenalties[$i]->[1];
               my $r_penalty = $bestReversePenalties[$j]->[0] + $bestReversePenalties[$j]->[1];
-              my $lamp_penalty = $f_penalty + $r_penalty;
+              my $inner_span_penalty = 0;
+              if (defined $innerToInnerPenalties_r && @$innerToInnerPenalties_r) {
+                  $inner_span_penalty = penaltyAt($innerToInnerPenalties_r, $inner_gap) * $innerForwardToReversePenaltyWeight;
+              }
+              my $lamp_penalty = $f_penalty + $r_penalty + $inner_span_penalty;
               $lampSignature->setTag("lamp_penalty", $lamp_penalty);
               
               $chunk_combined++;
@@ -2553,7 +2557,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               
               if ($status eq "VALIDEE") {
                   $chunk_val_passed++;
-                  push @chunk_retained, [$i, $j, $lamp_penalty, $coverage, $target_count];
+                  push @chunk_retained, [$i, $j, $lamp_penalty, $coverage, $target_count, $inner_span_penalty];
               } else {
                   $chunk_val_rejected++;
               }
@@ -2598,7 +2602,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   
   my @retained_signatures;
   foreach my $rec (@flat_retained) {
-      my ($i, $j, $lamp_penalty, $coverage, $target_count) = @$rec;
+      my ($i, $j, $lamp_penalty, $coverage, $target_count, $inner_span_penalty) = @$rec;
       my $innerF = $masterInnerF_r->[$i];
       my $f_set_infos = $bestForwardInfos[$i];
       my $innerR = $masterInnerR_r->[$j];
@@ -2627,7 +2631,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       my $f_penalty = $bestForwardPenalties[$i]->[0] + $bestForwardPenalties[$i]->[1];
       my $r_penalty = $bestReversePenalties[$j]->[0] + $bestReversePenalties[$j]->[1];
       $lampSignature->setTag("lamp_penalty", $lamp_penalty);
-      $lampSignature->setTag("penalty_notes", sprintf("Total F:%.1f R:%.1f | F{%s} | R{%s}", $f_penalty, $r_penalty, $bestForwardPenalties[$i]->[2], $bestReversePenalties[$j]->[2]));
+      $lampSignature->setTag("penalty_notes", sprintf("Spc[I_I:%.1f] Total F:%.1f R:%.1f | F{%s} | R{%s}", $inner_span_penalty, $f_penalty, $r_penalty, $bestForwardPenalties[$i]->[2], $bestReversePenalties[$j]->[2]));
       $lampSignature->setTag("signature_coverage_percent", sprintf("%.2f", $coverage));
       $lampSignature->setTag("validation_status", "VALIDEE");
       $lampSignature->setTag("signature_target_count", $target_count);
