@@ -138,7 +138,7 @@ use LLNL::LAVA::PrimerSetAnalyzer::PCRPair;
 use LLNL::LAVA::PrimerSetInfo::PCRPair;
 
 use LLNL::LAVA::PrimerSet::LAMP;
-use LLNL::LAVA::Core qw(generateDistancePenalties calculate_proportional_geometry countDegenerateBases);
+use LLNL::LAVA::Core qw(generateDistancePenalties calculate_proportional_geometry generateSigmoidPenalty countDegenerateBases);
 use LLNL::LAVA::Validator qw(checkPrimerMismatchTolerance getPrimerTargetedSequences isIUPACCompatible rev_comp generateIUPACCode validateCompleteSignatureSpacing);
 use LLNL::LAVA::PipelineUtils qw(getOligosWithMismatchTolerance set_pipeline_threads buildNativeReversePool analyzeAll enumeratePairs buildMetricsArray reducePairInfosByPenalty reducePrimersByOverlap reduceSignaturesByOverlap flattenInfoData buildBigMerge calculateSignatureIntersection createPerSignatureFiles createAmplificationFiles analyzeSignatureCombinations generateCombinations calculateDynamicPairLengths injectFixedPrimers findPrimerPositionInAlignment);
 use LLNL::LAVA::ForkManager;
@@ -179,6 +179,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "threads|cpu=s" => \$options{"threads"},
       "signature_max_length=i" => \$options{"signature_max_length"},
       "total_signature_length=i" => \$options{"total_signature_length"},
+      "signature_length_penalty_weight=f" => \$options{"signature_length_penalty_weight"},
       "verbose_validation" => \$options{"verbose_validation"},
 
       "outer_primer_target_length=i" => \$options{"outer_primer_target_length"},
@@ -283,6 +284,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "signature_max_length" => 400,
       "total_signature_length" => 250,
       "signature_min_length" => 0,
+      "signature_length_penalty_weight" => 10,
       "outer_primer_target_length" => 20,
       "outer_primer_min_length" => 18,
       "outer_primer_max_length" => 23,
@@ -498,6 +500,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $totalSignatureLength = 
     optionWithDefault($options_r, "total_signature_length",
       $optionDefaults{"total_signature_length"});
+  my $signatureLengthPenaltyWeight = optionWithDefault($options_r, "signature_length_penalty_weight", $optionDefaults{"signature_length_penalty_weight"});
+
 
   if ($totalSignatureLength > $signatureMaxLength) {
       print "[ATTENTION] total_signature_length ($totalSignatureLength) est superieur a signature_max_length ($signatureMaxLength).\n";
@@ -1514,22 +1518,30 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     # Pre-compute a set of distance penalties for faster use
     # ------------------------------------------------------
     # GENERATION PROPORTIONNELLE SIGMOÏDE (LAVA 2026)
-    my $geometry = calculate_proportional_geometry($totalSignatureLength);
+    # Calcul de l'espace occupé par les amorces (8 amorces physiquement dans STEM)
+    my $sum_primer_lengths = 
+      2 * $outerPrimerTargetLength +
+      2 * $middlePrimerTargetLength +
+      2 * $innerPrimerTargetLength +
+      2 * $stemPrimerTargetLength;
+      
+    my $geometry = calculate_proportional_geometry($totalSignatureLength, $signatureMaxLength, $sum_primer_lengths);
     
-    print "INFO: Cibles Géométriques Proportionnelles (Cible = $totalSignatureLength pb) :\n";
-    print "  -> F3-F2 (12%) : " . $geometry->{'f3_f2_target'} . " nt\n";
-    print "  -> F2-F1 (18%) : " . $geometry->{'f2_f1_target'} . " nt\n";
-    print "  -> Empan interne F1-B1 (40%) : " . $geometry->{'inner_target'} . " nt\n";
+    print "INFO: Cibles Géométriques Proportionnelles (Espace disponible) :\n";
+    print "  -> F3-F2 (12%) : [" . $geometry->{'f3_f2_target'} . ", " . $geometry->{'f3_f2_borne_haute'} . "] nt\n";
+    print "  -> F2-F1 (18%) : [" . $geometry->{'f2_f1_target'} . ", " . $geometry->{'f2_f1_borne_haute'} . "] nt\n";
+    print "  -> Empan interne F1-B1 (40%) : [" . $geometry->{'inner_target'} . ", " . $geometry->{'inner_borne_haute'} . "] nt\n";
     
     # Générer des pénalités spécifiques pour chaque distance / Generate specific penalties for each distance
-    my $f2_f1_target = $geometry->{'f2_f1_target'};
-    my $loop_target = int($f2_f1_target / 2);
+    # Le plateau est conservé via $penaltyPlateau
+    my $f2_f1_borne_haute = $geometry->{'f2_f1_borne_haute'};
+    my $loop_borne_haute = int($f2_f1_borne_haute / 2);
     
-    my $innerToLoopPenalties_r = generateDistancePenalties($signatureMaxLength, $loop_target, $penaltyPlateau, $penaltySlope);
-    my $loopToMiddlePenalties_r = generateDistancePenalties($signatureMaxLength, $loop_target, $penaltyPlateau, $penaltySlope);
-    my $middleToOuterPenalties_r = generateDistancePenalties($signatureMaxLength, $geometry->{'f3_f2_target'}, $penaltyPlateau, $penaltySlope);
-    my $innerToMiddlePenalties_r = generateDistancePenalties($signatureMaxLength, $geometry->{'f2_f1_target'}, $penaltyPlateau, $penaltySlope);
-    my $innerToInnerPenalties_r = generateDistancePenalties($signatureMaxLength, $geometry->{'inner_target'}, $penaltyPlateau, $penaltySlope);
+    my $innerToLoopPenalties_r = generateDistancePenalties($signatureMaxLength, $loop_borne_haute, $penaltyPlateau, $penaltySlope);
+    my $loopToMiddlePenalties_r = generateDistancePenalties($signatureMaxLength, $loop_borne_haute, $penaltyPlateau, $penaltySlope);
+    my $middleToOuterPenalties_r = generateDistancePenalties($signatureMaxLength, $geometry->{'f3_f2_borne_haute'}, $penaltyPlateau, $penaltySlope);
+    my $innerToMiddlePenalties_r = generateDistancePenalties($signatureMaxLength, $geometry->{'f2_f1_borne_haute'}, $penaltyPlateau, $penaltySlope);
+    my $innerToInnerPenalties_r = generateDistancePenalties($signatureMaxLength, $geometry->{'inner_borne_haute'}, $penaltyPlateau, $penaltySlope);
 
     print "Generating Sigmoid Penalties (Core.pm)...\n";
 
@@ -2509,7 +2521,14 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
               
               my $f_penalty = $forwardSpacingPenalty + $forwardPrimer3Penalty;
               my $r_penalty = $reverseSpacingPenalty + $reversePrimer3Penalty;
-              my $lamp_penalty = $f_penalty + $r_penalty;
+              
+              # Calcul de la pénalité de longueur totale / Calculate total length penalty
+              my $len_penalty = 0;
+              if ($totalLen_v > $totalSignatureLength) {
+                  $len_penalty = generateSigmoidPenalty($totalLen_v, $totalSignatureLength, 0, $penaltySlope) * ($signatureLengthPenaltyWeight / 100.0);
+              }
+              
+              my $lamp_penalty = $f_penalty + $r_penalty + $len_penalty;
               $lampSignature->setTag("lamp_penalty", $lamp_penalty);
               
               $chunk_combined++;
@@ -2569,7 +2588,7 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
   
   my @retained_signatures;
   foreach my $rec (@flat_retained) {
-      my ($i, $j, $lamp_penalty, $coverage, $target_count) = @$rec;
+      my ($i, $j, $lamp_penalty, $coverage, $target_count, $len_penalty) = @$rec;
       my $finnerInfo = $innerForwardSubset_r->[$i];
       my ($fstemInfo, $fmiddleInfo, $fouterInfo) = @{$bestForwardInfos[$i]};
       my ($forwardSpacingPenalty, $forwardPrimer3Penalty, $forwardDetailStr) = @{$bestForwardPenalties[$i]};
@@ -2598,7 +2617,9 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
       my $f_penalty = $forwardSpacingPenalty + $forwardPrimer3Penalty;
       my $r_penalty = $reverseSpacingPenalty + $reversePrimer3Penalty;
       $lampSignature->setTag("lamp_penalty", $lamp_penalty);
-      $lampSignature->setTag("penalty_notes", sprintf("Total F:%.1f R:%.1f | F{%s} | R{%s}", $f_penalty, $r_penalty, $forwardDetailStr, $reverseDetailStr));
+      
+      $len_penalty = 0 unless defined $len_penalty;
+      $lampSignature->setTag("penalty_notes", sprintf("Spc[Len:%.1f] Total F:%.1f R:%.1f | F{%s} | R{%s}", $len_penalty, $f_penalty, $r_penalty, $forwardDetailStr, $reverseDetailStr));
       $lampSignature->setTag("signature_coverage_percent", sprintf("%.2f", $coverage));
       $lampSignature->setTag("validation_status", "VALIDEE");
       $lampSignature->setTag("signature_target_count", $target_count);

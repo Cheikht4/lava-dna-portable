@@ -46,18 +46,32 @@ require Exporter;
 # Ratios: F3-F2 (12%), F2-F1 (18%), F1-B1 (40%)
 # L'utilisateur fournit L (longueur totale estimée de la signature LAMP) / User provides L (estimated total length of LAMP signature)
 sub calculate_proportional_geometry {
-    my ($L) = @_;
+    my ($L, $max_L, $sum_primer_lengths) = @_;
     
-    # Valeurs par défaut si L non fourni ou trop petit / Default values if L not provided or too small
+    # Valeurs par défaut si non fournies
     $L = 250 unless (defined $L && $L > 50);
+    $max_L = $L unless (defined $max_L && $max_L >= $L);
+    $sum_primer_lengths = 144 unless defined $sum_primer_lengths; # 8 amorces de 18nt par défaut en LOOP
+    
+    # Calcul de l'espace libre réel / Calculate real available spacing
+    my $available_total = $L - $sum_primer_lengths;
+    $available_total = 10 if $available_total < 10; # Sécurité / Safety
+    
+    my $available_max = $max_L - $sum_primer_lengths;
+    $available_max = $available_total if $available_max < $available_total;
 
-    # Conversion en entiers pour éviter les problèmes d'arrondi plus tard / Convert to integers to avoid rounding issues later
+    # Conversion en entiers pour éviter les problèmes d'arrondi
     my $geometry = {
-        'f3_f2_target' => int($L * 0.12),
-        'f2_f1_target' => int($L * 0.18),
-        'inner_target' => int($L * 0.40), # Distance F1c-B1c
-        'b1_b2_target' => int($L * 0.18), # Symétrique
-        'b2_b3_target' => int($L * 0.12)  # Symétrique
+        'f3_f2_target'       => int($available_total * 0.12),
+        'f3_f2_borne_haute'  => int($available_max * 0.12),
+        'f2_f1_target'       => int($available_total * 0.18),
+        'f2_f1_borne_haute'  => int($available_max * 0.18),
+        'inner_target'       => int($available_total * 0.40), # Distance F1c-B1c
+        'inner_borne_haute'  => int($available_max * 0.40),
+        'b1_b2_target'       => int($available_total * 0.18),
+        'b1_b2_borne_haute'  => int($available_max * 0.18),
+        'b2_b3_target'       => int($available_total * 0.12),
+        'b2_b3_borne_haute'  => int($available_max * 0.12)
     };
 
     return $geometry;
