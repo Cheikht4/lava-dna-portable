@@ -2193,7 +2193,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                   next;
                               }
                           } else {
-                              my $innerToMiddleDistance = ($middleLocation - $middleLength) - $innerLocation;
+                              my $innerToMiddleDistance = ($middleLocation - $middleLength + 1) - $innerLocation;
                               if ($innerToMiddleDistance < 0) {
                                   $chunk_rej_spacing++;
                                   next;
@@ -2217,7 +2217,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                           my $outerEndAt = $searchEndAt;
                           
                           my $loopToMiddleDistance = $includeLoopPrimers ? ($middleLocation - $middleLength + 1) - ($loopLocation + $loopLength) : 0;
-                          my $innerToMiddleDistance = ($middleLocation - $middleLength) - $innerLocation;
+                          my $innerToMiddleDistance = ($middleLocation - $middleLength + 1) - $innerLocation;
                           
                           my $o_start = binary_search_first_ge($masterOuterR_data_r, $outerStartAt);
                           my $o_end = binary_search_last_le($masterOuterR_data_r, $outerEndAt);
@@ -2240,7 +2240,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       my $outerInfo = $masterOuterR_r->[$k];
                                       my ($outerLocation, $outerLength, $outerPenalty, $outTm) = @{$masterOuterR_data_r->[$k]};
                                       
-                                      my $middleToOuterDistance = ($outerLocation - $outerLength) - $middleLocation;
+                                      my $middleToOuterDistance = ($outerLocation - $outerLength + 1) - $middleLocation;
                                       if ($middleToOuterDistance < 0) {
                                           $chunk_rej_spacing++;
                                           next;

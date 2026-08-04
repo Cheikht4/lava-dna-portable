@@ -2173,7 +2173,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                 my $outerStartAt = $searchStartAt;
                 my $outerEndAt = $searchEndAt;
 
-                my $innerToMiddleDistance = ($middleLocation - $middleLength) - $innerLocation;
+                my $innerToMiddleDistance = ($middleLocation - $middleLength + 1) - $innerLocation;
                 if($innerToMiddleDistance < 0) { $innerToMiddleDistance = 0; }
 
                 for(my $k = 0; $k < $outerReverseCount; $k++)
@@ -2203,7 +2203,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   my $primer3Penalty = 0;
                   my $detailStr = "";
 
-                  my $middleToOuterDistance = ($outerLocation - $outerLength) - $middleLocation;
+                  my $middleToOuterDistance = ($outerLocation - $outerLength + 1) - $middleLocation;
                   if($middleToOuterDistance < 0) { $middleToOuterDistance = 0; }
 
                   if($includeStemPrimers == $TRUE)
