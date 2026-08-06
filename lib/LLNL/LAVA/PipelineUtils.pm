@@ -41,7 +41,6 @@ our @EXPORT_OK = qw(
   createAmplificationFiles
   analyzeSignatureCombinations
   generateCombinations
-  calculateDynamicPairLengths
   reducePrimersByWindow
   buildNativeReversePool
   getOligosWithMismatchTolerance
@@ -1603,41 +1602,7 @@ sub analyzeSignatureCombinations {
 
 #-------------------------------------------------------------------------------
 
-=head2 calculateDynamicPairLengths
 
-  Calcule dynamiquement les longueurs cibles des paires Middle et Inner
-  a partir des contraintes de distance maximale entre niveaux de primers.
-  Dynamically computes target pair lengths from max distance constraints.
-
-  Parametres / Parameters:
-    outer_pair_target  - Longueur cible de la paire Outer
-    max_dist_outer_middle - Distance max F3-F2
-    max_dist_middle_inner - Distance max F2-F1
-    min_inner_pair_spacing - Espacement minimum F1-B1
-
-  Retourne / Returns: ($middlePairTarget, $innerPairTarget)
-
-=cut
-
-sub calculateDynamicPairLengths {
-  my ($outer_pair_target, $max_dist_outer_middle, $max_dist_middle_inner, $min_inner_pair_spacing) = @_;
-  
-  print "\nINFO: Calcul dynamique des longueurs cibles active.\n";
-  print "INFO: Dynamic target length calculation activated.\n";
-  
-  my $middle_pair_target = $outer_pair_target - (2 * $max_dist_outer_middle);
-  print "  -> Cible Middle Pair calculee : $middle_pair_target nt (distance max: $max_dist_outer_middle nt)\n";
-  
-  my $inner_pair_target = $middle_pair_target - (2 * $max_dist_middle_inner);
-  print "  -> Cible Inner Pair calculee : $inner_pair_target nt (distance max: $max_dist_middle_inner nt)\n";
-  
-  if ($inner_pair_target < $min_inner_pair_spacing) {
-    print "WARNING: La cible Inner Pair ($inner_pair_target nt) < distance minimale F1-B1 ($min_inner_pair_spacing nt).\n";
-  }
-  print "--------------------------------------------------\n\n";
-  
-  return ($middle_pair_target, $inner_pair_target);
-}
 
 #-------------------------------------------------------------------------------
 
