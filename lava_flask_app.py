@@ -100,8 +100,7 @@ TRANSLATIONS = {
         'max_3prime_degenerate_bases': 'Max Bases Dég. (3\')',
         'max_tolerated_mismatches': 'Tolérance Mismatches (Biol)',
         'three_prime_zone': 'Zone 3\' (bases)',
-        'max_dist_outer_middle': 'Dist. Max Outer-Middle',
-        'max_dist_middle_inner': 'Dist. Max Middle-Inner',
+
         'fixed_primer_strict': 'Mode Strict',
         'fixed_primer_strict_desc': 'Désactiver l\'optimisation B&B (conserve la séquence exacte)',
         'penalty_plateau': 'Plateau de Pénalité (0.1-0.5)',
@@ -322,8 +321,7 @@ TRANSLATIONS = {
         'max_3prime_degenerate_bases': 'Max Degen. Bases (3\')',
         'max_tolerated_mismatches': 'Biology Mismatch Tolerance',
         'three_prime_zone': '3\' Zone (bases)',
-        'max_dist_outer_middle': 'Max Dist. Outer-Middle',
-        'max_dist_middle_inner': 'Max Dist. Middle-Inner',
+
         'fixed_primer_strict': 'Strict Mode',
         'fixed_primer_strict_desc': 'Disable B&B optimization (keeps exact sequence)',
         'penalty_plateau': 'Penalty Plateau (0.1-0.5)',
@@ -705,8 +703,7 @@ def get_default_params():
         'salt_divalent': 8.0,
 
         # Architecture specific
-        'max_dist_outer_middle': 30,
-        'max_dist_middle_inner': 30,
+
         'penalty_plateau': 0.25,
         'penalty_slope': 0.15,
         
