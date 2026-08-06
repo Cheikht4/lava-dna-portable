@@ -103,8 +103,6 @@ TRANSLATIONS = {
 
         'fixed_primer_strict': 'Mode Strict',
         'fixed_primer_strict_desc': 'Désactiver l\'optimisation B&B (conserve la séquence exacte)',
-        'penalty_plateau': 'Plateau de Pénalité (0.1-0.5)',
-        'penalty_slope': 'Pente Sigmoïde (0.05-0.5)',
         'stem_orientation': 'Orientation STEM',
         'stem_orientation_conventional': '0 (Conventionnel - Original)',
         'stem_orientation_opposite': '1 (Opposé)',
@@ -113,10 +111,8 @@ TRANSLATIONS = {
         'resolve_overlap_penalty': 'Pénalité Biochimique et Géométrique (Défaut/Sûr)',
         'resolve_overlap_coverage': 'Pourcentage de Couverture (Universalité)',
         'resolve_overlap_desc': 'Critère utilisé pour garder le "champion" d\'une région ciblée par plusieurs signatures.',
-        'penalty_plateau_desc': 'Ratio zone "confort" (ex: 0.25)',
         'threads_label': 'Nombre de cœurs / Threads (--threads)',
         'threads_desc': "Nombre de cœurs CPU alloués ('auto' ou entier ex: 4).",
-        'penalty_slope_desc': 'Pente sigmoïde (ex: 0.15)',
         'signature_common_target_min_percent_desc': '% minimum de séquences cibles que la signature doit amplifier. Ex: 40 = tolérant, 100 = strict.',
 
         'spatial_reduction_title': 'Réduction spatiale des candidats',
@@ -324,17 +320,13 @@ TRANSLATIONS = {
 
         'fixed_primer_strict': 'Strict Mode',
         'fixed_primer_strict_desc': 'Disable B&B optimization (keeps exact sequence)',
-        'penalty_plateau': 'Penalty Plateau (0.1-0.5)',
-        'penalty_slope': 'Sigmoid Slope (0.05-0.5)',
         # Clés manquantes EN / Missing EN keys
         'resolve_overlap_label': 'Overlap Deduplication Priority',
         'resolve_overlap_penalty': 'Biochemical & Geometric Penalty (Default/Safe)',
         'resolve_overlap_coverage': 'Coverage Percentage (Universality)',
         'resolve_overlap_desc': 'Criterion used to keep the "champion" of a region targeted by multiple signatures.',
-        'penalty_plateau_desc': '"Comfort zone" ratio (e.g. 0.25)',
         'threads_label': 'CPU Cores / Threads (--threads)',
         'threads_desc': "Number of allocated CPU cores ('auto' or integer e.g. 4).",
-        'penalty_slope_desc': 'Sigmoid slope (e.g. 0.15)',
         'signature_common_target_min_percent_desc': 'Minimum % of target sequences the signature must amplify. E.g. 40 = tolerant, 100 = strict.',
 
         'spatial_reduction_title': 'Spatial Candidate Reduction',
@@ -582,8 +574,8 @@ def allowed_params_file(filename):
 # Ensemble des paramètres flottants connus (utilisé par _convert_param_value)
 # Known float parameters set (used by _convert_param_value)
 FLOAT_PARAMS = {
-    'min_base_frequency', 'entropy_threshold', 'penalty_plateau', 
-    'penalty_slope', 'dntp_conc', 'dna_conc', 'salt_monovalent', 
+    'min_base_frequency', 'entropy_threshold', 
+    'dntp_conc', 'dna_conc', 'salt_monovalent', 
     'salt_divalent', 'max_tm_diff', 'max_primer_gen',
     'outer_primer_target_tm', 'outer_primer_min_tm', 'outer_primer_max_tm',
     'middle_primer_target_tm', 'middle_primer_min_tm', 'middle_primer_max_tm',
@@ -703,9 +695,6 @@ def get_default_params():
         'salt_divalent': 8.0,
 
         # Architecture specific
-
-        'penalty_plateau': 0.25,
-        'penalty_slope': 0.15,
         
         # Outer primers
         'outer_primer_target_length': 18,
@@ -1204,7 +1193,7 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
             'max_total_degenerate_bases', 'max_consecutive_degenerate_bases',
             'max_3prime_degenerate_bases', 'three_prime_zone_size',
             'max_tolerated_mismatches',
-            'penalty_plateau', 'penalty_slope', 'max_tm_diff',
+            'max_tm_diff',
             'outer_pair_target_length', 'middle_pair_target_length', 'inner_pair_target_length',
              # Outer primers
             'outer_primer_target_length', 'outer_primer_min_length', 'outer_primer_max_length', 
@@ -1217,7 +1206,6 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
             'inner_primer_target_tm', 'inner_primer_min_tm', 'inner_primer_max_tm',
             # Calcul dynamique des longueurs (commun STEM+LOOP depuis Phase 36)
             # Dynamic length calculation (common STEM+LOOP since Phase 36)
-            'max_dist_outer_middle', 'max_dist_middle_inner',
             # Reduction spatiale par fenetre / Spatial window reduction
             'window_size', 'max_per_window',
             # Parallélisation multi-cœurs / Multi-core parallelization
