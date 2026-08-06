@@ -140,7 +140,7 @@ use LLNL::LAVA::PrimerSetInfo::PCRPair;
 use LLNL::LAVA::PrimerSet::LAMP;
 use LLNL::LAVA::Core qw(generateDistancePenalties calculate_proportional_geometry generateSigmoidPenalty countDegenerateBases);
 use LLNL::LAVA::Validator qw(checkPrimerMismatchTolerance getPrimerTargetedSequences isIUPACCompatible rev_comp generateIUPACCode validateCompleteSignatureSpacing);
-use LLNL::LAVA::PipelineUtils qw(getOligosWithMismatchTolerance set_pipeline_threads buildNativeReversePool analyzeAll enumeratePairs buildMetricsArray reducePairInfosByPenalty reducePrimersByOverlap reduceSignaturesByOverlap flattenInfoData buildBigMerge calculateSignatureIntersection createPerSignatureFiles createAmplificationFiles analyzeSignatureCombinations generateCombinations calculateDynamicPairLengths injectFixedPrimers findPrimerPositionInAlignment);
+use LLNL::LAVA::PipelineUtils qw(getOligosWithMismatchTolerance set_pipeline_threads buildNativeReversePool analyzeAll enumeratePairs buildMetricsArray reducePairInfosByPenalty reducePrimersByOverlap reduceSignaturesByOverlap flattenInfoData buildBigMerge calculateSignatureIntersection createPerSignatureFiles createAmplificationFiles analyzeSignatureCombinations generateCombinations injectFixedPrimers findPrimerPositionInAlignment);
 use LLNL::LAVA::ForkManager;
 
 # Activer l'auto-flush de STDOUT pour les logs temps réel via Flask / Enable STDOUT auto-flush for real-time logs via Flask
@@ -164,7 +164,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 #   - generateCombinations
 #   - createPerSignatureFiles
 #   - createAmplificationFiles
-#   - calculateDynamicPairLengths
 ################################################################################
 
 
@@ -237,11 +236,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "window_size=i"    => \$options{"window_size"},    # largeur fenetre en nt (0=desactive)
       "max_per_window=i" => \$options{"max_per_window"}, # max candidats par fenetre
 
-      # --- NOUVEAUX PARAMÈTRES D'ARCHITECTURE ---
-      "max_dist_outer_middle=i" => \$options{"max_dist_outer_middle"},
-      "max_dist_middle_inner=i" => \$options{"max_dist_middle_inner"},
-      # -----------------------------------------
-
       "primer3_executable=s" => \$options{"primer3_executable"},
       "thermodynamic_path=s" => \$options{"thermodynamic_path"},
       "alignment_format=s" => \$options{"alignment_format"},
@@ -307,9 +301,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 
       "min_primer_spacing" => 1,
       "min_inner_pair_spacing" => 1,
-      # --- NOUVEAUX PARAMÈTRES D'ARCHITECTURE (valeurs par défaut) / NEW ARCHITECTURE PARAMETERS (default values) ---
-      "max_dist_outer_middle" => 30,
-      "max_dist_middle_inner" => 30,
       # --- PARAMÈTRES DE TOLÉRANCE AUX MISMATCHES ---
       "primer_min_match_percent" => 80,
       "primer_min_iupac_percent" => 98,
@@ -733,23 +724,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $innerPairTargetLength =
     optionWithDefault($options_r, "inner_pair_target_length", 
       $optionDefaults{"inner_pair_target_length"});
-
-  # --- CALCUL DYNAMIQUE DES LONGUEURS CIBLES (PipelineUtils) ---
-  # --- DYNAMIC TARGET LENGTH CALCULATION (PipelineUtils) ---
-  if (exists $options_r->{"max_dist_outer_middle"} || exists $options_r->{"max_dist_middle_inner"})
-  {
-    my $maxDistOuterMiddle = 
-      optionWithDefault($options_r, "max_dist_outer_middle",
-        $optionDefaults{"max_dist_outer_middle"});
-    my $maxDistMiddleInner =
-      optionWithDefault($options_r, "max_dist_middle_inner",
-        $optionDefaults{"max_dist_middle_inner"});
-
-    ($middlePairTargetLength, $innerPairTargetLength) = calculateDynamicPairLengths(
-      $outerPairTargetLength, $maxDistOuterMiddle, $maxDistMiddleInner, $minInnerPairSpacing
-    );
-  }
-  # --- FIN DU CALCUL DYNAMIQUE ---
 
   # Eventually want to let the user specify which penalty method
   # is used to calculate the spacing penalty, making the objective function

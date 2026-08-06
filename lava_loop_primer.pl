@@ -131,7 +131,7 @@ use LLNL::LAVA::PrimerSetInfo::PCRPair;
 use LLNL::LAVA::PrimerSet::LAMP;
 use LLNL::LAVA::Core qw(generateDistancePenalties calculate_proportional_geometry generateSigmoidPenalty countDegenerateBases);
 use LLNL::LAVA::Validator qw(checkPrimerMismatchTolerance getPrimerTargetedSequences isIUPACCompatible rev_comp generateIUPACCode validateCompleteSignatureSpacing);
-use LLNL::LAVA::PipelineUtils qw(getOligosWithMismatchTolerance set_pipeline_threads buildNativeReversePool analyzeAll enumeratePairs buildMetricsArray reducePairInfosByPenalty reducePrimersByOverlap reduceSignaturesByOverlap flattenInfoData buildBigMerge calculateSignatureIntersection createPerSignatureFiles createAmplificationFiles analyzeSignatureCombinations generateCombinations calculateDynamicPairLengths injectFixedPrimers findPrimerPositionInAlignment computeFixedPrimerWindows); # buildReversePrimers retire (DEPRECATED, remplace par buildNativeReversePool)
+use LLNL::LAVA::PipelineUtils qw(getOligosWithMismatchTolerance set_pipeline_threads buildNativeReversePool analyzeAll enumeratePairs buildMetricsArray reducePairInfosByPenalty reducePrimersByOverlap reduceSignaturesByOverlap flattenInfoData buildBigMerge calculateSignatureIntersection createPerSignatureFiles createAmplificationFiles analyzeSignatureCombinations generateCombinations injectFixedPrimers findPrimerPositionInAlignment computeFixedPrimerWindows); # buildReversePrimers retire (DEPRECATED, remplace par buildNativeReversePool)
 use LLNL::LAVA::ForkManager;
 
 # Activer l'auto-flush de STDOUT pour les logs temps réel via Flask / Enable STDOUT auto-flush for real-time logs via Flask
@@ -227,9 +227,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       # --- REDUCTION SPATIALE PAR FENETRE / SPATIAL WINDOW REDUCTION ---
       "window_size=i"    => \$options{"window_size"},    # largeur fenetre en nt (0=desactive)
       "max_per_window=i" => \$options{"max_per_window"}, # max candidats par fenetre
-      # Calcul dynamique des longueurs (porte depuis STEM / ported from STEM)
-      "max_dist_outer_middle=i" => \$options{"max_dist_outer_middle"},
-      "max_dist_middle_inner=i" => \$options{"max_dist_middle_inner"},
 
       "primer3_executable=s" => \$options{"primer3_executable"},
       "thermodynamic_path=s" => \$options{"thermodynamic_path"},
@@ -305,9 +302,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "inner_pair_target_length" => 50, 
       "max_overlap_percent" => 0,
       "resolve_overlap_by" => "penalty",
-      # Calcul dynamique (porte depuis STEM / ported from STEM)
-      "max_dist_outer_middle" => 30,
-      "max_dist_middle_inner" => 30,
       # --- PARAMETRES DE TOLERANCE AUX MISMATCHES ---
       "primer_min_match_percent" => 80,
       "primer_min_iupac_percent" => 98,
@@ -724,38 +718,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $innerPairTargetLength =
     optionWithDefault($options_r, "inner_pair_target_length", 
       $optionDefaults{"inner_pair_target_length"});
-
-  # --- CALCUL DYNAMIQUE DES LONGUEURS CIBLES (PipelineUtils, porte depuis STEM) ---
-  # --- DYNAMIC TARGET LENGTH CALCULATION (PipelineUtils, ported from STEM) ---
-  if (exists $options_r->{"max_dist_outer_middle"} || exists $options_r->{"max_dist_middle_inner"})
-  {
-    my $maxDistOuterMiddle = 
-      optionWithDefault($options_r, "max_dist_outer_middle",
-        $optionDefaults{"max_dist_outer_middle"});
-    my $maxDistMiddleInner =
-      optionWithDefault($options_r, "max_dist_middle_inner",
-        $optionDefaults{"max_dist_middle_inner"});
-
-    # --- CORRECTION DE CONFLIT LOOP (Phase 36) ---
-    # maxDistMiddleInner représente la distance cible / maxDistMiddleInner represents the target distance (Middle -> Inner) / 2 = F2_len + gap(F2, F1c).
-    # Mais dans LOOP, gap(F2, F1c) doit être au minimum de loopMinGap pour accommoder le Loop primer.
-    # Donc maxDistMiddleInner DOIT être >= middlePrimerTargetLength + loopMinGap.
-    if ($includeLoopPrimers) {
-      my $middlePrimerTargetLength = optionWithDefault($options_r, "middle_primer_target_length", $optionDefaults{"middle_primer_target_length"});
-      my $min_required_dist = $middlePrimerTargetLength + $loopMinGap;
-      
-      if ($maxDistMiddleInner < $min_required_dist) {
-        print "\nWARNING: max_dist_middle_inner ($maxDistMiddleInner) est trop petit pour accommoder loop_min_gap ($loopMinGap).\n";
-        print "WARNING: Pour eviter un conflit geometrique bloquant, max_dist_middle_inner est ajuste automatiquement a $min_required_dist.\n";
-        $maxDistMiddleInner = $min_required_dist;
-      }
-    }
-
-    ($middlePairTargetLength, $innerPairTargetLength) = calculateDynamicPairLengths(
-      $outerPairTargetLength, $maxDistOuterMiddle, $maxDistMiddleInner, $minInnerPairSpacing
-    );
-  }
-  # --- FIN DU CALCUL DYNAMIQUE ---
 
   # Eventually want to let the user specify which penalty method
   # is used to calculate the spacing penalty, making the objective function
@@ -1942,7 +1904,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   print "  [Forward] $forwardSetCount combinaisons Forward trouvees sur $innerForwardCount amorces F1.\n";
 
   # Check if anything found
-  if (1) {
+  if ($forwardSetCount == 0) {
       print_zero_signature_diagnostic(1, $innerForwardCount, scalar(@$masterOuterF_r),
         $_fwd_rej_geometry, $_fwd_rej_spacing, $_fwd_rej_loopgap,
         $_fwd_rej_tm_inner_loop, $_fwd_rej_tm_loop_middle, $_fwd_rej_tm_inner_middle, $_fwd_rej_tm_middle_outer,
