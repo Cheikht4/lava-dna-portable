@@ -2422,8 +2422,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $global_skipped_tm_diff = 0;
   my $global_skipped_inner_gap = 0;
   
-  my $combine_t0 = time();
-  
   $val_pm->run_on_finish(sub {
       my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_r) = @_;
       if (defined($data_r) && ref($data_r) eq 'HASH') {
