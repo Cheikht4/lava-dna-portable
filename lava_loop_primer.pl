@@ -2419,6 +2419,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $global_immediate_rejections = 0;
   my $global_rejected_max_len = 0;
   my $global_rejected_min_len = 0;
+  my $global_skipped_tm_diff = 0;
+  my $global_skipped_inner_gap = 0;
+  
+  my $combine_t0 = time();
   
   $val_pm->run_on_finish(sub {
       my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_r) = @_;
@@ -2432,6 +2436,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           $global_immediate_rejections += $data_r->{immediate_rejections};
           $global_rejected_max_len += $data_r->{rejected_max_len} if defined $data_r->{rejected_max_len};
           $global_rejected_min_len += $data_r->{rejected_min_len} if defined $data_r->{rejected_min_len};
+          $global_skipped_tm_diff += $data_r->{skipped_tm_diff} if defined $data_r->{skipped_tm_diff};
+          $global_skipped_inner_gap += $data_r->{skipped_inner_gap} if defined $data_r->{skipped_inner_gap};
           
           my $elapsed = time() - $combine_t0 + 0.001;
           my $chunks_done = scalar(keys %chunk_results_map);
@@ -2460,6 +2466,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           open($verbose_fh, "| gzip >> ${verbose_base}.$$" . "_${chunk_id}.log.gz") or warn "Cannot open verbose log";
       }
       
+      # Compteurs de rejets pour l'assemblage
+      my $skipped_tm_diff = 0;
+      my $skipped_inner_gap = 0;
+
       for(my $i = $chunk_id; $i < $combine_total; $i += $num_chunks) {
           next unless defined $bestForwardInfos[$i]; 
           
@@ -2479,14 +2489,20 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               my $b1c_tm = $masterInnerR_data_r->[$j]->[3];
               
               if (abs($f1c_tm - $b1c_tm) > $maxTmDiff) {
-                  print "    -> Skipped (Tm diff > $maxTmDiff): f1c_tm=$f1c_tm, b1c_tm=$b1c_tm\n";
+                  $skipped_tm_diff++;
+                  if ($verbose_val) {
+                      print $verbose_fh "    -> Skipped (Tm diff > $maxTmDiff): f1c_tm=$f1c_tm, b1c_tm=$b1c_tm\n";
+                  }
                   next;
               }
               
               my $b1c_start_genome = $b1c_location - $b1c_length + 1;
               my $inner_gap = $b1c_start_genome - $f1c_location - 1;
               if ($inner_gap < 0) {
-                  print "    -> Skipped (inner_gap < 0): inner_gap=$inner_gap, b1c_start_genome=$b1c_start_genome, f1c_location=$f1c_location\n";
+                  $skipped_inner_gap++;
+                  if ($verbose_val) {
+                      print $verbose_fh "    -> Skipped (inner_gap < 0): inner_gap=$inner_gap, b1c_start_genome=$b1c_start_genome, f1c_location=$f1c_location\n";
+                  }
                   next;
               }
               
@@ -2614,7 +2630,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           val_rejected => $chunk_val_rejected,
           immediate_rejections => $chunk_immediate,
           rejected_max_len => $chunk_rejected_max_len,
-          rejected_min_len => $chunk_rejected_min_len
+          rejected_min_len => $chunk_rejected_min_len,
+          skipped_tm_diff => $skipped_tm_diff,
+          skipped_inner_gap => $skipped_inner_gap
       });
   }
   
@@ -2682,8 +2700,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my %val_distribution = ("<20%"=>0, "20-40%"=>0, "40-60%"=>0, "60-80%"=>0, ">=80%"=>0); # Dummy
   my $eviction_occurred = (scalar(@flat_retained) >= $max_retained_signatures) ? 1 : 0;
   
-  print "\n"; 
-  print "Created $combinedSignatureCount LAMP signatures candidates.\n";
+  print "\nCreated $combinedSignatureCount LAMP signatures candidates.\n";
+  print "  -> Rejetés pour Tm diff > $maxTmDiff : $global_skipped_tm_diff itérations\n";
+  print "  -> Rejetés pour chevauchement (inner_gap < 0) : $global_skipped_inner_gap itérations\n";
   
   if ($verbose_val) {
       print "Aggregating verbose logs...\n";

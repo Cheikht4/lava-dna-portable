@@ -2631,8 +2631,7 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
   my $eviction_occurred = (scalar(@flat_retained) >= $max_retained_signatures) ? 1 : 0;
   
 
-  print "\n"; 
-  print "Created $combinedSignatureCount LAMP signatures candidates.\n";
+  print "\nCreated $combinedSignatureCount LAMP signatures candidates.\n";
 
   if ($verbose_val) {
       print "Aggregating verbose logs...\n";

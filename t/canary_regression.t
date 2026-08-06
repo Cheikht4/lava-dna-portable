@@ -127,7 +127,7 @@ my $common_args =
     "--max_total_degenerate_bases 3 --max_poly_bases 5 --max_tolerated_mismatches 2 " .
     "--max_tm_diff 5.0 --primer_iupac_min_percent 80.0 --primer_min_match_percent 70.0 " .
     "--min_base_frequency 0.2 --three_prime_zone_size 3 --salt_monovalent 50.0 " .
-    "--salt_divalent 8.0 --penalty_plateau 0.25 --penalty_slope 0.15 " .
+    "--salt_divalent 8.0 " .
     "--max_overlap_percent 0.0 --max_per_window 0 --max_primer_gen 10000.0 --window_size 0";
 
 # =============================================================================

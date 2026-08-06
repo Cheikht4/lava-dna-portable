@@ -307,9 +307,6 @@ sub getOligosWithMismatchTolerance {
   $pm->run_on_finish(sub {
     my ($pid, $exit_code, $ident, $signal, $core, $data_ref) = @_;
     if (defined $data_ref && ref($data_ref) eq 'HASH') {
-      foreach my $msg (@{$data_ref->{logs} // []}) {
-        print $msg;
-      }
       push @validatedPrimers, @{$data_ref->{validated} // []};
       $strict_count     += $data_ref->{strict}   // 0;
       $degenerate_count += $data_ref->{degen}    // 0;
@@ -359,25 +356,21 @@ sub getOligosWithMismatchTolerance {
           $validatedPrimer->setTag("compatible_sequence_ids", $compatible_seq_ids);
           $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatible_seq_ids));
           $chunk_degen++;
-          push @chunk_logs, "DEGENERATE PRIMER acceptee - Pos: $location, Couv: " . sprintf("%.1f", $coverage_percent) . "%, Seq: $final_sequence\n";
         } else {
           $validatedPrimer->setTag("is_degenerate", 0);
           $validatedPrimer->setTag("iupac_coverage", "100.0");
           $validatedPrimer->setTag("compatible_sequence_ids", $compatible_seq_ids);
           $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatible_seq_ids));
           $chunk_strict++;
-          push @chunk_logs, "STRICT PRIMER acceptee     - Pos: $location, Couv: 100.0%, Seq: $final_sequence\n" if ($chunk_strict <= 10);
         }
         push @chunk_validated, $validatedPrimer;
       } else {
         $chunk_reject++;
-        push @chunk_logs, "REJECTED PRIMER - Pos: $location, Couv: " . sprintf("%.1f", $coverage_percent) . "% < ${min_primer_acceptance}%\n" if ($chunk_reject <= 5);
       }
     }
 
     $pm->finish(0, {
       validated => \@chunk_validated,
-      logs      => \@chunk_logs,
       strict    => $chunk_strict,
       degen     => $chunk_degen,
       rejected  => $chunk_reject
@@ -545,9 +538,6 @@ sub buildNativeReversePool {
   $pm->run_on_finish(sub {
     my ($pid, $exit_code, $ident, $signal, $core, $data_ref) = @_;
     if (defined $data_ref && ref($data_ref) eq 'HASH') {
-      foreach my $msg (@{$data_ref->{logs} // []}) {
-        print $msg;
-      }
       push @validatedPrimers, @{$data_ref->{validated} // []};
       $strict_count   += $data_ref->{strict}   // 0;
       $degen_count    += $data_ref->{degen}    // 0;
@@ -602,25 +592,21 @@ sub buildNativeReversePool {
           $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
           $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatibleIds));
           $chunk_degen++;
-          push @chunk_logs, "REVERSE DEGENERATE acceptee - PosRC: $posInRC -> GenomPos: $genomicLocation, Couv: " . sprintf("%.1f", $coveragePct) . "%, Seq: $finalSeq\n";
         } else {
           $validatedPrimer->setTag("is_degenerate", 0);
           $validatedPrimer->setTag("iupac_coverage", "100.0");
           $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
           $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatibleIds));
           $chunk_strict++;
-          push @chunk_logs, "REVERSE STRICT acceptee   - PosRC: $posInRC -> GenomPos: $genomicLocation, Couv: 100.0%, Seq: $finalSeq\n";
         }
         push @chunk_validated, $validatedPrimer;
       } else {
         $chunk_reject++;
-        push @chunk_logs, "REVERSE REJECTED           - PosRC: $posInRC -> GenomPos: $genomicLocation, Couv: " . sprintf("%.1f", $coveragePct) . "% < ${min_primer_coverage}%\n" if ($chunk_reject <= 5);
       }
     }
 
     $pm->finish(0, {
       validated => \@chunk_validated,
-      logs      => \@chunk_logs,
       strict    => $chunk_strict,
       degen     => $chunk_degen,
       rejected  => $chunk_reject
