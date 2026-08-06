@@ -100,8 +100,7 @@ Ces paramètres contrôlent la taille et la température de fusion (Tm) de chaqu
 | `--stem_primer_max_length` | 23 | Longueur max | Longueur maximale. |
 | `--stem_primer_target_tm` | 60.0 | Tm cible (°C) | Tm cible. |
 | `--stem_min_gap` | 1 | N/A | Espace minimal pour insérer une Stem Primer. |
-| `--max_dist_outer_middle` | 30 | Dist. Max Outer-Middle | [Architecture] Distance max entre F3 et F2. |
-| `--max_dist_middle_inner` | 30 | Dist. Max Middle-Inner | [Architecture] Distance max entre F2 et le début de la structure Stem. |
+
 
 ---
 
