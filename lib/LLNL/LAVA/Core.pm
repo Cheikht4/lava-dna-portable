@@ -91,40 +91,24 @@ sub calculate_proportional_geometry {
 #
 # Paramètres / Parameters:
 #   actual         - Distance réelle observée / Actual observed distance
-#   target         - Distance cible idéale proportionnelle / Ideal proportional target distance
-#   plateau_ratio  - Pourcentage au-dessus de la cible toléré sans pénalité / Plateau ratio above target
+#   threshold      - Distance limite gratuite / Free tolerance threshold
 #   k_slope        - Facteur de pente pour la montée de pénalité / Slope factor for penalty increase
 #
 sub generateSigmoidPenalty {
-    my ($actual, $target, $plateau_ratio, $k_slope) = @_;
+    my ($actual, $threshold, $k_slope) = @_;
     
     # Valeurs par défaut si non fournies / Default values if not provided
-    $plateau_ratio = 0.25 unless defined $plateau_ratio;
     $k_slope = 0.15 unless defined $k_slope;
     
     return 100 if $actual < 0; 
     
-    # Les distances plus courtes ou égales à la cible sont idéales cinétiquement (pas de pénalité)
-    # Distances shorter than or equal to the target are kinetically ideal (no penalty)
-    return 0 if $actual <= $target;
+    # Les distances plus courtes ou égales à la limite sont idéales cinétiquement (pas de pénalité)
+    return 0 if $actual <= $threshold;
     
-    # Paramètres de la montée progressive au-dessus de la cible
-    # Parameters for progressive rise above target
-    my $L_plateau_width = $target * $plateau_ratio; # Plateau "gratuit" de + X% au-dessus de la cible
     my $max_penalty = 100;
+    my $excess = $actual - $threshold;
     
-    my $diff = $actual - $target;
-    
-    # Si l'excès reste dans le plateau de tolérance gratuit, pas de pénalité
-    # If the excess remains within the free tolerance plateau, no penalty
-    return 0 if $diff <= $L_plateau_width;
-
-    # Calcul de la pénalité progressive au-delà du plateau
-    # Calculation of progressive penalty beyond the plateau
-    my $excess = $diff - $L_plateau_width;
-    
-    # Formule Sigmoïde corrigée (commence à 0 après la limite du plateau)
-    # Corrected Sigmoid Formula (starts at 0 after the plateau limit)
+    # Formule Sigmoïde corrigée (commence à 0 après la limite)
     # P(x) = max_penalty * [ (2 / (1 + exp(-k * x))) - 1 ]
     my $penalty = $max_penalty * ( (2 / (1 + exp(-$k_slope * $excess))) - 1 );
     
@@ -137,12 +121,12 @@ sub generateSigmoidPenalty {
 # Remplace l'ancienne fonction basée sur les paraboles. / Replaces the old parabola-based function.
 # Génère un tableau de pénalités pour toutes les distances possibles jusqu'à maxDistance. / Generates an array of penalties for all possible distances up to maxDistance.
 sub generateDistancePenalties {
-    my ($maxDistance, $targetLength, $plateau_ratio, $k_slope) = @_;
+    my ($maxDistance, $threshold, $k_slope) = @_;
     
     my @penalties = ();
     
     for (my $i = 0; $i < $maxDistance; $i++) {
-        $penalties[$i] = generateSigmoidPenalty($i, $targetLength, $plateau_ratio, $k_slope);
+        $penalties[$i] = generateSigmoidPenalty($i, $threshold, $k_slope);
     }
     
     return \@penalties;

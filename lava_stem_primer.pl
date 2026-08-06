@@ -250,6 +250,17 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       # Sigmoid Penalty Parameters
       "penalty_plateau=f" => \$options{"penalty_plateau"},
       "penalty_slope=f" => \$options{"penalty_slope"},
+      "spacing_middle_outer_free=i" => \$options{"spacing_middle_outer_free"},
+      "spacing_middle_outer_saturation=i" => \$options{"spacing_middle_outer_saturation"},
+      "spacing_loop_middle_free=i" => \$options{"spacing_loop_middle_free"},
+      "spacing_loop_middle_saturation=i" => \$options{"spacing_loop_middle_saturation"},
+      "spacing_inner_loop_free=i" => \$options{"spacing_inner_loop_free"},
+      "spacing_inner_loop_saturation=i" => \$options{"spacing_inner_loop_saturation"},
+      "spacing_inner_middle_free=i" => \$options{"spacing_inner_middle_free"},
+      "spacing_inner_middle_saturation=i" => \$options{"spacing_inner_middle_saturation"},
+      "spacing_inner_inner_free=i" => \$options{"spacing_inner_inner_free"},
+      "spacing_inner_inner_saturation=i" => \$options{"spacing_inner_inner_saturation"},
+
 
       # --- NOUVEAUX PARAMÈTRES DE TOLÉRANCE AUX MISMATCHES (AVEC ALIAS HARMONISÉS) ---
       "primer_min_match_percent=f" => \$options{"primer_min_match_percent"},
@@ -324,6 +335,17 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "dna_conc" => 400,
       "penalty_plateau" => 0.25,
       "penalty_slope" => 0.15,
+      "spacing_middle_outer_free" => 49,
+      "spacing_middle_outer_saturation" => 86,
+      "spacing_loop_middle_free" => 15,
+      "spacing_loop_middle_saturation" => 27,
+      "spacing_inner_loop_free" => 19,
+      "spacing_inner_loop_saturation" => 45,
+      "spacing_inner_middle_free" => 49,
+      "spacing_inner_middle_saturation" => 76,
+      "spacing_inner_inner_free" => 51,
+      "spacing_inner_inner_saturation" => 104,
+
       "max_primer_gen" => 10001, # primer3 rounding error off by 1?
       "primer3_executable" => "/usr/bin/primer3_core",
       "thermodynamic_path" => "/etc/primer3_config/",
@@ -1491,33 +1513,32 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
 
     # Pre-compute a set of distance penalties for faster use
     # ------------------------------------------------------
-    # GENERATION PROPORTIONNELLE SIGMOÏDE (LAVA 2026)
-    # Calcul de l'espace occupé par les amorces (8 amorces physiquement dans STEM)
-    my $sum_primer_lengths = 
-      2 * $outerPrimerTargetLength +
-      2 * $middlePrimerTargetLength +
-      2 * $innerPrimerTargetLength +
-      2 * $stemPrimerTargetLength;
-      
-    my $geometry = calculate_proportional_geometry($totalSignatureLength, $signatureMaxLength, $sum_primer_lengths);
-    
-    print "INFO: Cibles Géométriques Proportionnelles (Espace disponible) :\n";
-    print "  -> F3-F2 (12%) : [" . $geometry->{'f3_f2_target'} . ", " . $geometry->{'f3_f2_borne_haute'} . "] nt\n";
-    print "  -> F2-F1 (18%) : [" . $geometry->{'f2_f1_target'} . ", " . $geometry->{'f2_f1_borne_haute'} . "] nt\n";
-    print "  -> Empan interne F1-B1 (40%) : [" . $geometry->{'inner_target'} . ", " . $geometry->{'inner_borne_haute'} . "] nt\n";
-    
-    # Générer des pénalités spécifiques pour chaque distance / Generate specific penalties for each distance
-    # Le plateau est conservé via $penaltyPlateau
-    my $f2_f1_borne_haute = $geometry->{'f2_f1_borne_haute'};
-    my $loop_borne_haute = int($f2_f1_borne_haute / 2);
-    
-    my $innerToLoopPenalties_r = generateDistancePenalties($signatureMaxLength, $loop_borne_haute, $penaltyPlateau, $penaltySlope);
-    my $loopToMiddlePenalties_r = generateDistancePenalties($signatureMaxLength, $loop_borne_haute, $penaltyPlateau, $penaltySlope);
-    my $middleToOuterPenalties_r = generateDistancePenalties($signatureMaxLength, $geometry->{'f3_f2_borne_haute'}, $penaltyPlateau, $penaltySlope);
-    my $innerToMiddlePenalties_r = generateDistancePenalties($signatureMaxLength, $geometry->{'f2_f1_borne_haute'}, $penaltyPlateau, $penaltySlope);
-    my $innerToInnerPenalties_r = generateDistancePenalties($signatureMaxLength, $geometry->{'inner_borne_haute'}, $penaltyPlateau, $penaltySlope);
+    # Helper pour calculer la pente empirique / Helper to calculate empiric slope
+    sub get_k_slope {
+        my ($free, $sat, $name) = @_;
+        if ($sat <= $free) {
+            die "FATAL: La saturation ($sat) pour $name doit être strictement supérieure au seuil de gratuité ($free).
+";
+        }
+        return 4.6 / ($sat - $free);
+    }
 
-    print "Generating Sigmoid Penalties (Core.pm)...\n";
+    print "Generating Distance Penalties (Empiric Absolute)...
+";
+    my $spacing_mo_free = optionWithDefault($options_r, "spacing_middle_outer_free", $optionDefaults{"spacing_middle_outer_free"});
+    my $spacing_mo_sat = optionWithDefault($options_r, "spacing_middle_outer_saturation", $optionDefaults{"spacing_middle_outer_saturation"});
+    my $k_mo = get_k_slope($spacing_mo_free, $spacing_mo_sat, "middleToOuter");
+    my $middleToOuterPenalties_r = generateDistancePenalties($signatureMaxLength, $spacing_mo_free, $k_mo);
+
+    my $spacing_im_free = optionWithDefault($options_r, "spacing_inner_middle_free", $optionDefaults{"spacing_inner_middle_free"});
+    my $spacing_im_sat = optionWithDefault($options_r, "spacing_inner_middle_saturation", $optionDefaults{"spacing_inner_middle_saturation"});
+    my $k_im = get_k_slope($spacing_im_free, $spacing_im_sat, "innerToMiddle");
+    my $innerToMiddlePenalties_r = generateDistancePenalties($signatureMaxLength, $spacing_im_free, $k_im);
+
+    my $spacing_ii_free = optionWithDefault($options_r, "spacing_inner_inner_free", $optionDefaults{"spacing_inner_inner_free"});
+    my $spacing_ii_sat = optionWithDefault($options_r, "spacing_inner_inner_saturation", $optionDefaults{"spacing_inner_inner_saturation"});
+    my $k_ii = get_k_slope($spacing_ii_free, $spacing_ii_sat, "innerToInner");
+    my $innerToInnerPenalties_r = generateDistancePenalties($signatureMaxLength, $spacing_ii_free, $k_ii);
 
     # To remember the optimum combination with
     # 3 columns: STEM, middle, outer
@@ -2499,7 +2520,12 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
               # Calcul de la pénalité de longueur totale / Calculate total length penalty
               my $len_penalty = 0;
               if ($totalLen_v > $totalSignatureLength) {
-                  $len_penalty = generateSigmoidPenalty($totalLen_v, $totalSignatureLength, 0, $penaltySlope) * ($signatureLengthPenaltyWeight / 100.0);
+                  if ($totalLen_v >= $signatureMaxLength) {
+                      $len_penalty = $signatureLengthPenaltyWeight;
+                  } elsif ($signatureMaxLength > $totalSignatureLength) {
+                      my $ratio = ($totalLen_v - $totalSignatureLength) / ($signatureMaxLength - $totalSignatureLength);
+                      $len_penalty = $signatureLengthPenaltyWeight * ($ratio * $ratio);
+                  }
               }
               
               my $lamp_penalty = $f_penalty + $r_penalty + $len_penalty;
