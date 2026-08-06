@@ -248,8 +248,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "max_primer_gen=f" => \$options{"max_primer_gen"}, # new
 
       # Sigmoid Penalty Parameters
-      "penalty_plateau=f" => \$options{"penalty_plateau"},
-      "penalty_slope=f" => \$options{"penalty_slope"},
       "spacing_middle_outer_free=i" => \$options{"spacing_middle_outer_free"},
       "spacing_middle_outer_saturation=i" => \$options{"spacing_middle_outer_saturation"},
       "spacing_loop_middle_free=i" => \$options{"spacing_loop_middle_free"},
@@ -333,8 +331,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "salt_monovalent" => 50,
       "dna_conc" => 400,
       "dna_conc" => 400,
-      "penalty_plateau" => 0.25,
-      "penalty_slope" => 0.15,
       "spacing_middle_outer_free" => 49,
       "spacing_middle_outer_saturation" => 86,
       "spacing_loop_middle_free" => 15,
@@ -489,8 +485,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "    [--alignment_format <file format of alignment, default=\"" .
         $optionDefaults{"alignment_format"} .
 	"\">]\n" .
-      "    [--penalty_plateau <float, default=" . $optionDefaults{"penalty_plateau"} . ">]\n" .
-      "    [--penalty_slope <float, default=" . $optionDefaults{"penalty_slope"} . ">]\n" .
       "    [--option_file <options_xml> (cmd line options take precedence)]\n";
 
   # TODO: Probably want to be able to use multiple files for parameter
@@ -722,9 +716,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $saltMonovalent = optionWithDefault($options_r, "salt_monovalent", $optionDefaults{"salt_monovalent"});
 
   my $saltDivalent = optionWithDefault($options_r, "salt_divalent", $optionDefaults{"salt_divalent"});
-
-  my $penaltyPlateau = optionWithDefault($options_r, "penalty_plateau", $optionDefaults{"penalty_plateau"});
-  my $penaltySlope = optionWithDefault($options_r, "penalty_slope", $optionDefaults{"penalty_slope"});
   my $maxEnumeratedPrimers = int(
     optionWithDefault($options_r, "max_primer_gen",
     $optionDefaults{"max_primer_gen"}));
