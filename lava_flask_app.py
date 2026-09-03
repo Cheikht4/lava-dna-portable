@@ -228,7 +228,7 @@ TRANSLATIONS = {
         'public_service_purge': "Les données et résultats sont supprimés automatiquement après 48h.",
         'public_service_privacy': "Aucune garantie de confidentialité. Pour des données sensibles, utilisez la version en ligne de commande.",
         'public_service_limits': "Limites : 4000 séquences max, 15000 nt max.",
-        'public_service_timeout': "Durée maximale d'exécution : 1 heure.",
+        'public_service_timeout': "Durée maximale d'exécution : 120 minutes (2 heures).",
         'public_service_cli': "Version CLI / Locale",
         'status_queued': "En file d'attente"
     },
@@ -442,7 +442,7 @@ TRANSLATIONS = {
         'public_service_purge': "Data and results are automatically deleted after 48h.",
         'public_service_privacy': "No confidentiality guarantee. For sensitive data, use the command line version.",
         'public_service_limits': "Limits: max 4000 sequences, max 15000 nt.",
-        'public_service_timeout': "Maximum execution time: 1 hour.",
+        'public_service_timeout': "Maximum execution time: 120 minutes (2 hours).",
         'public_service_cli': "CLI / Local version",
         'status_queued': "Pending"
     }
@@ -2133,7 +2133,7 @@ def background_job_scheduler():
             with executions_lock:
                 max_concurrent = int(os.environ.get('MAX_CONCURRENT_RUNS', 5))
                 min_queue_sec = int(os.environ.get('MIN_QUEUE_SECONDS', 30))
-                max_runtime_sec = int(os.environ.get('MAX_RUNTIME_SECONDS', 3600))
+                max_runtime_sec = int(os.environ.get('MAX_RUNTIME_SECONDS', 7200)) # 120 minutes (2 heures)
                 now = datetime.now()
 
                 # Gestion des timeouts des jobs en cours
@@ -2152,7 +2152,7 @@ def background_job_scheduler():
                                 print(f"Erreur lors du killpg (timeout): {e}")
                             job['status'] = 'timeout'
                             job['end_time'] = now
-                            job['error'] = "Temps de calcul maximal dépassé (1 heure)."
+                            job['error'] = "Temps de calcul maximal dépassé (120 minutes / 2 heures). Pour les alignements volumineux, utilisez la version en ligne de commande."
                             print(f"Job {job['id']} interrompu (timeout).")
 
                 # Recompter après les timeouts

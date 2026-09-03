@@ -2408,3 +2408,21 @@ Dans le cadre de l'amplification LAMP à 65°C, la dynamique d'hybridation des a
 **Explication technique** : Suppression des instructions `print` inconditionnelles situées au cœur des boucles de combinaisons et de vérification spatiale (ex: `inner_gap < 0`, `REJECTED PRIMER`, etc.). Remplacement par des compteurs agrégés (`$skipped_inner_gap`, `$skipped_tm_diff`, `$chunk_reject`) gérés par le module `Parallel::ForkManager` et sommés via la méthode `run_on_finish`.
 **Justification biologique** : Les boucles qui examinent toutes les combinaisons thermodynamiques (jusqu'à plusieurs millions) produisaient un volume de log excessif qui engorgeait la mémoire du système et la sortie standard (I/O bound). L'élimination des écritures répétées accélère le processus de découverte des amorces.
 **Impact attendu** : Une réduction massive de la consommation mémoire (passage de plus de 600 Mo à quelques kilo-octets pour les logs de sortie standard). Temps d'exécution réduit (moins de latence I/O). Le fichier de log détaillé reste disponible via `--verbose_validation`.
+
+### Date/Étape : 2026-09-03 - Extension de la Durée Maximale d'Exécution à 120 Minutes (2 Heures)
+
+**Fichiers impactés** : `lava_flask_app.py`, `deployment/lava-dna.service`, `deployment/nginx_lava.conf`, `LAVA_EVOLUTION_JOURNAL.md`
+
+**Nature du changement** : Architecture / Configuration
+
+**Explication technique** : 
+1. Rehaussement du plafond de calcul `MAX_RUNTIME_SECONDS` de 3600s (1h) à 7200s (120 minutes / 2 heures) dans l'unité systemd `lava-dna.service` et dans la boucle watchdog de `lava_flask_app.py`.
+2. Augmentation des directives de temporisation Nginx (`proxy_connect_timeout`, `proxy_send_timeout`, `proxy_read_timeout`) à 7500s dans `nginx_lava.conf`, garantissant que le reverse-proxy ne coupe pas prématurément la communication avant la décision applicative.
+3. Actualisation des messages bilingues (FR et EN) dans le dictionnaire `TRANSLATIONS` de `lava_flask_app.py` et du message de dépassement de quota orientant vers la version CLI pour les jeux massifs.
+
+**Justification biologique** : 
+La recherche combinatoire pan-génomique sur des virus hautement polymorphes (ex: virus de la Dengue, VIH, virus influenza) engendre des espaces de recherche considérables lors de l'intégration de codes IUPAC dégénérés et du calcul thermodynamique des énergies libres à 65°C. Un plafond de 120 minutes permet de traiter des alignements complexes comportant des milliers de génomes sans interruption prématurée.
+
+**Impact attendu** : 
+Aboutissement des calculs intensifs sur de larges panels génomiques via l'interface web, sans déconnexion Nginx intempestive ni arrêt brutal après 1 heure.
+
