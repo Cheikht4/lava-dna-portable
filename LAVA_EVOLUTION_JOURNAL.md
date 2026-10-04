@@ -2426,3 +2426,22 @@ La recherche combinatoire pan-génomique sur des virus hautement polymorphes (ex
 **Impact attendu** : 
 Aboutissement des calculs intensifs sur de larges panels génomiques via l'interface web, sans déconnexion Nginx intempestive ni arrêt brutal après 1 heure.
 
+
+
+### Date/Étape : 2026-10-04 - Assainissement architectural de la source de vérité et audit bidirectionnel des paramètres
+
+**Fichiers impactés** : `.gitignore`, `_attic/`, `_attic/README.md`, `t/test_param_mapping.py`, `.github/workflows/canary.yml`, `LAVA_EVOLUTION_JOURNAL.md`
+
+**Nature du changement** : Architecture / Tests
+
+**Explication technique** : 
+1. Ré-inclusion absolue et effective des baselines sous `t/baseline/**` via positionnement prioritaire de la négation après tous les motifs d'exclusion de fichiers (`*.primers`, `*.all_signatures`, `*.dash`, `*.log`). Rétablissement de la traçabilité des analyses comparatives sous `_internal/`.
+2. Désuivi Git (`git rm --cached`) de 91 sorties de runs et fichiers temporaires de validation (dont le dossier `scratch/`), ainsi que de 45 scripts jetables de refactorings passés et du module redondant `core_old.pm` (archivé de manière pérenne sous son chemin canonique `lib/LLNL/LAVA/Core.pm` au commit `234c53e`).
+3. Création du répertoire d'archivage technique `_attic/` avec documentation de traçabilité complète (`_attic/README.md`) reliant chaque script de transition à son commit officiel d'intégration.
+4. Implémentation du test d'audit bidirectionnel `t/test_param_mapping.py` vérifiant l'adéquation exacte entre les déclarations `GetOptions` des scripts d'amorce et les accès réels du moteur sous `lib/LLNL/LAVA/**`, confirmant l'absence de paramètres morts ou orphelins ainsi que la suppression effective des anciens paramètres dépréciés. Branchement automatique du test dans le pipeline CI.
+
+**Justification biologique** : 
+Garantir l'intégrité absolue des tests de non-régression (canary) sur les jeux de référence (Rotavirus, Dengue). L'absence de masquage silencieux des fichiers de baselines préserve la validation thermodynamique des amorces LAMP et sécurise les futures évolutions algorithmiques contre toute dérive inaperçue de couverture de variants.
+
+**Impact attendu** : 
+Arbre de travail assaini et allégé (réduction drastique des fichiers suivis à la racine de 101 à 21). Détection immédiate en intégration continue de tout paramètre d'amorce non câblé ou orphelin. Préservation stricte du déterminisme (20/20 au canary).
