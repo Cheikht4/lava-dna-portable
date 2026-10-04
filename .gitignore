@@ -1,5 +1,5 @@
 # =============================================================================
-# .gitignore — LAVA-DNA Project
+# .gitignore - LAVA-DNA Project
 # Code source uniquement / Source code only
 # =============================================================================
 
@@ -19,14 +19,14 @@ dist/
 .eggs/
 wheels/
 
-# --------------- Données FASTA (souvent grandes) -----
+# --------------- Donnees FASTA (souvent grandes) -----
 # Exclure les FASTA de test mais garder les exemples
-# Décommentez si nécessaire :
+# Decommentez si necessaire :
 # *.fasta
 # *.fas
 # *.fa
 
-# Fichiers FASTA de travail (résultats, tests locaux)
+# Fichiers FASTA de travail (resultats, tests locaux)
 Dengue*.fasta
 Dengue*.fa
 kmer*.fasta
@@ -35,7 +35,7 @@ test_loop_results_amplified.fasta
 *_alignement.fasta
 *_merge_aligne.fasta
 
-# --------------- Résultats LAVA (générés) ------------
+# --------------- Resultats LAVA (generes) ------------
 *.primers
 *.all_signatures
 *.dash
@@ -45,7 +45,7 @@ test_loop_results*/
 *_signatures_individuelles/
 dengue_small*/
 
-# --------------- Logs d'exécution --------------------
+# --------------- Logs d'execution --------------------
 *.log
 *.out
 *.err
@@ -64,7 +64,7 @@ tmp/
 *.old
 *.orig
 
-# --------------- Fichiers système macOS/Windows ------
+# --------------- Fichiers systeme macOS/Windows ------
 .DS_Store
 .DS_Store?
 ._*
@@ -73,12 +73,12 @@ tmp/
 Thumbs.db
 desktop.ini
 
-# --------------- Métadonnées Windows (Zone.Identifier) ------
-# Ces fichiers utilisent U+F03A (＊) comme séparateur, pas un vrai ":"
+# --------------- Metadonnees Windows (Zone.Identifier) ------
+# Ces fichiers utilisent U+F03A (*) comme separateur, pas un vrai ":"
 *Zone.Identifier
-*＊Zone.Identifier
+**Zone.Identifier
 
-# --------------- Éditeurs ----------------------------
+# --------------- Editeurs ----------------------------
 .vscode/
 .idea/
 *.swp
@@ -98,33 +98,76 @@ config_local.py
 *.7z
 
 # --------------- Documents personnels ----------------
-# (devis, factures, etc. — pas du code)
+# (devis, factures, etc. - pas du code)
 devis pour didida/
 
-# --------------- Fichiers de débogage one-shot -------
+# --------------- Fichiers de debogage one-shot -------
 fix_degenerate.py
 fix_degenerate_exception.py
 fix_header_length.py
 translate_comments.py
 translate_lib.py
 update_output.py
-_internal/
 LAVA_Production_2026_v3/
 
+# --------------- Archives techniques (_attic) --------
+_attic/*
+!_attic/README.md
+
+# --------------- Scripts jetables et sorties de run (racine) -
+append_journal*.py
+update_journal*.py
+fix_progress*.py
+patch_*.py
+apply_optimizations*.py
+benchmarks_dengue*
+run[0-9]_out*
+run[0-9]_log.txt
+*.primers_diagnostic.txt
+all8.primers_*
+scratch/
+core_old.pm
+debug.diff
+apply_bb.pl
+audit_form.py
+debug_forward.pl
+fix_penalties.py
+fix_threads.py
+fixed_out.txt*
+launch_lava_smart_kill.py
+sim_loop.pl
+test_out.txt
+test_upload.py
+track_memory.sh
+
+# Sorties de run et tests temporaires (ancrage strict)
+dengue_eval_*
+tmp_rota*
+test_output*
+test_dengue4_*
+test_canary_loop.xml
+run_dengue*_test_*/
+*_validation_detail.log*
+
 # --------------- Sorties de tests (generees, hors baseline) --
-t/canary_loop
-t/canary_loop.*
-t/canary_loop_amplified*
-t/canary_loop_signatures_individuelles/
-t/canary_stem
-t/canary_stem.*
-t/canary_stem_amplified*
-t/canary_stem_signatures_individuelles/
-t/canary_stem_combinations.txt
-t/canary_stem_excluded*
-!t/baseline/
+t/canary_*
+t/canary_*/
+!t/canary_*.t
+
+t/canary_loop_run2
+t/canary_loop_run2_amplified*
+t/reference_b_loop
+t/reference_b_loop_*
+t/test_rota
+t/test_rota_diagnostic.txt
+t/test_fake_diagnostic.txt
+t/test_f2_high_tm.txt
+t/test_fixed_tm.txt
 t/*.log
 t/optimized_stem.log
 t/baseline_loop.log
 t/baseline_stem.log
 t/reference_a_stem.log
+
+# Re-inclusion absolue des baselines de reference
+!t/baseline/**
