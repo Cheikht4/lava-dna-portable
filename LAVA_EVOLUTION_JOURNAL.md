@@ -2445,3 +2445,21 @@ Garantir l'intégrité absolue des tests de non-régression (canary) sur les jeu
 
 **Impact attendu** : 
 Arbre de travail assaini et allégé (réduction drastique des fichiers suivis à la racine de 101 à 21). Détection immédiate en intégration continue de tout paramètre d'amorce non câblé ou orphelin. Préservation stricte du déterminisme (20/20 au canary).
+
+
+### Date/Étape : 2026-10-19 - Note méthodologique : Portée réelle des tests de déterminisme du canary
+
+**Fichiers impactés** : `t/canary_regression.t`, `LAVA_EVOLUTION_JOURNAL.md`
+
+**Nature du changement** : Documentation / Méthodologie de test
+
+**Explication technique** : 
+Clarification des libellés d'assertion dans `t/canary_regression.t` (lignes 148 et 175) et documentation de la portée effective de la section de vérification de reproductibilité (tests 17 à 20). Sur les quatre tests de déterminisme exécutés en RUN 2 :
+- Trois tests (`canary_loop.primers` de 617 octets, `canary_loop.dash` de 607 octets, et `canary_loop_amplified.fasta`) comparent des sorties post-réduction ne contenant qu'une seule signature retenue.
+- Seul le test portant sur `canary_loop.all_signatures` (16 388 lignes, 618 556 octets) exerce réellement le déterminisme de l'ordre de tri entre signatures multiples avant réduction par chevauchement.
+
+**Justification biologique** : 
+Lors de l'exploration combinatoire de génomes viraux, la stabilité de l'ordonnancement thermodynamique et spatial entre des milliers de candidats équivalents conditionne directement l'identité de la signature unique élue en sortie finale. Distinguer le test qui valide effectivement le tri multi-candidats (`all_signatures`) de ceux qui vérifient la sortie réduite évite de surestimer la couverture réelle de non-régression.
+
+**Impact attendu** : 
+Transparence méthodologique complète pour la publication scientifique sur la garantie réelle offerte par la suite de tests canary (limite connue et documentée de la couverture actuelle).
