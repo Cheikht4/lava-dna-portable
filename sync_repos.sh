@@ -6,15 +6,21 @@ if [[ " $* " =~ " --apply " ]]; then
     DRY_RUN=0
 fi
 
-# Define paths
-SOURCE_DIR=$(pwd)
-# Ensure we are in lava-dna-portable
+# Define paths from repository root / Definir les chemins depuis la racine du depot
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+LAVA_ROOT="$(dirname "$REPO_ROOT")"
+if [ ! -d "$LAVA_ROOT/.agents" ] && [ -d "$(dirname "$LAVA_ROOT")/.agents" ]; then
+    LAVA_ROOT="$(dirname "$LAVA_ROOT")"
+fi
+cd "$REPO_ROOT"
+
+# Ensure we are in lava-dna-portable / Verifier qu'on est dans lava-dna-portable
 if [[ ! -f "lava_loop_primer.pl" || ! -d "lib/LLNL/LAVA" ]]; then
-    echo "ERREUR: Ce script doit etre lance depuis la racine de lava-dna-portable."
+    echo "ERREUR: Ce script doit etre lance depuis lava-dna-portable." >&2
     exit 1
 fi
 
-# Try to read target repos from arguments or use default
+# Try to read target repos from arguments or use default / Lire les cibles ou utiliser les valeurs par defaut
 TARGETS=()
 for arg in "$@"; do
     if [[ "$arg" != "--apply" && "$arg" != "--dry-run" ]]; then
@@ -23,8 +29,69 @@ for arg in "$@"; do
 done
 
 if [ ${#TARGETS[@]} -eq 0 ]; then
-    TARGETS=("../../lava-virus-public" "../../lava-interface-public")
+    TARGETS=("$LAVA_ROOT/lava-virus-public" "$LAVA_ROOT/lava-interface-public")
 fi
+
+# Determine expected origin URL for a target / Determiner l'URL d'origin attendue pour une cible
+get_expected_origin() {
+    local target="$1"
+    local index="$2"
+    local base
+    base="$(basename "$target")"
+
+    if [[ "$base" == "lava-virus-public" ]]; then
+        echo "https://github.com/Cheikht4/LAVA-Virus.git"
+    elif [[ "$base" == "lava-interface-public" ]]; then
+        echo "https://github.com/Cheikht4/LAVA_Virus-Interface.git"
+    elif [[ "$base" == *"lava-dna"* ]]; then
+        # Un clone lava-dna (ex: PERIME-2026-07-28_lava-dna-public) ne doit jamais pointer sur LAVA-Virus.git ni servir de cible
+        echo "https://github.com/Cheikht4/LAVA_Virus-Interface.git"
+    elif [ "$index" -eq 0 ]; then
+        echo "https://github.com/Cheikht4/LAVA-Virus.git"
+    else
+        echo "https://github.com/Cheikht4/LAVA_Virus-Interface.git"
+    fi
+}
+
+# Strict guard for each target repository / Garde stricte pour chaque depot cible
+validate_targets() {
+    local idx=0
+    for target in "${TARGETS[@]}"; do
+        local expected_origin
+        expected_origin="$(get_expected_origin "$target" "$idx")"
+
+        # 1. Directory exists / Le repertoire existe
+        if [ ! -d "$target" ]; then
+            echo "ERREUR FATALE: La cible '$target' est introuvable (condition non remplie : le repertoire n'existe pas)." >&2
+            exit 1
+        fi
+
+        # 2. Valid git repository / C'est un depot git valide
+        if [ ! -d "$target/.git" ] && ! git -C "$target" rev-parse --git-dir >/dev/null 2>&1; then
+            echo "ERREUR FATALE: La cible '$target' est invalide (condition non remplie : ce n'est pas un depot git)." >&2
+            exit 1
+        fi
+
+        # 3. Expected origin URL / L'origin correspond a l'URL attendue
+        local actual_origin
+        actual_origin="$(git -C "$target" remote get-url origin 2>/dev/null || echo "AUCUN_ORIGIN")"
+        if [ "$actual_origin" != "$expected_origin" ]; then
+            echo "ERREUR FATALE: La cible '$target' a un origin inattendu : '$actual_origin' (condition non remplie : origin attendu '$expected_origin')." >&2
+            exit 1
+        fi
+
+        # 4. Clean working tree / L'arbre de travail est propre
+        local dirty
+        dirty="$(git -C "$target" status --porcelain 2>/dev/null)"
+        if [ -n "$dirty" ]; then
+            echo "ERREUR FATALE: La cible '$target' n'est pas propre (condition non remplie : modifications locales ou fichiers non suivis presents)." >&2
+            exit 1
+        fi
+
+        echo "Cible validee : $target (origin: $actual_origin, arbre propre)"
+        idx=$((idx + 1))
+    done
+}
 
 WHITELIST=(
     "lava_loop_primer.pl"
@@ -154,11 +221,11 @@ else
 fi
 echo "============================================================"
 
+# Verification stricte des cibles avant toute operation / Strict target validation before any operation
+validate_targets
+echo "------------------------------------------------------------"
+
 for target in "${TARGETS[@]}"; do
-    if [ ! -d "$target" ]; then
-        echo "ATTENTION: Le depot cible '$target' n'existe pas."
-        continue
-    fi
     echo "Analyse des modifications pour : $target"
     
     # Capture output of sync to count and display later

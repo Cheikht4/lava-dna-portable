@@ -2463,3 +2463,21 @@ Lors de l'exploration combinatoire de génomes viraux, la stabilité de l'ordonn
 
 **Impact attendu** : 
 Transparence méthodologique complète pour la publication scientifique sur la garantie réelle offerte par la suite de tests canary (limite connue et documentée de la couverture actuelle).
+
+
+### Date/Étape : 2026-10-19 - Durcissement du script de synchronisation multi-dépôts (Lot 6)
+
+**Fichiers impactés** : `sync_repos.sh`, `LAVA_EVOLUTION_JOURNAL.md`
+
+**Nature du changement** : Architecture / Sécurité opérationnelle
+
+**Explication technique** : 
+1. Remplacement des chemins relatifs par défaut (`../../lava-virus-public` et `../../lava-interface-public`) par une résolution dynamique ancrée sur la racine du dépôt Git courant via `git rev-parse --show-toplevel` (`REPO_ROOT` puis `LAVA_ROOT`), découplant la localisation des dépôts cibles du répertoire de travail courant et du nom du dossier contenant le moteur.
+2. Implémentation d'une fonction de garde bloquante `validate_targets` exécutée avant toute opération de copie ou de simulation (`--dry-run` inclus). Pour chaque cible, le script vérifie successivement : l'existence du répertoire, la validité du dépôt Git (`git -C "$t" rev-parse --git-dir`), la conformité stricte de l'URL distante `origin` (`LAVA-Virus.git` pour la première cible, `LAVA_Virus-Interface.git` pour la seconde), et la propreté de l'arbre de travail (`git status --porcelain` vide). En cas d'échec d'une seule condition, le script affiche la cause sur `stderr` et s'interrompt immédiatement (`exit 1`) sans modifier aucun fichier.
+
+**Justification biologique** : 
+La reproductibilité des analyses bioinformatiques et la fiabilité des amorces LAMP distribuées dans les dépôts publics (`LAVA-Virus` et `LAVA_Virus-Interface`) dépendent de l'intégrité de la chaîne de propagation depuis le dépôt source de vérité (`lava-dna-portable`). Empêcher toute synchronisation silencieuse vers un répertoire absent, non versionné, sale ou pointant vers un mauvais dépôt distant garantit que le moteur thermodynamique publié correspond octet pour octet à la version validée par le test canary.
+
+**Impact attendu** : 
+Élimination des faux positifs de synchronisation et indépendance vis-à-vis de l'emplacement du dossier du dépôt moteur lors de son renommage en `lava-dna-portable`.
+
