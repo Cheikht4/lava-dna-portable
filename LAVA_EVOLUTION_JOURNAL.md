@@ -2537,5 +2537,30 @@ Le module `lib/Bio/Tools/Run/Primer3.pm` gouverne la liste blanche `@PRIMER3_PAR
 Vérification cryptographique (MD5) de 100 % des fichiers synchronisés (54 fichiers pour l'interface, 47 pour le dépôt moteur pur) et maintien d'un index Git propre même en cas d'interruption sur erreur de garde.
 
 
+### Date/Étape : 2026-10-26 - Analyse post-mortem de la propagation incomplète du 6 août 2026 et restauration des dépôts publics (Lot 9)
+
+**Fichiers impactés** : `sync_repos.sh`, `.gitignore`, `.github/workflows/canary.yml`, `t/test_param_mapping.py`, `t/test_flask_param_mapping.py`, `LAVA_EVOLUTION_JOURNAL.md`
+
+**Nature du changement** : Architecture / Intégration Continue / Post-mortem
+
+**Explication technique** : 
+1. **Constat de l'incident du 6 août 2026 (`8ac9ed3`)** : Du 6 août 2026 (22:22:38 UTC) au 26 octobre 2026, le dépôt public du moteur de l'article (`Cheikht4/LAVA-Virus`) ne suivait dans son index Git que 7 fichiers sur les 19 de `t/baseline/`. Tout clone frais échouait sur `prove t/canary_regression.t` à 14/20 (`exit=1`, échec des tests 3 à 5 et 9 à 11) faute de `canary_loop.primers`, `canary_loop.all_signatures`, `canary_loop.dash`, `canary_stem.primers`, `canary_stem.all_signatures` et `canary_stem.dash`. De plus, `8ac9ed3` ayant été poussé avec le message `[skip ci]`, aucun job GitHub Actions n'avait été exécuté pendant deux mois et vingt jours.
+2. **Deux causes racines indépendantes** :
+   - *Cause 1 (`.gitignore` asymétrique du 26 juillet 2026)* : Le correctif de ré-inclusion de `t/baseline/` a été appliqué le 26 juillet 2026 dans `lava-dna-portable` (`eb86668`) et `lava-interface-public` (`9d36176` / `deeca3e`), mais jamais dans `LAVA-Virus` (dont le `.gitignore` datait du 2 juillet 2026). Lors du `sync_repos.sh --apply` du 6 août 2026, 10 fichiers (`.primers`, `.all_signatures`, `.dash`, `.log`) ont bien été copiés sur le disque local de `lava-virus-public/t/baseline/` (faisant passer le canary local à 20/20 sur la machine de développement), mais ont été silencieusement ignorés (`!!`) lors du `git add` et n'ont jamais atteint GitHub.
+   - *Cause 2 (filtre `*_amplified_noms.txt` dans `sync_repos.sh`)* : La boucle de copie de répertoires de `sync_repos.sh` excluait `*_amplified_noms.txt` de manière inconditionnelle, sans l'exception `&& [[ ! "$src_file" =~ "t/baseline/" ]]` présente sur `*_amplified.fasta`. Les deux fichiers `t/baseline/canary_loop_amplified_noms.txt` et `t/baseline/canary_stem_amplified_noms.txt` n'ont donc jamais été copiés vers `lava-virus-public`.
+3. **Gardes mises en place et propagation validée (`7ac495d` et `9b409f1`)** :
+   - Harmonisation de `.gitignore` avec `!t/baseline/**` en fin de fichier sur les trois dépôts et ajout du marqueur déclaratif `.engine-only` dans `LAVA-Virus`.
+   - Validation préalable des cibles Git (`validate_targets` vérifiant existence, dépôt Git, URL `origin` et propreté de l'arbre).
+   - Garde d'indexation Git post-copie (`verify_baseline_counts` exécutant `git add -A t/baseline/` puis comparant `git ls-files t/baseline/ | wc -l` entre la source et la cible : 19 == 19).
+   - Contrôle de cohérence MD5 étendu aux 47 fichiers synchronisés de `LAVA-Virus` et aux 54 fichiers de `LAVA_Virus-Interface` (incluant `lib/Bio/Tools/Run/Primer3.pm` et les 19 baselines).
+   - Couverture complète des trois maillons de paramètres en CI (`t/test_form_names.py`, `t/test_flask_param_mapping.py`, `t/test_param_mapping.py`).
+
+**Justification biologique** : 
+La reproductibilité scientifique d'un outil de conception d'amorces LAMP publié repose sur la garantie qu'un lecteur clonant le dépôt public depuis GitHub obtient exactement le même moteur thermodynamique et les mêmes 19 fichiers de référence (`t/baseline/`) que le dépôt de développement, et que la suite de non-régression (`t/canary_regression.t`) s'exécute intégralement (20/20) sans dépendre d'artefacts locaux non suivis sur le disque de l'auteur.
+
+**Impact attendu** : 
+Restauration complète de `Cheikht4/LAVA-Virus` (`7ac495d`) et `Cheikht4/LAVA_Virus-Interface` (`9b409f1`) : 19 baselines indexées, 0 fichier suivi-ignoré, `prove t/canary_regression.t` à 20/20 (`exit=0`) sur clone frais, et workflows GitHub Actions `Canary Non-Regression` au vert (`completed / success`) sur les deux dépôts publics.
+
+
 
 
