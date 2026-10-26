@@ -26,17 +26,18 @@ jobs:
 
       - name: Run UI Form Names Audit
         run: |
-          if [ -f templates/index.html ] && [ -f t/test_form_names.py ]; then
-            python3 t/test_form_names.py
-          else
-            echo "Pas de formulaire dans ce depot : audit ignore."
+          if [ -f .engine-only ]; then
+            echo "Depot moteur seul (.engine-only present) : audit UI hors perimetre."
+            exit 0
           fi
+          if [ ! -f templates/index.html ]; then
+            echo "ERREUR: templates/index.html absent et .engine-only absent." >&2
+            exit 1
+          fi
+          python3 t/test_form_names.py
 
       - name: Run Engine Parameters Mapping Audit
-        run: |
-          if [ -f t/test_param_mapping.py ]; then
-            python3 t/test_param_mapping.py
-          fi
+        run: python3 t/test_param_mapping.py
 
       - name: Run Canary Regression Test
         run: |

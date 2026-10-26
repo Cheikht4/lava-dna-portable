@@ -2481,3 +2481,23 @@ La reproductibilité des analyses bioinformatiques et la fiabilité des amorces 
 **Impact attendu** : 
 Élimination des faux positifs de synchronisation et indépendance vis-à-vis de l'emplacement du dossier du dépôt moteur lors de son renommage en `lava-dna-portable`.
 
+
+### Date/Étape : 2026-10-26 - Préparation de la propagation, garde de comptage des baselines et durcissement CI (Lot 7)
+
+**Fichiers impactés** : `sync_repos.sh`, `.github/workflows/canary.yml`, `LAVA_EVOLUTION_JOURNAL.md`
+
+**Nature du changement** : Architecture / Intégration Continue
+
+**Explication technique** : 
+1. Correction du filtre de parcours de répertoires dans `sync_repos.sh` : ajout de l'exception `&& [[ ! "$src_file" =~ "t/baseline/" ]]` sur `*_amplified_noms.txt`, permettant la copie effective de `t/baseline/canary_loop_amplified_noms.txt` et `t/baseline/canary_stem_amplified_noms.txt`.
+2. Ajout de `t/test_param_mapping.py` au périmètre `WHITELIST` de `sync_repos.sh` et exclusion de `t/test_form_names.py` lorsque le dépôt cible est un dépôt moteur pur (`.engine-only`).
+3. Implémentation de la garde bloquante `verify_baseline_counts` dans `sync_repos.sh` : vérifie que le nombre de baselines dans chaque cible (non ignorées par Git) correspond exactement au nombre attendu de la source (19 fichiers) et interrompt immédiatement le script (`exit 1`) en cas d'écart.
+4. Mise à jour de `.github/workflows/canary.yml` : remplacement des conditions implicites par la vérification déclarative du fichier marqueur `.engine-only` pour l'audit UI (`t/test_form_names.py`) et exécution inconditionnelle de `python3 t/test_param_mapping.py`.
+
+**Justification biologique** : 
+Garantir que les 19 fichiers de référence thermodynamique et géométrique de `t/baseline/` soient intégralement propagés et suivis par Git dans les dépôts publics (`LAVA-Virus` et `LAVA_Virus-Interface`), éliminant tout échec partiel (14/20) sur un clone propre et toute omission silencieuse des audits en intégration continue.
+
+**Impact attendu** : 
+Propagation complète des 19 baselines et exécution déterministe des audits de paramètres et de non-régression sur l'ensemble des dépôts.
+
+
