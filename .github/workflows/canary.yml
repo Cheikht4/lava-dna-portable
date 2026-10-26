@@ -36,6 +36,18 @@ jobs:
           fi
           python3 t/test_form_names.py
 
+      - name: Run Flask to Engine Parameter Mapping Audit
+        run: |
+          if [ -f .engine-only ]; then
+            echo "Depot moteur seul (.engine-only present) : audit Flask hors perimetre."
+            exit 0
+          fi
+          if [ ! -f lava_flask_app.py ]; then
+            echo "ERREUR: lava_flask_app.py absent et .engine-only absent." >&2
+            exit 1
+          fi
+          python3 t/test_flask_param_mapping.py
+
       - name: Run Engine Parameters Mapping Audit
         run: python3 t/test_param_mapping.py
 

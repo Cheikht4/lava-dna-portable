@@ -2501,3 +2501,22 @@ Garantir que les 19 fichiers de référence thermodynamique et géométrique de 
 Propagation complète des 19 baselines et exécution déterministe des audits de paramètres et de non-régression sur l'ensemble des dépôts.
 
 
+### Date/Étape : 2026-10-26 - Garde d'indexation Git des baselines et audit du maillon 2 Flask vers GetOptions (Lot 7 bis)
+
+**Fichiers impactés** : `sync_repos.sh`, `t/test_flask_param_mapping.py`, `.github/workflows/canary.yml`, `LAVA_EVOLUTION_JOURNAL.md`
+
+**Nature du changement** : Architecture / Tests / Intégration Continue
+
+**Explication technique** : 
+1. Refonte de la garde `verify_baseline_counts` dans `sync_repos.sh` : le compte attendu est désormais lu depuis l'index Git de la source (`git -C "$REPO_ROOT" ls-files t/baseline/ | wc -l`) et le compte obtenu est lu depuis l'index Git de la cible (`git -C "$target" ls-files t/baseline/ | wc -l`) après indexation effective (`git -C "$target" add -A t/baseline/`) en mode `--apply`. En mode `--dry-run`, la fonction indique explicitement que la garde n'est pas évaluable avant copie et indexation.
+2. Création de `t/test_flask_param_mapping.py` (maillon 2 de la chaîne de paramètres) : vérifie que l'ensemble des paramètres `common_params U loop_only_params` et `common_params U stem_only_params` ainsi que les cibles de `param_mapping` dans `lava_flask_app.py` sont effectivement déclarés dans `GetOptions` de `lava_loop_primer.pl` et `lava_stem_primer.pl`, en résolvant les chemins via `git rev-parse --show-toplevel`.
+3. Ajout de `t/test_flask_param_mapping.py` au périmètre `WHITELIST` de `sync_repos.sh` (avec exclusion déclarative pour les dépôts portant `.engine-only`) et branchement dans `.github/workflows/canary.yml`.
+
+**Justification biologique** : 
+La chaîne complète de transmission des paramètres thermodynamiques et géométriques comporte trois maillons (`templates/index.html` -> `lava_flask_app.py` -> `GetOptions` Perl -> `lib/LLNL/LAVA/**`). Couvrir le deuxième maillon par un test dédié garantit qu'aucun paramètre configuré par l'utilisateur dans l'interface web (ex: seuil de couverture de signature `signature_common_target_min_percent`) ne puisse être rejeté ou ignoré par les scripts d'amorces LAMP. Par ailleurs, la vérification directe de l'index Git cible empêche toute perte silencieuse de fichiers de référence par un `.gitignore` défectueux.
+
+**Impact attendu** : 
+Couverture intégrale des trois maillons de paramètres en CI et blocage immédiat (`exit 1`) si l'index Git d'une cible ne contient pas exactement les 19 baselines après copie et indexation.
+
+
+

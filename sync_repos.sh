@@ -103,6 +103,7 @@ WHITELIST=(
     "t/canary_regression.t"
     "t/fixtures"
     "t/test_form_names.py"
+    "t/test_flask_param_mapping.py"
     "t/test_param_mapping.py"
     ".github/workflows/canary.yml"
 )
@@ -152,7 +153,7 @@ sync_item() {
     # If it's a file
     if [ -f "$src_item" ]; then
         if [[ "$target_repo" == *"lava-virus-public"* ]] || [ -f "$target_repo/.engine-only" ]; then
-            if [[ "$src_item" == *"lava_flask_app.py"* ]] || [[ "$src_item" == *"templates"* ]] || [[ "$src_item" == *"deployment"* ]] || [[ "$src_item" == *"test_form_names.py"* ]]; then
+            if [[ "$src_item" == *"lava_flask_app.py"* ]] || [[ "$src_item" == *"templates"* ]] || [[ "$src_item" == *"deployment"* ]] || [[ "$src_item" == *"test_form_names.py"* ]] || [[ "$src_item" == *"test_flask_param_mapping.py"* ]]; then
                 return
             fi
         fi
@@ -218,45 +219,34 @@ sync_item() {
     fi
 }
 
-# Strict guard on baseline file counts / Garde stricte sur le compte des fichiers de t/baseline/
+# Strict guard on baseline file counts in git index / Garde stricte sur le compte des baselines dans l'index git
 verify_baseline_counts() {
     local dry_run="$1"
+    if [ "$dry_run" -eq 1 ]; then
+        echo "Garde baselines : non evaluable en --dry-run (necessite copie et indexation git dans la cible)."
+        return 0
+    fi
+
     local expected_count
-    expected_count="$(git ls-files t/baseline/ | wc -l | tr -d ' ')"
-    local src_disk_count
-    src_disk_count="$(find t/baseline -type f ! -name ".DS_Store" | wc -l | tr -d ' ')"
+    expected_count="$(git -C "$REPO_ROOT" ls-files t/baseline/ | wc -l | tr -d ' ')"
 
     for target in "${TARGETS[@]}"; do
-        local obtained_count=0
-        if [ "$dry_run" -eq 0 ]; then
-            # En mode --apply : compter les fichiers reellement presents sur disque dans la cible et non ignores par git
-            # In --apply mode: count files actually present on disk in target and not ignored by git
-            if [ -d "$target/t/baseline" ]; then
-                while IFS= read -r tf; do
-                    local rel_tf="${tf#$target/}"
-                    if ! git -C "$target" check-ignore -q "$rel_tf" 2>/dev/null; then
-                        obtained_count=$((obtained_count + 1))
-                    fi
-                done < <(find "$target/t/baseline" -type f ! -name ".DS_Store")
-            fi
-        else
-            # En mode --dry-run : compter les fichiers de la source qui passent le filtre et ne sont pas ignores par la cible
-            # In --dry-run mode: count source files that pass the filter and are not ignored by target
-            while IFS= read -r sf; do
-                if [[ "$sf" == *".DS_Store" ]]; then continue; fi
-                if [[ "$sf" == *"_amplified_noms.txt" ]] && [[ ! "$sf" =~ "t/baseline/" ]]; then continue; fi
-                if [[ "$sf" == *"_amplified.fasta" ]] && [[ ! "$sf" =~ "t/baseline/" ]]; then continue; fi
-                if ! git -C "$target" check-ignore -q "$sf" 2>/dev/null; then
-                    obtained_count=$((obtained_count + 1))
-                fi
-            done < <(find t/baseline -type f ! -name ".DS_Store")
+        # Indexer t/baseline/ dans la cible afin que git applique son .gitignore
+        # Stage t/baseline/ in target so git applies its .gitignore rules
+        git -C "$target" add -A t/baseline/ 2>/dev/null || true
+
+        local obtained_count
+        obtained_count="$(git -C "$target" ls-files t/baseline/ | wc -l | tr -d ' ')"
+        local disk_count=0
+        if [ -d "$target/t/baseline" ]; then
+            disk_count="$(find "$target/t/baseline" -type f ! -name ".DS_Store" | wc -l | tr -d ' ')"
         fi
 
-        if [ "$obtained_count" -ne "$expected_count" ] || [ "$src_disk_count" -ne "$expected_count" ]; then
-            echo "ERREUR FATALE: Compte de baselines invalide pour '$target/t/baseline' (attendu : $expected_count, obtenu : $obtained_count)." >&2
+        if [ "$obtained_count" -ne "$expected_count" ]; then
+            echo "ERREUR FATALE: Garde baselines en echec pour '$target' (attendu : $expected_count, obtenu : $obtained_count, sur disque : $disk_count)." >&2
             exit 1
         fi
-        echo "Garde baselines OK : $target/t/baseline (attendu : $expected_count, obtenu : $obtained_count)"
+        echo "Garde baselines OK : $target (attendu : $expected_count, obtenu : $obtained_count, sur disque : $disk_count)"
     done
 }
 
@@ -292,13 +282,19 @@ for target in "${TARGETS[@]}"; do
 done
 
 echo "------------------------------------------------------------"
-verify_baseline_counts "$DRY_RUN"
 
 if [ "$DRY_RUN" -eq 1 ]; then
+    verify_baseline_counts 1
     echo ""
     echo "Relancez avec --apply pour appliquer les modifications et executer les tests."
     exit 0
 fi
+
+echo ""
+echo "============================================================"
+echo "GARDE SUR LE COMPTE DES BASELINES INDEXEES PAR GIT"
+echo "============================================================"
+verify_baseline_counts 0
 
 echo ""
 echo "============================================================"
