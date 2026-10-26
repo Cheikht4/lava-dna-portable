@@ -2519,4 +2519,23 @@ La chaîne complète de transmission des paramètres thermodynamiques et géomé
 Couverture intégrale des trois maillons de paramètres en CI et blocage immédiat (`exit 1`) si l'index Git d'une cible ne contient pas exactement les 19 baselines après copie et indexation.
 
 
+### Date/Étape : 2026-10-26 - Extension exhaustive du contrôle de cohérence MD5 et restauration d'index sur échec (Lot 8)
+
+**Fichiers impactés** : `sync_repos.sh`, `LAVA_EVOLUTION_JOURNAL.md`
+
+**Nature du changement** : Architecture / Sécurité opérationnelle
+
+**Explication technique** : 
+1. Extension de la vérification de cohérence par sommes de contrôle MD5 (`verify_checksum_coherence` dans `sync_repos.sh`) à l'intégralité de `lib/` (`find lib -type f -name "*.pm"`, incluant désormais `lib/Bio/Tools/Run/Primer3.pm`), aux 19 fichiers de `t/baseline/`, à `t/fixtures/`, à `templates/`, ainsi qu'aux fichiers de test (`t/canary_regression.t`, `t/test_form_names.py`, `t/test_flask_param_mapping.py`, `t/test_param_mapping.py`) et `.github/workflows/canary.yml`.
+2. Remplacement de toutes les conditions d'exclusion basées sur le nom de répertoire (`*"lava-virus-public"*`) par la vérification déclarative du fichier marqueur `[ -f "$target/.engine-only" ]`.
+3. Dans `verify_baseline_counts`, restauration automatique de l'index Git de la cible (`git -C "$target" reset -q HEAD -- t/baseline/`) en cas d'échec afin de ne pas laisser l'index modifié après un arrêt en erreur.
+
+**Justification biologique** : 
+Le module `lib/Bio/Tools/Run/Primer3.pm` gouverne la liste blanche `@PRIMER3_PARAMS` transmise au moteur thermodynamique Primer3. Toute divergence non détectée sur ce fichier ou sur le contenu des 19 baselines de référence (`t/baseline/`) compromettrait la reproductibilité des calculs d'énergie libre et de température de fusion ($T_m$) entre la source de vérité et les dépôts distribués.
+
+**Impact attendu** : 
+Vérification cryptographique (MD5) de 100 % des fichiers synchronisés (54 fichiers pour l'interface, 47 pour le dépôt moteur pur) et maintien d'un index Git propre même en cas d'interruption sur erreur de garde.
+
+
+
 

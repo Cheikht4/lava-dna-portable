@@ -36,15 +36,10 @@ fi
 get_expected_origin() {
     local target="$1"
     local index="$2"
-    local base
-    base="$(basename "$target")"
 
-    if [[ "$base" == "lava-virus-public" ]]; then
+    if [ -f "$target/.engine-only" ]; then
         echo "https://github.com/Cheikht4/LAVA-Virus.git"
-    elif [[ "$base" == "lava-interface-public" ]]; then
-        echo "https://github.com/Cheikht4/LAVA_Virus-Interface.git"
-    elif [[ "$base" == *"lava-dna"* ]]; then
-        # Un clone lava-dna (ex: PERIME-2026-07-28_lava-dna-public) ne doit jamais pointer sur LAVA-Virus.git ni servir de cible
+    elif [ -f "$target/lava_flask_app.py" ] && [ ! -f "$target/sync_repos.sh" ]; then
         echo "https://github.com/Cheikht4/LAVA_Virus-Interface.git"
     elif [ "$index" -eq 0 ]; then
         echo "https://github.com/Cheikht4/LAVA-Virus.git"
@@ -152,7 +147,7 @@ sync_item() {
 
     # If it's a file
     if [ -f "$src_item" ]; then
-        if [[ "$target_repo" == *"lava-virus-public"* ]] || [ -f "$target_repo/.engine-only" ]; then
+        if [ -f "$target_repo/.engine-only" ]; then
             if [[ "$src_item" == *"lava_flask_app.py"* ]] || [[ "$src_item" == *"templates"* ]] || [[ "$src_item" == *"deployment"* ]] || [[ "$src_item" == *"test_form_names.py"* ]] || [[ "$src_item" == *"test_flask_param_mapping.py"* ]]; then
                 return
             fi
@@ -177,7 +172,7 @@ sync_item() {
         fi
     # If it's a directory
     elif [ -d "$src_item" ]; then
-        if [[ "$target_repo" == *"lava-virus-public"* ]] || [ -f "$target_repo/.engine-only" ]; then
+        if [ -f "$target_repo/.engine-only" ]; then
             if [[ "$src_item" == *"templates"* ]] || [[ "$src_item" == *"deployment"* ]]; then
                 return
             fi
@@ -227,7 +222,7 @@ verify_baseline_counts() {
         return 0
     fi
 
-    local expected_count
+    local expected_count obtained_count disk_count
     expected_count="$(git -C "$REPO_ROOT" ls-files t/baseline/ | wc -l | tr -d ' ')"
 
     for target in "${TARGETS[@]}"; do
@@ -235,19 +230,74 @@ verify_baseline_counts() {
         # Stage t/baseline/ in target so git applies its .gitignore rules
         git -C "$target" add -A t/baseline/ 2>/dev/null || true
 
-        local obtained_count
         obtained_count="$(git -C "$target" ls-files t/baseline/ | wc -l | tr -d ' ')"
-        local disk_count=0
+        disk_count=0
         if [ -d "$target/t/baseline" ]; then
             disk_count="$(find "$target/t/baseline" -type f ! -name ".DS_Store" | wc -l | tr -d ' ')"
         fi
 
         if [ "$obtained_count" -ne "$expected_count" ]; then
-            echo "ERREUR FATALE: Garde baselines en echec pour '$target' (attendu : $expected_count, obtenu : $obtained_count, sur disque : $disk_count)." >&2
+            git -C "$target" reset -q HEAD -- t/baseline/ 2>/dev/null || true
+            echo "ERREUR FATALE: Garde baselines en echec pour '$target' (attendu : $expected_count, obtenu : $obtained_count, sur disque : $disk_count). Index git de la cible restaure (git reset)." >&2
             exit 1
         fi
         echo "Garde baselines OK : $target (attendu : $expected_count, obtenu : $obtained_count, sur disque : $disk_count)"
     done
+}
+
+# Full MD5 coherence check across all synchronized items / Verification complete de coherence MD5 sur tout le perimetre
+verify_checksum_coherence() {
+    declare -a FILES_TO_CHECK=(
+        "lava_loop_primer.pl"
+        "lava_stem_primer.pl"
+        "lava_flask_app.py"
+        "t/canary_regression.t"
+        "t/test_form_names.py"
+        "t/test_flask_param_mapping.py"
+        "t/test_param_mapping.py"
+        ".github/workflows/canary.yml"
+    )
+    while IFS= read -r f; do
+        FILES_TO_CHECK+=("$f")
+    done < <(find lib -type f -name "*.pm" | sort)
+    while IFS= read -r f; do
+        FILES_TO_CHECK+=("$f")
+    done < <(find t/baseline -type f ! -name ".DS_Store" | sort)
+    while IFS= read -r f; do
+        FILES_TO_CHECK+=("$f")
+    done < <(find t/fixtures -type f ! -name ".DS_Store" | sort)
+    while IFS= read -r f; do
+        FILES_TO_CHECK+=("$f")
+    done < <(find templates -type f ! -name ".DS_Store" | sort)
+
+    local coherence_ok=1
+    local ref_md5 tgt_md5
+    for file in "${FILES_TO_CHECK[@]}"; do
+        ref_md5="$(compute_md5 "$file")"
+        for target in "${TARGETS[@]}"; do
+            if [ ! -d "$target" ]; then continue; fi
+
+            # Exclusions declaratives pour depot moteur pur (.engine-only) / Declarative UI exclusions via .engine-only
+            if [ -f "$target/.engine-only" ]; then
+                if [[ "$file" == "lava_flask_app.py" ]] || [[ "$file" == templates/* ]] || [[ "$file" == "t/test_form_names.py" ]] || [[ "$file" == "t/test_flask_param_mapping.py" ]]; then
+                    continue
+                fi
+            fi
+
+            tgt_md5="$(compute_md5 "$target/$file")"
+            if [[ "$ref_md5" != "$tgt_md5" ]]; then
+                echo "DIVERGENCE DETECTEE: $file differe entre principal ($ref_md5) et $target ($tgt_md5)" >&2
+                coherence_ok=0
+            fi
+        done
+    done
+
+    if [ "$coherence_ok" -eq 1 ]; then
+        echo "Tous les fichiers du perimetre (.pl, lib/**, t/baseline/**, tests, CI, templates) sont strictement identiques."
+    else
+        echo "ERREUR FATALE: Des divergences MD5 ont ete detectees apres la synchronisation !" >&2
+        exit 1
+    fi
 }
 
 echo "============================================================"
@@ -329,37 +379,7 @@ echo ""
 echo "============================================================"
 echo "VERIFICATION DE COHERENCE (CHECKSUMS)"
 echo "============================================================"
-# Compare .pl, app and lib/LLNL/LAVA
-declare -a FILES_TO_CHECK=("lava_loop_primer.pl" "lava_stem_primer.pl" "lava_flask_app.py")
-while IFS= read -r f; do
-    FILES_TO_CHECK+=("$f")
-done < <(find lib/LLNL/LAVA -type f -name "*.pm")
-
-COHERENCE_OK=1
-for file in "${FILES_TO_CHECK[@]}"; do
-    ref_md5=$(compute_md5 "$file")
-    for target in "${TARGETS[@]}"; do
-        if [ ! -d "$target" ]; then continue; fi
-        
-        # Skip UI files for LAVA-Virus
-        if [[ "$target" == *"lava-virus-public"* ]] && [[ "$file" == *"lava_flask_app.py"* ]]; then
-            continue
-        fi
-
-        tgt_md5=$(compute_md5 "$target/$file")
-        if [[ "$ref_md5" != "$tgt_md5" ]]; then
-            echo "DIVERGENCE DETECTEE: $file differe entre principal et $target"
-            COHERENCE_OK=0
-        fi
-    done
-done
-
-if [ "$COHERENCE_OK" -eq 1 ]; then
-    echo "Tous les fichiers critiques (.pl, modules LAVA) sont strictement identiques."
-else
-    echo "ATTENTION: Des divergences ont ete detectees apres la synchronisation !"
-    exit 1
-fi
+verify_checksum_coherence
 
 echo ""
 echo "============================================================"
