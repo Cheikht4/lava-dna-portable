@@ -329,12 +329,12 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     );
 
   my $usageString = "Usage:\n" .
-    "./lava.pl \n" .
+    "./lava_loop_primer.pl \n" .
       "    --alignment_fasta <fasta_file>\n" .
       "    --output_file <output_file>\n" .
       "    [--signature_max_length <length, default=" .
         $optionDefaults{"signature_max_length"} .
-	">\n" .
+	">]\n" .
       # Outer primer options
       "    [--outer_primer_target_length <length, default=" .
         $optionDefaults{"outer_primer_target_length"} .

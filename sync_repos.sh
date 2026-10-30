@@ -361,7 +361,7 @@ for target in "${TARGETS[@]}"; do
     (
         cd "$target"
         export PERL5LIB="$PWD/lib"
-        rm -rf t/canary_*_signatures_individuelles
+        rm -rf t/canary_*_per_signature t/canary_*_signatures_individuelles
         if prove t/canary_regression.t > /dev/null 2>&1; then
             echo "   [PASS] Canary 15/15 OK"
             exit 0

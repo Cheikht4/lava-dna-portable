@@ -336,7 +336,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     );
 
   my $usageString = "Usage:\n" .
-    "./lava.pl \n" .
+    "./lava_stem_primer.pl \n" .
       "    --alignment_fasta <fasta_file>\n" .
       "    --output_file <output_file>\n" .
       "    [--signature_max_length <length, default=" .

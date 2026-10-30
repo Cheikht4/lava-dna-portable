@@ -1803,7 +1803,7 @@ sub createPerSignatureFiles {
   
   print "\n  Creation des fichiers par signature individuelle...\n";
   
-  my $signatures_dir = "${output_base_name}_signatures_individuelles";
+  my $signatures_dir = "${output_base_name}_per_signature";
   unless (-d $signatures_dir) {
     mkdir($signatures_dir) or die "Impossible de creer le dossier $signatures_dir: $!";
   }

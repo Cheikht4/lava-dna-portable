@@ -144,7 +144,7 @@ diag("=== LOOP canary : execution (--threads 1) ===");
 my $loop_exit = system("perl lava_loop_primer.pl $loop_args > /dev/null 2>&1");
 is($loop_exit, 0, "lava_loop_primer.pl executes successfully");
 
-my @loop_sigs = glob("t/canary_loop_signatures_individuelles/signature_*_VALID_*.txt");
+my @loop_sigs = glob("t/canary_loop_per_signature/signature_*_VALID_*.txt");
 ok(scalar(@loop_sigs) > 0, "REGRESSION LOOP : au moins une signature produite sur la reference rota (echec = 0)");
 
 # --- Tests d'equivalence baseline LOOP ---
@@ -171,7 +171,7 @@ diag("=== STEM canary : execution (--threads 1) ===");
 my $stem_exit = system("perl lava_stem_primer.pl $stem_args > /dev/null 2>&1");
 is($stem_exit, 0, "lava_stem_primer.pl executes successfully");
 
-my @stem_sigs = glob("t/canary_stem_signatures_individuelles/signature_*_VALID_*.txt");
+my @stem_sigs = glob("t/canary_stem_per_signature/signature_*_VALID_*.txt");
 ok(scalar(@stem_sigs) > 0, "REGRESSION STEM : au moins une signature produite sur la reference rota (echec = 0)");
 
 # --- Tests d'equivalence baseline STEM ---

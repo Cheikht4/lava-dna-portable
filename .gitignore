@@ -42,6 +42,7 @@ test_loop_results_amplified.fasta
 *.primers.primers
 test_loop_results
 test_loop_results*/
+*_per_signature/
 *_signatures_individuelles/
 dengue_small*/
 
@@ -152,6 +153,8 @@ run_dengue*_test_*/
 # --------------- Sorties de tests (generees, hors baseline) --
 t/canary_*
 t/canary_*/
+t/canary_*_per_signature/
+t/canary_*_signatures_individuelles/
 !t/canary_*.t
 
 t/canary_loop_run2
