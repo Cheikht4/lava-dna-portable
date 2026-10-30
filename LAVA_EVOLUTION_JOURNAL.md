@@ -2562,5 +2562,26 @@ La reproductibilité scientifique d'un outil de conception d'amorces LAMP publi�
 Restauration complète de `Cheikht4/LAVA-Virus` (`7ac495d`) et `Cheikht4/LAVA_Virus-Interface` (`9b409f1`) : 19 baselines indexées, 0 fichier suivi-ignoré, `prove t/canary_regression.t` à 20/20 (`exit=0`) sur clone frais, et workflows GitHub Actions `Canary Non-Regression` au vert (`completed / success`) sur les deux dépôts publics.
 
 
+### Date/Étape : 2026-10-30 - Élimination du modèle géométrique proportionnel mort, audit des lectures inertes et correction de min_inner_pair_spacing
+
+**Fichiers impactés** : `lib/LLNL/LAVA/Core.pm`, `lava_loop_primer.pl`, `lava_stem_primer.pl`, `lava_flask_app.py`, `lib/LLNL/LAVA/OligoEnumerator/Primer3Conserved.pm`, `lib/LLNL/LAVA/PipelineUtils.pm`, `t/test_param_mapping.py`, `t/param_audit_known.txt`, `t/canary_regression.t`, `sync_repos.sh`, `.gitignore`, `LAVA_EVOLUTION_JOURNAL.md`
+
+**Nature du changement** : Architecture / Algorithmique / Bug Fix / Tests
+
+**Explication technique** : 
+1. **Suppression du modèle géométrique proportionnel mort (`b112550`)** : Retrait de `calculate_proportional_geometry` (ratios `0.12`, `0.18`, `0.40` et constante `144`) dans `lib/LLNL/LAVA/Core.pm` et des listes d'import de `lava_loop_primer.pl` et `lava_stem_primer.pl`. Suppression des cinq groupes d'occurrences des trois paramètres hérités `outer_pair_target_length`, `middle_pair_target_length` et `inner_pair_target_length` (`GetOptions`, doublons commentés, `%optionDefaults` 200/160/50 et 250/180/50, aide `--help`, lectures `optionWithDefault`) ainsi que de leur entrée dans `common_params` de `lava_flask_app.py`. Cette suppression est strictement sans effet sur les résultats du moteur, attesté par `prove t/canary_regression.t` à 20/20 et un `git diff -- t/baseline/` strictement vide.
+2. **Nettoyage de forme dans `Primer3Conserved.pm` (`32dd5a4`)** : Suppression des entrées dupliquées `"salt_corrections"` et `"thermodynamic_alignment"` dans `$p3Names_r`.
+3. **Correction du décalage d'un nucléotide sur `min_inner_pair_spacing` dans LOOP (`6595734`)** : Dans `lava_loop_primer.pl`, la variable `$minInnerPairSpacing` (défaut `1`) était lue mais ignorée au profit d'un test codé en dur `if ($inner_gap < 0)`, autorisant un écart nul (`inner_gap == 0`, F1c et B1c immédiatement adjacents) contrairement à `lava_stem_primer.pl`. Sur `t/fixtures/rota_canary_40.fasta`, 211 combinaisons candidates présentaient `inner_gap == 0` (et étaient ensuite rejetées plus loin par `validateCompleteSignatureSpacing`). Le filtre a été corrigé en `if ($inner_gap < $minInnerPairSpacing)` et ses libellés de log/compteur mis à jour : le compteur de rejets pour chevauchement F1c-B1c passe de 18 438 à 18 649 (+211) et les rejets immédiats ultérieurs de 2 443 à 2 232 (-211), tout en laissant le canary à 20/20 (`git diff -- t/baseline/` vide).
+4. **Détection des lectures inertes dans `t/test_param_mapping.py` et sas `t/param_audit_known.txt` (`18b3e43`)** : Ajout d'un contrôle comptant les occurrences actives de `$VAR` pour chaque affectation `my $VAR = optionWithDefault($options_r, "nom", ...)`. Si `$VAR` n'apparaît qu'une seule fois, l'option est signalée comme lecture inerte. Mise en place de la liste suivie `t/param_audit_known.txt` à double garde : tout défaut non listé fait échouer l'audit (`exit 1`), tout défaut listé est signalé en `KNOWN` (`exit 0`), et toute entrée listée qui ne se reproduit plus fait échouer l'audit (`exit 1`, entrée obsolète). Seul `thermodynamic_path` (lu dans `$thermo_path` mais non encore branché sur les 4 énumérateurs `Primer3Conserved`) y figure durant son investigation.
+5. **Corrections de surface CLI et nommage (`68d532b`)** : Remplacement de `./lava.pl` par `./lava_loop_primer.pl` et `./lava_stem_primer.pl` dans les messages `--help`, et renommage du dossier de sortie par signature de `<base>_signatures_individuelles/` en `<base>_per_signature/` dans `PipelineUtils.pm`, `t/canary_regression.t`, `sync_repos.sh` et `.gitignore`.
+
+**Justification biologique** : 
+L'élimination des reliquats du modèle proportionnel (12 % / 18 % / 40 %) garantit la cohérence éditoriale entre le code publié et le modèle géométrique à seuils absolus décrit dans l'article. Le branchement de `min_inner_pair_spacing` dans LOOP aligne le filtre précoce F1c-B1c sur la contrainte stérique minimale (au moins 1 nucléotide d'écart par défaut) et rend effectif le paramètre exposé à l'utilisateur dans l'interface web.
+
+**Impact attendu** : 
+Alignement exact du code, de l'aide `--help` et des sorties (`<base>_per_signature/`) avec le manuscrit avant le tag `v1.0.0`, sans aucune modification des 19 baselines de référence (`git diff -- t/baseline/` vide) et avec un garde-fou CI bidirectionnel sur l'utilisation effective des options lues.
+
+
+
 
 
