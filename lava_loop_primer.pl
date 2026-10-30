@@ -2457,10 +2457,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               
               my $b1c_start_genome = $b1c_location - $b1c_length + 1;
               my $inner_gap = $b1c_start_genome - $f1c_location - 1;
-              if ($inner_gap < 0) {
+              if ($inner_gap < $minInnerPairSpacing) {
                   $skipped_inner_gap++;
                   if ($verbose_val) {
-                      print $verbose_fh "    -> Skipped (inner_gap < 0): inner_gap=$inner_gap, b1c_start_genome=$b1c_start_genome, f1c_location=$f1c_location\n";
+                      print $verbose_fh "    -> Skipped (inner_gap < $minInnerPairSpacing): inner_gap=$inner_gap, b1c_start_genome=$b1c_start_genome, f1c_location=$f1c_location\n";
                   }
                   next;
               }
@@ -2661,7 +2661,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   
   print "\nCreated $combinedSignatureCount LAMP signatures candidates.\n";
   print "  -> Rejetés pour Tm diff > $maxTmDiff : $global_skipped_tm_diff itérations\n";
-  print "  -> Rejetés pour chevauchement (inner_gap < 0) : $global_skipped_inner_gap itérations\n";
+  print "  -> Rejetés pour chevauchement (inner_gap < $minInnerPairSpacing) : $global_skipped_inner_gap itérations\n";
   
   if ($verbose_val) {
       print "Aggregating verbose logs...\n";
