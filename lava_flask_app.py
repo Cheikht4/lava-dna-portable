@@ -1194,7 +1194,6 @@ def execute_lava_background(execution_id, script_type, input_file, output_name, 
             'max_3prime_degenerate_bases', 'three_prime_zone_size',
             'max_tolerated_mismatches',
             'max_tm_diff',
-            'outer_pair_target_length', 'middle_pair_target_length', 'inner_pair_target_length',
              # Outer primers
             'outer_primer_target_length', 'outer_primer_min_length', 'outer_primer_max_length', 
             'outer_primer_target_tm', 'outer_primer_min_tm', 'outer_primer_max_tm',

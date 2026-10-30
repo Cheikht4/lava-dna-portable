@@ -138,7 +138,7 @@ use LLNL::LAVA::PrimerSetAnalyzer::PCRPair;
 use LLNL::LAVA::PrimerSetInfo::PCRPair;
 
 use LLNL::LAVA::PrimerSet::LAMP;
-use LLNL::LAVA::Core qw(generateDistancePenalties calculate_proportional_geometry generateSigmoidPenalty countDegenerateBases);
+use LLNL::LAVA::Core qw(generateDistancePenalties generateSigmoidPenalty countDegenerateBases);
 use LLNL::LAVA::Validator qw(checkPrimerMismatchTolerance getPrimerTargetedSequences isIUPACCompatible rev_comp generateIUPACCode validateCompleteSignatureSpacing);
 use LLNL::LAVA::PipelineUtils qw(getOligosWithMismatchTolerance set_pipeline_threads buildNativeReversePool analyzeAll enumeratePairs buildMetricsArray reducePairInfosByPenalty reducePrimersByOverlap reduceSignaturesByOverlap flattenInfoData buildBigMerge calculateSignatureIntersection createPerSignatureFiles createAmplificationFiles analyzeSignatureCombinations generateCombinations injectFixedPrimers findPrimerPositionInAlignment);
 use LLNL::LAVA::ForkManager;
@@ -221,10 +221,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "min_base_frequency=f" => \$options{"min_base_frequency"},
       "entropy_threshold=f" => \$options{"entropy_threshold"},
 
-      "outer_pair_target_length=i" => \$options{"outer_pair_target_length"},
-      "middle_pair_target_length=i" => \$options{"middle_pair_target_length"},
-      "inner_pair_target_length=i" => \$options{"inner_pair_target_length"},
-
       "include_stem_primers=i" => \$options{"include_stem_primers"},
       "stem_orientation=i" => \$options{"stem_orientation"},  # 0=conventionnel (defaut), 1=oppose
 
@@ -266,12 +262,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "primer_min_coverage_percent|min_primer_coverage=f" => \$options{"primer_min_coverage_percent"},
       "signature_common_target_min_percent=f" => \$options{"signature_common_target_min_percent"},
       # ---------------------------------------------------------------------------------
-
-      # TODO: Not sure if the pair target lengths should be exposed to the 
-      # user, or adjusted based on other parameters
-      #"outer_pair_target_length=i" => \$options{"outer_pair_target_length"}, 
-      #"middle_pair_target_length=i" => \$options{"middle_pair_target_length"}, 
-      #"inner_pair_target_length=i" => \$options{"inner_pair_target_length"}, 
 
       "option_file|options_file=s" => \$options{"option_file"},
       # --- AMORCES FIXEES (peut etre repete plusieurs fois) ---
@@ -318,12 +308,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "min_primer_coverage" => 80,
       "signature_common_target_min_percent" => 70,
       # -----------------------------------------
-      # Some LAMP-specific approximate targets for a "minimum sized" signature
-      # Currently, no penalty is assessed for lengths under the target size, so
-      # these sizes are a little larger than they need to be.
-      "outer_pair_target_length" => 250, 
-      "middle_pair_target_length" => 180,
-      "inner_pair_target_length" => 50, 
       "max_overlap_percent" => 0,
       "resolve_overlap_by" => "penalty",
       "dntp_conc" => 1.4,
@@ -427,15 +411,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     ">]\n" .
       "    [--min_inner_pair_spacing <max, default=" .
         $optionDefaults{"min_inner_pair_spacing"} .
-    ">]\n" .
-      "    [--outer_pair_target_length <length, default=" .
-        $optionDefaults{"outer_pair_target_length"} .
-    ">]\n" .
-      "    [--middle_pair_target_length <length, default=" .
-      $optionDefaults{"middle_pair_target_length"} .
-    ">]\n" .
-      "    [--inner_pair_target_length <length, default=" .
-      $optionDefaults{"inner_pair_target_length"} .
     ">]\n" .
       "    [--include_stem_primers <length, default=" .
         $optionDefaults{"include_stem_primers"} .
@@ -727,20 +702,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     optionWithDefault($options_r, "min_inner_pair_spacing", 
       $optionDefaults{"min_inner_pair_spacing"});
   #print "Max poly: $maxPolyBases\n";
-
-  my $outerPairTargetLength = 
-    optionWithDefault($options_r, "outer_pair_target_length", 
-      $optionDefaults{"outer_pair_target_length"});
-  my $middlePairTargetLength = 
-    optionWithDefault($options_r, "middle_pair_target_length",
-      $optionDefaults{"middle_pair_target_length"});
-  my $innerPairTargetLength =
-    optionWithDefault($options_r, "inner_pair_target_length", 
-      $optionDefaults{"inner_pair_target_length"});
-
-  # Eventually want to let the user specify which penalty method
-  # is used to calculate the spacing penalty, making the objective function
-  # more customizable
 
   my $primer3ExecutablePath = optionWithDefault($options_r, "primer3_executable",
     $optionDefaults{"primer3_executable"});
