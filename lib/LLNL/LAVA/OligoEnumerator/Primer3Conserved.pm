@@ -125,8 +125,6 @@ sub new
     "tm_formula" => "PRIMER_TM_FORMULA",
     "salt_corrections" => "PRIMER_SALT_CORRECTIONS",
     "thermodynamic_alignment" => "PRIMER_THERMODYNAMIC_ALIGNMENT",
-    "salt_corrections" => "PRIMER_SALT_CORRECTIONS",
-    "thermodynamic_alignment" => "PRIMER_THERMODYNAMIC_ALIGNMENT",
     "thermodynamic_path" => "PRIMER_THERMODYNAMIC_PARAMETERS_PATH",
     "excluded_regions" => "SEQUENCE_INTERNAL_EXCLUDED_REGION",
     "included_region" => "INCLUDED_REGION",
