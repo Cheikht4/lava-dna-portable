@@ -100,6 +100,7 @@ WHITELIST=(
     "t/test_form_names.py"
     "t/test_flask_param_mapping.py"
     "t/test_param_mapping.py"
+    "t/param_audit_known.txt"
     ".github/workflows/canary.yml"
 )
 
@@ -255,6 +256,7 @@ verify_checksum_coherence() {
         "t/test_form_names.py"
         "t/test_flask_param_mapping.py"
         "t/test_param_mapping.py"
+        "t/param_audit_known.txt"
         ".github/workflows/canary.yml"
     )
     while IFS= read -r f; do

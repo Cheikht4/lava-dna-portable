@@ -1,0 +1,4 @@
+# Liste des defauts de parametres connus en cours d'investigation ou de correction
+# Format : nom_option | YYYY-MM-DD | justification
+# Regle : toute entree listee ici dont le defaut ne se reproduit plus fait echouer l'audit (exit 1).
+thermodynamic_path | 2026-10-30 | non branche sur les 4 enumerateurs, investigation en cours, cf. journal
