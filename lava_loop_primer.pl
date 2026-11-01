@@ -448,13 +448,17 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "    [--primer3_executable <path_to_primer3, default=" .
         $optionDefaults{"primer3_executable"} .
 	">]\n" .
-      "    [--thermodynamic_path <path_to_primer3_configuration, default=" .
-        $optionDefaults{"thermodynamic_path"} .
-	">]\n" .
+      "    [--thermodynamic_path <dir, default=\"\" (uses embedded tables in Primer3 >= 2.5;\n" .
+      "      set only when thermodynamic tables must be read from disk)>]\n" .
       "    [--alignment_format <file format of alignment, default=\"" .
         $optionDefaults{"alignment_format"} .
 	"\">]\n" .
       "    [--option_file <options_xml> (cmd line options take precedence)]\n";
+
+  if (grep { $_ eq '--help' || $_ eq '-h' } @ARGV) {
+    print $usageString;
+    exit(0);
+  }
 
   # TODO: Probably want to be able to use multiple files for parameter
   # definition, so we can have the thermo parameters set, and separately have

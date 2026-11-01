@@ -46,7 +46,7 @@ using Primer3 for enumeration.
       "min_tm" => 61,
       "max_tm" => 63,
       "most_to_return" => 20001,
-      "thermodynamic_path" => "/etc/primer3_config/",
+      "thermodynamic_path" => "",
     });
 
   # Get oligo results of enumerating over an MSA
