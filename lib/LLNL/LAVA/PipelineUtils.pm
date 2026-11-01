@@ -2175,7 +2175,7 @@ sub getPrimer3ParamsForType {
   );
 
   my $thermo_path = $options_r->{"thermodynamic_path"};
-  if (defined $thermo_path && $thermo_path ne "" && $thermo_path ne "/etc/primer3_config/") {
+  if (defined $thermo_path && $thermo_path ne "") {
     $args{'PRIMER_THERMODYNAMIC_PARAMETERS_PATH'} = $thermo_path;
   }
 

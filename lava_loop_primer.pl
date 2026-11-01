@@ -321,7 +321,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "max_primer_gen" => 10001, # primer3 rounding error off by 1?
       "max_primer_gen" => 10001, # primer3 rounding error off by 1?
       "primer3_executable" => "/usr/bin/primer3_core",
-      "thermodynamic_path" => "/etc/primer3_config/",
+      "thermodynamic_path" => "",
       "alignment_format"   => "fasta",
       # Reduction spatiale : 0 = desactive (comportement par defaut) / Spatial reduction: 0 = disabled (default behavior)
       "window_size"        => 0,
@@ -701,6 +701,15 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     $optionDefaults{"primer3_executable"});
   my $thermo_path = optionWithDefault($options_r, "thermodynamic_path",
     $optionDefaults{"thermodynamic_path"});
+  # Validation au demarrage du chemin thermodynamique s'il est fourni
+  # Startup validation of thermodynamic path if provided
+  if (defined $thermo_path && $thermo_path ne "") {
+    my $dangle_file = "$thermo_path/dangle.dh";
+    $dangle_file =~ s{//+}{/}g;
+    if (!-d $thermo_path || !-f $dangle_file) {
+      die "FATAL: Chemin thermodynamique invalide '$thermo_path' : le repertoire doit exister et contenir 'dangle.dh' ($dangle_file manquant).\n";
+    }
+  }
   my $alignmentFormat = optionWithDefault($options_r, "alignment_format",
     $optionDefaults{"alignment_format"});
 
@@ -866,6 +875,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "salt_divalent" => $saltDivalent,
       "entropy_threshold" => $entropyThreshold,
       (defined $global_included_region ? ("included_region" => $global_included_region) : ()),
+      (defined $thermo_path && $thermo_path ne "" ? ("thermodynamic_path" => $thermo_path) : ()),
     });
 
   print "Enumerating outer forward primers\n";
@@ -933,6 +943,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "salt_divalent" => $saltDivalent,
       "entropy_threshold" => $entropyThreshold,
       (defined $global_included_region ? ("included_region" => $global_included_region) : ()),
+      (defined $thermo_path && $thermo_path ne "" ? ("thermodynamic_path" => $thermo_path) : ()),
     });
 
   # This difference in naming is intentional for now (loopBackPrimers instead of 
@@ -997,6 +1008,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "salt_divalent" => $saltDivalent,
       "entropy_threshold" => $entropyThreshold,
       (defined $global_included_region ? ("included_region" => $global_included_region) : ()),
+      (defined $thermo_path && $thermo_path ne "" ? ("thermodynamic_path" => $thermo_path) : ()),
     });
 
   print "Enumerating middle forward primers\n";
@@ -1047,6 +1059,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "salt_divalent" => $saltDivalent,
       "entropy_threshold" => $entropyThreshold,
       (defined $global_included_region ? ("included_region" => $global_included_region) : ()),
+      (defined $thermo_path && $thermo_path ne "" ? ("thermodynamic_path" => $thermo_path) : ()),
     });
 
   print "Enumerating inner forward primers\n";
