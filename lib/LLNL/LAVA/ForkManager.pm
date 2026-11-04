@@ -166,10 +166,51 @@ sub finish {
         };
         if ($@) {
             warn "[ForkManager] Erreur de serialisation dans l enfant $$ : $@\n";
+            $exit_code = 1 if $exit_code == 0;
         }
     }
     
     CORE::exit($exit_code);
+}
+
+# Formate le diagnostic d echec d un worker enfant (exception Perl ou signal systeme)
+# Formats the failure diagnostic of a child worker (Perl exception or OS signal)
+sub format_worker_failure {
+    my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_ref) = @_;
+    my $cid = (defined $data_ref && ref($data_ref) eq 'HASH' && defined $data_ref->{chunk_id})
+        ? $data_ref->{chunk_id}
+        : (defined $ident ? $ident : 'inconnu');
+
+    if (defined $data_ref && ref($data_ref) eq 'HASH' && defined $data_ref->{error}) {
+        my $err = $data_ref->{error};
+        chomp($err);
+        return "chunk $cid (pid $pid, code $exit_code) : exception Perl : $err";
+    }
+    if ($exit_signal == 9) {
+        return "chunk $cid (pid $pid) : tue par signal 9 (SIGKILL, probablement epuisement memoire), sans payload";
+    }
+    if ($exit_signal != 0) {
+        my $core_str = $core_dump ? " (core dump)" : "";
+        return "chunk $cid (pid $pid) : tue par signal $exit_signal$core_str, sans payload";
+    }
+    if ($exit_code == 255) {
+        return "chunk $cid (pid $pid) : mort hors eval (code 255, sans payload)";
+    }
+    return "chunk $cid (pid $pid) : mort sans payload (code $exit_code, signal $exit_signal)";
+}
+
+# Interrompt le run avec un message explicite si au moins un worker a echoue
+# Aborts the run with an explicit message if at least one worker failed
+sub check_worker_failures {
+    my ($failures_ref, $phase_label) = @_;
+    return unless defined $failures_ref && ref($failures_ref) eq 'ARRAY' && @$failures_ref;
+    $phase_label //= "ForkManager";
+    die sprintf(
+        "FATAL [%s] : %d worker(s) enfant(s) en echec :\n  - %s\n",
+        $phase_label,
+        scalar(@$failures_ref),
+        join("\n  - ", @$failures_ref)
+    );
 }
 
 # Attend et traite la fin d au moins un processus enfant

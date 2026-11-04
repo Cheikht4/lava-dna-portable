@@ -303,9 +303,14 @@ sub getOligosWithMismatchTolerance {
   my $n_chunks = $pm->{max_processes} * 12;
   $n_chunks = 25 if $n_chunks < 25;
   $n_chunks = $nb_fwd_candidates if $n_chunks > $nb_fwd_candidates;
+  my @worker_failures = ();
 
   $pm->run_on_finish(sub {
     my ($pid, $exit_code, $ident, $signal, $core, $data_ref) = @_;
+    if ($exit_code != 0 || $signal != 0 || (defined $data_ref && ref($data_ref) eq 'HASH' && defined $data_ref->{error})) {
+      push @worker_failures, LLNL::LAVA::ForkManager::format_worker_failure($pid, $exit_code, $ident, $signal, $core, $data_ref);
+      return;
+    }
     if (defined $data_ref && ref($data_ref) eq 'HASH') {
       push @validatedPrimers, @{$data_ref->{validated} // []};
       $strict_count     += $data_ref->{strict}   // 0;
@@ -326,61 +331,73 @@ sub getOligosWithMismatchTolerance {
     my $pid = $pm->start($chunk_id);
     next if $pid;
 
-    my @chunk_validated = ();
-    my @chunk_logs = ();
-    my $chunk_strict = 0;
-    my $chunk_degen  = 0;
-    my $chunk_reject = 0;
+    my $worker_payload;
+    my $eval_ok = eval {
+      my @chunk_validated = ();
+      my @chunk_logs = ();
+      my $chunk_strict = 0;
+      my $chunk_degen  = 0;
+      my $chunk_reject = 0;
 
-    for my $i ($start_idx .. $end_idx) {
-      my $primer = $candidatePrimers[$i];
-      my $location = $primer->location();
-      my $length = $primer->length();
-      my $original_sequence = $primer->sequence();
-      
-      my ($final_sequence, $coverage_percent, $is_degenerate, $compatible_seq_ids) = 
-        checkPrimerMismatchTolerance(\@sequences, $location, $length, $original_sequence,
-                                    $min_match_percent, $min_iupac_percent, $min_primer_coverage,
-                                    $maxTotalDegen, $maxConsecDegen, 
-                                    $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency);
-      
-      my $min_primer_acceptance = $min_primer_coverage;
-      if ($coverage_percent >= $min_primer_acceptance) {
-        my $validatedPrimer = $primer->clone();
+      for my $i ($start_idx .. $end_idx) {
+        my $primer = $candidatePrimers[$i];
+        my $location = $primer->location();
+        my $length = $primer->length();
+        my $original_sequence = $primer->sequence();
         
-        if ($is_degenerate) {
-          $validatedPrimer->sequence($final_sequence);
-          $validatedPrimer->setTag("is_degenerate", 1);
-          $validatedPrimer->setTag("original_sequence", $original_sequence);
-          $validatedPrimer->setTag("iupac_coverage", sprintf("%.1f", $coverage_percent));
-          $validatedPrimer->setTag("compatible_sequence_ids", $compatible_seq_ids);
-          $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatible_seq_ids));
-          $chunk_degen++;
+        my ($final_sequence, $coverage_percent, $is_degenerate, $compatible_seq_ids) = 
+          checkPrimerMismatchTolerance(\@sequences, $location, $length, $original_sequence,
+                                      $min_match_percent, $min_iupac_percent, $min_primer_coverage,
+                                      $maxTotalDegen, $maxConsecDegen, 
+                                      $max3PrimeDegen, $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency);
+        
+        my $min_primer_acceptance = $min_primer_coverage;
+        if ($coverage_percent >= $min_primer_acceptance) {
+          my $validatedPrimer = $primer->clone();
+          
+          if ($is_degenerate) {
+            $validatedPrimer->sequence($final_sequence);
+            $validatedPrimer->setTag("is_degenerate", 1);
+            $validatedPrimer->setTag("original_sequence", $original_sequence);
+            $validatedPrimer->setTag("iupac_coverage", sprintf("%.1f", $coverage_percent));
+            $validatedPrimer->setTag("compatible_sequence_ids", $compatible_seq_ids);
+            $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatible_seq_ids));
+            $chunk_degen++;
+          } else {
+            $validatedPrimer->setTag("is_degenerate", 0);
+            $validatedPrimer->setTag("iupac_coverage", "100.0");
+            $validatedPrimer->setTag("compatible_sequence_ids", $compatible_seq_ids);
+            $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatible_seq_ids));
+            $chunk_strict++;
+          }
+          push @chunk_validated, $validatedPrimer;
         } else {
-          $validatedPrimer->setTag("is_degenerate", 0);
-          $validatedPrimer->setTag("iupac_coverage", "100.0");
-          $validatedPrimer->setTag("compatible_sequence_ids", $compatible_seq_ids);
-          $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatible_seq_ids));
-          $chunk_strict++;
+          $chunk_reject++;
         }
-        push @chunk_validated, $validatedPrimer;
-      } else {
-        $chunk_reject++;
       }
+
+      $worker_payload = {
+        chunk_id  => $chunk_id,
+        validated => \@chunk_validated,
+        strict    => $chunk_strict,
+        degen     => $chunk_degen,
+        rejected  => $chunk_reject
+      };
+      1;
+    };
+    if (!$eval_ok) {
+      my $err = $@ || "Erreur inconnue / Unknown error";
+      $pm->finish(1, { chunk_id => $chunk_id, error => "$err" });
+      next;
     }
 
-    $pm->finish(0, {
-      validated => \@chunk_validated,
-      strict    => $chunk_strict,
-      degen     => $chunk_degen,
-      rejected  => $chunk_reject
-    });
+    $pm->finish(0, $worker_payload);
   }
 
   $pm->wait_all_children();
-  @validatedPrimers = sort { $a->location() <=> $b->location() || $a->length() <=> $b->length() } @validatedPrimers;
-
   _finish_progress($fwd_progress);
+  LLNL::LAVA::ForkManager::check_worker_failures(\@worker_failures, "PipelineUtils::getOligosWithMismatchTolerance ($progress_label)");
+  @validatedPrimers = sort { $a->location() <=> $b->location() || $a->length() <=> $b->length() } @validatedPrimers;
   print "  [Forward] Resultats / Results:\n";
   print "    - Strictes / Strict: $strict_count\n";
   print "    - Degenerees / Degenerate: $degenerate_count\n";
@@ -534,9 +551,14 @@ sub buildNativeReversePool {
   my $n_chunks = $pm->{max_processes} * 12;
   $n_chunks = 25 if $n_chunks < 25;
   $n_chunks = $nb_rev_candidates if $n_chunks > $nb_rev_candidates;
+  my @worker_failures = ();
 
   $pm->run_on_finish(sub {
     my ($pid, $exit_code, $ident, $signal, $core, $data_ref) = @_;
+    if ($exit_code != 0 || $signal != 0 || (defined $data_ref && ref($data_ref) eq 'HASH' && defined $data_ref->{error})) {
+      push @worker_failures, LLNL::LAVA::ForkManager::format_worker_failure($pid, $exit_code, $ident, $signal, $core, $data_ref);
+      return;
+    }
     if (defined $data_ref && ref($data_ref) eq 'HASH') {
       push @validatedPrimers, @{$data_ref->{validated} // []};
       $strict_count   += $data_ref->{strict}   // 0;
@@ -557,66 +579,78 @@ sub buildNativeReversePool {
     my $pid = $pm->start($chunk_id);
     next if $pid;
 
-    my @chunk_validated = ();
-    my @chunk_logs = ();
-    my $chunk_strict = 0;
-    my $chunk_degen  = 0;
-    my $chunk_reject = 0;
+    my $worker_payload;
+    my $eval_ok = eval {
+      my @chunk_validated = ();
+      my @chunk_logs = ();
+      my $chunk_strict = 0;
+      my $chunk_degen  = 0;
+      my $chunk_reject = 0;
 
-    for my $i ($start_idx .. $end_idx) {
-      my $primer = $candidatePrimers[$i];
-      my $posInRC  = $primer->location();
-      my $length   = $primer->length();
-      my $origSeq  = $primer->sequence();
+      for my $i ($start_idx .. $end_idx) {
+        my $primer = $candidatePrimers[$i];
+        my $posInRC  = $primer->location();
+        my $length   = $primer->length();
+        my $origSeq  = $primer->sequence();
 
-      my ($finalSeq, $coveragePct, $isDegenerate, $compatibleIds) =
-        $checkPrimerMismatchTolerance_ref->(
-          \@rcSequences, $posInRC, $length, $origSeq,
-          $min_match_percent, $min_iupac_percent, $min_primer_coverage,
-          $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen,
-          $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency
-        );
+        my ($finalSeq, $coveragePct, $isDegenerate, $compatibleIds) =
+          $checkPrimerMismatchTolerance_ref->(
+            \@rcSequences, $posInRC, $length, $origSeq,
+            $min_match_percent, $min_iupac_percent, $min_primer_coverage,
+            $maxTotalDegen, $maxConsecDegen, $max3PrimeDegen,
+            $maxToleratedMismatches, $threePrimeZoneSize, $minBaseFrequency
+          );
 
-      my $genomicLocation = $alignmentLength - 1 - $posInRC;
+        my $genomicLocation = $alignmentLength - 1 - $posInRC;
 
-      if ($coveragePct >= $min_primer_coverage) {
-        my $validatedPrimer = $primer->clone();
-        $validatedPrimer->sequence($finalSeq);
-        $validatedPrimer->location($genomicLocation);
-        $validatedPrimer->setTag("strand", "minus");
+        if ($coveragePct >= $min_primer_coverage) {
+          my $validatedPrimer = $primer->clone();
+          $validatedPrimer->sequence($finalSeq);
+          $validatedPrimer->location($genomicLocation);
+          $validatedPrimer->setTag("strand", "minus");
 
-        if ($isDegenerate) {
-          $validatedPrimer->setTag("is_degenerate", 1);
-          $validatedPrimer->setTag("original_sequence", $origSeq);
-          $validatedPrimer->setTag("iupac_coverage", sprintf("%.1f", $coveragePct));
-          $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
-          $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatibleIds));
-          $chunk_degen++;
+          if ($isDegenerate) {
+            $validatedPrimer->setTag("is_degenerate", 1);
+            $validatedPrimer->setTag("original_sequence", $origSeq);
+            $validatedPrimer->setTag("iupac_coverage", sprintf("%.1f", $coveragePct));
+            $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
+            $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatibleIds));
+            $chunk_degen++;
+          } else {
+            $validatedPrimer->setTag("is_degenerate", 0);
+            $validatedPrimer->setTag("iupac_coverage", "100.0");
+            $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
+            $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatibleIds));
+            $chunk_strict++;
+          }
+          push @chunk_validated, $validatedPrimer;
         } else {
-          $validatedPrimer->setTag("is_degenerate", 0);
-          $validatedPrimer->setTag("iupac_coverage", "100.0");
-          $validatedPrimer->setTag("compatible_sequence_ids", $compatibleIds);
-          $validatedPrimer->setTag("compatible_sequence_vec", _build_bit_vector($compatibleIds));
-          $chunk_strict++;
+          $chunk_reject++;
         }
-        push @chunk_validated, $validatedPrimer;
-      } else {
-        $chunk_reject++;
       }
+
+      $worker_payload = {
+        chunk_id  => $chunk_id,
+        validated => \@chunk_validated,
+        strict    => $chunk_strict,
+        degen     => $chunk_degen,
+        rejected  => $chunk_reject
+      };
+      1;
+    };
+    if (!$eval_ok) {
+      my $err = $@ || "Erreur inconnue / Unknown error";
+      $pm->finish(1, { chunk_id => $chunk_id, error => "$err" });
+      next;
     }
 
-    $pm->finish(0, {
-      validated => \@chunk_validated,
-      strict    => $chunk_strict,
-      degen     => $chunk_degen,
-      rejected  => $chunk_reject
-    });
+    $pm->finish(0, $worker_payload);
   }
 
   $pm->wait_all_children();
-  @validatedPrimers = sort { $a->location() <=> $b->location() || $a->length() <=> $b->length() } @validatedPrimers;
-
   _finish_progress($rev_progress);
+  LLNL::LAVA::ForkManager::check_worker_failures(\@worker_failures, "PipelineUtils::buildNativeReversePool ($progress_label)");
+  @validatedPrimers = sort { $a->location() <=> $b->location() || $a->length() <=> $b->length() } @validatedPrimers;
   print "  [NativeReverse] Resultats / Results:\n";
   print "    - Strictes / Strict: $strict_count\n";
   print "    - Degenerees / Degenerate: $degen_count\n";

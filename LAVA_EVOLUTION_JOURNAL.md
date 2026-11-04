@@ -2648,4 +2648,29 @@ La cohérence entre la ligne de commande et les fichiers de paramètres XML gara
 Arrêt immédiat et explicite sur toute balise XML inconnue dans `--option_file`, validation automatique par `t/test_param_mapping.py` des exemples CLI de `README*.md` et des fichiers `t_data/*.xml`, et déclaration propre des prérequis CPAN dans `Makefile.PL`.
 
 
+### Date/Étape : 2026-11-04 - Propagation fatale des échecs de workers ForkManager (Étage 1)
+
+**Fichiers impactés** : `lib/LLNL/LAVA/ForkManager.pm`, `lib/LLNL/LAVA/PipelineUtils.pm`, `lava_loop_primer.pl`, `lava_stem_primer.pl`, `LAVA_EVOLUTION_JOURNAL.md`
+
+**Nature du changement** : Architecture / Bug Fix / Fiabilité Multi-processus
+
+**Explication technique** : 
+1. **Détection et formatage des échecs de processus enfants dans `LLNL::LAVA::ForkManager`** :
+   - Ajout de `format_worker_failure($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_ref)` et `check_worker_failures(\@failures, $phase_label)` dans `lib/LLNL/LAVA/ForkManager.pm`.
+   - Si un enfant meurt avec une charge utile d'erreur (`$data_ref->{error}`), le message restitue l'exception Perl exacte capturée et le `chunk_id`.
+   - Si un enfant meurt sans charge utile (`$data_ref` indéfini), le message glose explicitement le signal ou le code de retour : `"tue par signal 9 (SIGKILL, probablement epuisement memoire), sans payload"` pour `$exit_signal == 9`, `"tue par signal $exit_signal, sans payload"` pour tout autre signal, et `"mort hors eval (code 255, sans payload)"` pour `$exit_code == 255`.
+   - Dans `ForkManager::finish`, toute erreur de sérialisation `Storable::nstore` force désormais `$exit_code = 1` si `$exit_code == 0`.
+2. **Encapsulation `eval` et vérification sur les 8 instances de `ForkManager`** :
+   - Application uniforme sur les 2 instances de `lib/LLNL/LAVA/PipelineUtils.pm` (`getOligosWithMismatchTolerance` et `buildNativeReversePool`), les 3 instances de `lava_loop_primer.pl` (`$pm_fwd`, `$pm_rev`, `$val_pm`) et les 3 instances de `lava_stem_primer.pl` (`$pm_fwd`, `$pm_rev`, `$val_pm`).
+   - Passage explicite de `$chunk_id` dans `$val_pm->start($chunk_id)` en phase 5 des deux scripts (au lieu de `$val_pm->start` sans argument qui affectait `$ident = time()`).
+   - Enveloppement du corps de chaque worker dans `eval { ...; 1 }` avec renvoi de `$pm->finish(1, { chunk_id => $chunk_id, error => "$err" })` en cas d'exception, enregistrement dans `run_on_finish` dès que `$exit_code != 0 || $exit_signal != 0 || defined $data_ref->{error}`, et appel à `check_worker_failures` après `wait_all_children`.
+
+**Justification biologique** : 
+Dans un pipeline de conception d'amorces LAMP parallélisé en Map-Reduce sur 8 à 32 processus enfants, l'ignorance de `$exit_code` et `$exit_signal` dans `run_on_finish` transformait toute erreur fatale d'un worker (exception Perl ou terminaison `SIGKILL` par le gestionnaire de mémoire du noyau lors du criblage de grands alignements viraux) en une absence silencieuse de candidats (`0 signature, Exiting normally, code 0`). Garantir qu'aucun worker ne puisse mourir en silence empêche toute confusion entre une impossibilité biologique de trouver des amorces conservées et une défaillance logicielle ou matérielle.
+
+**Impact attendu** : 
+Interruption immédiate et bruyante (`die`, code de sortie non nul) dès qu'un worker enfant échoue par exception Perl ou par signal système (`SIGKILL` / signal 9), en nommant la phase, le nombre d'enfants en échec, leur `chunk_id` et la cause exacte.
+
+
+
 

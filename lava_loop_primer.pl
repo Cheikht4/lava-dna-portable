@@ -1555,9 +1555,14 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   $num_fwd_chunks = 1 if $num_fwd_chunks < 1;
   my $fwd_chunk_size = int(($innerForwardCount + $num_fwd_chunks - 1) / $num_fwd_chunks);
   $fwd_chunk_size = 1 if $fwd_chunk_size < 1;
+  my @fwd_worker_failures = ();
 
   $pm_fwd->run_on_finish(sub {
       my ($pid, $exit_code, $id, $exit_signal, $core_dump, $data_ref) = @_;
+      if ($exit_code != 0 || $exit_signal != 0 || (defined $data_ref && ref($data_ref) eq 'HASH' && defined $data_ref->{error})) {
+          push @fwd_worker_failures, LLNL::LAVA::ForkManager::format_worker_failure($pid, $exit_code, $id, $exit_signal, $core_dump, $data_ref);
+          return;
+      }
       if (defined $data_ref && ref($data_ref) eq 'HASH') {
           foreach my $idx (sort { $a <=> $b } keys %{$data_ref->{infos}}) {
               if (!defined $bestForwardInfos[$idx]) {
@@ -1603,6 +1608,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   for (my $chunk_id = 0; $chunk_id < $num_fwd_chunks; $chunk_id++) {
       $pm_fwd->start($chunk_id) and next;
       
+      my $worker_payload;
+      my $eval_ok = eval {
       my %chunk_infos = ();
       my %chunk_penalties = ();
       my $chunk_hits = 0;
@@ -1866,7 +1873,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       my $prog_file_me = "$fwd_prog_dir/chunk_$chunk_id.prog";
       if (open(my $fh, '>', $prog_file_me)) { flock($fh, 2); print $fh "$chunk_done,$chunk_hits,$chunk_pruned,$chunk_evaluated\n"; close($fh); }
       
-      $pm_fwd->finish(0, {
+      $worker_payload = {
+          chunk_id => $chunk_id,
           infos => \%chunk_infos,
           penalties => \%chunk_penalties,
           hits => $chunk_hits,
@@ -1895,11 +1903,20 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               middleToOuter_neg => $penalty_guard_middleToOuter_neg,
               middleToOuter_oob => $penalty_guard_middleToOuter_oob,
           }
-      });
+      };
+      1;
+      };
+      if (!$eval_ok) {
+          my $err = $@ || "Erreur inconnue / Unknown error";
+          $pm_fwd->finish(1, { chunk_id => $chunk_id, error => "$err" });
+          next;
+      }
+      $pm_fwd->finish(0, $worker_payload);
   } # End chunks
   $pm_fwd->wait_all_children();
   use File::Path qw(remove_tree);
   remove_tree($fwd_prog_dir) if -d $fwd_prog_dir;
+  LLNL::LAVA::ForkManager::check_worker_failures(\@fwd_worker_failures, "Signatures Forward (loop)");
   
   if ($_sig_fwd_pruned + $_sig_fwd_evaluated > 0) {
       my $pct = ($_sig_fwd_pruned / ($_sig_fwd_pruned + $_sig_fwd_evaluated)) * 100;
@@ -2007,9 +2024,14 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   $num_rev_chunks = 1 if $num_rev_chunks < 1;
   my $rev_chunk_size = int(($innerReverseCount + $num_rev_chunks - 1) / $num_rev_chunks);
   $rev_chunk_size = 1 if $rev_chunk_size < 1;
+  my @rev_worker_failures = ();
 
   $pm_rev->run_on_finish(sub {
       my ($pid, $exit_code, $id, $exit_signal, $core_dump, $data_ref) = @_;
+      if ($exit_code != 0 || $exit_signal != 0 || (defined $data_ref && ref($data_ref) eq 'HASH' && defined $data_ref->{error})) {
+          push @rev_worker_failures, LLNL::LAVA::ForkManager::format_worker_failure($pid, $exit_code, $id, $exit_signal, $core_dump, $data_ref);
+          return;
+      }
       if (defined $data_ref && ref($data_ref) eq 'HASH') {
           foreach my $idx (sort { $a <=> $b } keys %{$data_ref->{infos}}) {
               if (!defined $bestReverseInfos[$idx]) {
@@ -2055,6 +2077,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   for (my $chunk_id = 0; $chunk_id < $num_rev_chunks; $chunk_id++) {
       $pm_rev->start($chunk_id) and next;
       
+      my $worker_payload;
+      my $eval_ok = eval {
       my %chunk_infos = ();
       my %chunk_penalties = ();
       my $chunk_hits = 0;
@@ -2316,7 +2340,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       my $prog_file_me = "$rev_prog_dir/chunk_$chunk_id.prog";
       if (open(my $fh, '>', $prog_file_me)) { flock($fh, 2); print $fh "$chunk_done,$chunk_hits,$chunk_pruned,$chunk_evaluated\n"; close($fh); }
       
-      $pm_rev->finish(0, {
+      $worker_payload = {
+          chunk_id => $chunk_id,
           infos => \%chunk_infos,
           penalties => \%chunk_penalties,
           hits => $chunk_hits,
@@ -2345,11 +2370,20 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               middleToOuter_neg => $penalty_guard_middleToOuter_neg,
               middleToOuter_oob => $penalty_guard_middleToOuter_oob,
           }
-      });
+      };
+      1;
+      };
+      if (!$eval_ok) {
+          my $err = $@ || "Erreur inconnue / Unknown error";
+          $pm_rev->finish(1, { chunk_id => $chunk_id, error => "$err" });
+          next;
+      }
+      $pm_rev->finish(0, $worker_payload);
   } # End chunks
   $pm_rev->wait_all_children();
   use File::Path qw(remove_tree);
   remove_tree($rev_prog_dir) if -d $rev_prog_dir;
+  LLNL::LAVA::ForkManager::check_worker_failures(\@rev_worker_failures, "Signatures Reverse (loop)");
   
   if ($_sig_rev_pruned + $_sig_rev_evaluated > 0) {
       my $pct = ($_sig_rev_pruned / ($_sig_rev_pruned + $_sig_rev_evaluated)) * 100;
@@ -2416,9 +2450,14 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   my $global_rejected_min_len = 0;
   my $global_skipped_tm_diff = 0;
   my $global_skipped_inner_gap = 0;
+  my @val_worker_failures = ();
   
   $val_pm->run_on_finish(sub {
       my ($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_r) = @_;
+      if ($exit_code != 0 || $exit_signal != 0 || (defined $data_r && ref($data_r) eq 'HASH' && defined $data_r->{error})) {
+          push @val_worker_failures, LLNL::LAVA::ForkManager::format_worker_failure($pid, $exit_code, $ident, $exit_signal, $core_dump, $data_r);
+          return;
+      }
       if (defined($data_r) && ref($data_r) eq 'HASH') {
           my $cid = $data_r->{chunk_id};
           $chunk_results_map{$cid} = $data_r->{retained};
@@ -2443,8 +2482,11 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   });
   
   for(my $chunk_id = 0; $chunk_id < $num_chunks; $chunk_id++) {
-      $val_pm->start and next;
+      $val_pm->start($chunk_id) and next;
       
+      my $worker_payload;
+      my $verbose_fh;
+      my $eval_ok = eval {
       my @chunk_retained;
       my $chunk_combined = 0;
       my $chunk_val_done = 0;
@@ -2454,7 +2496,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       my $chunk_rejected_max_len = 0;
       my $chunk_rejected_min_len = 0;
       
-      my $verbose_fh;
       if ($verbose_val) {
           open($verbose_fh, "| gzip >> ${verbose_base}.$$" . "_${chunk_id}.log.gz") or warn "Cannot open verbose log";
       }
@@ -2612,9 +2653,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           splice(@chunk_retained, $max_retained_signatures);
       }
       
-      if ($verbose_val && defined $verbose_fh) { close($verbose_fh); }
+      if ($verbose_val && defined $verbose_fh) { close($verbose_fh); undef $verbose_fh; }
       
-      $val_pm->finish(0, {
+      $worker_payload = {
           chunk_id => $chunk_id,
           retained => \@chunk_retained,
           combined_count => $chunk_combined,
@@ -2626,10 +2667,20 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
           rejected_min_len => $chunk_rejected_min_len,
           skipped_tm_diff => $skipped_tm_diff,
           skipped_inner_gap => $skipped_inner_gap
-      });
+      };
+      1;
+      };
+      if (!$eval_ok) {
+          my $err = $@ || "Erreur inconnue / Unknown error";
+          if ($verbose_val && defined $verbose_fh) { close($verbose_fh); }
+          $val_pm->finish(1, { chunk_id => $chunk_id, error => "$err" });
+          next;
+      }
+      $val_pm->finish(0, $worker_payload);
   }
   
   $val_pm->wait_all_children;
+  LLNL::LAVA::ForkManager::check_worker_failures(\@val_worker_failures, "Combinaison & Validation (loop)");
   
   my @flat_retained;
   for(my $c = 0; $c < $num_chunks; $c++) {
