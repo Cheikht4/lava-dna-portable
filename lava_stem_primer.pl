@@ -1487,6 +1487,19 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     my $outerForwardCount = scalar(@{$outerForwardSubset_r});
     my $outerReverseCount = scalar(@{$outerReverseSubset_r});
 
+    # Compteurs initiaux des pools d'amorces pour le diagnostic 0 signature
+    # Initial primer pool counters for the 0-signature diagnostic
+    my %pool_counts = (
+        F3  => $outerForwardCount,
+        F2  => $middleForwardCount,
+        F1c => $innerForwardCount,
+        SF  => $stemForwardCount,
+        B1c => $innerReverseCount,
+        B2  => $middleReverseCount,
+        B3  => $outerReverseCount,
+        SR  => $stemReverseCount,
+    );
+
 
     # TODO: HERE! (should)
     # Pre-compute top Middle->Outer pairings, so we don't keep iterating over them
@@ -1938,6 +1951,14 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   $pm_fwd->wait_all_children();
   use File::Path qw(remove_tree);
   remove_tree($fwd_prog_dir) if -d $fwd_prog_dir;
+  if (@fwd_worker_failures) {
+      print_zero_signature_diagnostic(1, $innerForwardCount, $outerForwardCount,
+        $_fwd_rej_geometry, $_fwd_rej_spacing, $_fwd_rej_loopgap,
+        $_fwd_rej_tm_inner_loop, $_fwd_rej_tm_loop_middle, $_fwd_rej_tm_inner_middle, $_fwd_rej_tm_middle_outer,
+        $_fwd_min_delta_tm_inner_loop, $_fwd_min_delta_tm_loop_middle, $_fwd_min_delta_tm_inner_middle, $_fwd_min_delta_tm_middle_outer,
+        $_fwd_min_span_needed, $signatureMaxLength, $maxDeltaTm, $options_r,
+        { worker_failures => \@fwd_worker_failures, stage => "Signatures Forward (stem)" });
+  }
   LLNL::LAVA::ForkManager::check_worker_failures(\@fwd_worker_failures, "Signatures Forward (stem)");
   
   if ($_sig_fwd_evaluated > 0) {
@@ -1953,7 +1974,13 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     if($forwardSetCount == 0)
     {
       print "No valid forward primer combinations found.\n";
-      next;
+      print_zero_signature_diagnostic(1, $innerForwardCount, $outerForwardCount,
+        $_fwd_rej_geometry, $_fwd_rej_spacing, $_fwd_rej_loopgap,
+        $_fwd_rej_tm_inner_loop, $_fwd_rej_tm_loop_middle, $_fwd_rej_tm_inner_middle, $_fwd_rej_tm_middle_outer,
+        $_fwd_min_delta_tm_inner_loop, $_fwd_min_delta_tm_loop_middle, $_fwd_min_delta_tm_inner_middle, $_fwd_min_delta_tm_middle_outer,
+        $_fwd_min_span_needed, $signatureMaxLength, $maxDeltaTm, $options_r,
+        { stage => "forward", pool_counts => \%pool_counts, include_special => $includeStemPrimers, forward_set_count => 0 });
+      exit 0;
     }
 
     print "Scanning Reverse Primer Combinations...\n";
@@ -2348,6 +2375,14 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   $pm_rev->wait_all_children();
   use File::Path qw(remove_tree);
   remove_tree($rev_prog_dir) if -d $rev_prog_dir;
+  if (@rev_worker_failures) {
+      print_zero_signature_diagnostic(0, $innerReverseCount, $outerReverseCount,
+        $_rev_rej_geometry, $_rev_rej_spacing, $_rev_rej_loopgap,
+        $_rev_rej_tm_inner_loop, $_rev_rej_tm_loop_middle, $_rev_rej_tm_inner_middle, $_rev_rej_tm_middle_outer,
+        $_rev_min_delta_tm_inner_loop, $_rev_min_delta_tm_loop_middle, $_rev_min_delta_tm_inner_middle, $_rev_min_delta_tm_middle_outer,
+        $_rev_min_span_needed, $signatureMaxLength, $maxDeltaTm, $options_r,
+        { worker_failures => \@rev_worker_failures, stage => "Signatures Reverse (stem)" });
+  }
   LLNL::LAVA::ForkManager::check_worker_failures(\@rev_worker_failures, "Signatures Reverse (stem)");
   
   if ($_sig_rev_evaluated > 0) {
@@ -2359,13 +2394,15 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
     printf(STDERR "\r%-80s\n", "") if $_LAVA_IS_TTY;
     print "  [Stem Rev] $_sig_rev_hits combinaisons Reverse trouvees sur $innerReverseCount amorces B1.\n";
 
-
-    ## Stop trying if no reverse primer sets were found (probably an un-needed optimization)
-    #if($reverseSetCount == 0)
-    #{
-    #  print "R";
-    #  next;
-    #}
+    if ($reverseSetCount == 0) {
+      print_zero_signature_diagnostic(0, $innerReverseCount, $outerReverseCount,
+        $_rev_rej_geometry, $_rev_rej_spacing, $_rev_rej_loopgap,
+        $_rev_rej_tm_inner_loop, $_rev_rej_tm_loop_middle, $_rev_rej_tm_inner_middle, $_rev_rej_tm_middle_outer,
+        $_rev_min_delta_tm_inner_loop, $_rev_min_delta_tm_loop_middle, $_rev_min_delta_tm_inner_middle, $_rev_min_delta_tm_middle_outer,
+        $_rev_min_span_needed, $signatureMaxLength, $maxDeltaTm, $options_r,
+        { stage => "reverse", pool_counts => \%pool_counts, include_special => $includeStemPrimers, forward_set_count => $forwardSetCount, reverse_set_count => 0 });
+      exit 0;
+    }
 
     # Now, try to combine forward and reverse primer sets into full signatures
     
@@ -2398,6 +2435,7 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
   my $global_immediate_rejections = 0;
   my $global_rejected_max_len = 0;
   my $global_rejected_min_len = 0;
+  my $global_skipped_inner_gap = 0;
   my @val_worker_failures = ();
   
   $val_pm->run_on_finish(sub {
@@ -2416,6 +2454,7 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
           $global_immediate_rejections += $data_r->{immediate_rejections};
           $global_rejected_max_len += $data_r->{rejected_max_len} if defined $data_r->{rejected_max_len};
           $global_rejected_min_len += $data_r->{rejected_min_len} if defined $data_r->{rejected_min_len};
+          $global_skipped_inner_gap += $data_r->{skipped_inner_gap} if defined $data_r->{skipped_inner_gap};
           
           my $elapsed = time() - $combine_t0 + 0.001;
           my $chunks_done = scalar(keys %chunk_results_map);
@@ -2441,6 +2480,7 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
       my $chunk_immediate = 0;
       my $chunk_rejected_max_len = 0;
       my $chunk_rejected_min_len = 0;
+      my $skipped_inner_gap = 0;
       
       if ($verbose_val) {
           open($verbose_fh, "| gzip >> ${verbose_base}.$$" . "_${chunk_id}.log.gz") or warn "Cannot open verbose log";
@@ -2468,6 +2508,7 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
               my $reverseStart = $binnerInfo->getLocation() - $binnerInfo->getLength() + 1;
               
               if($reverseStart <= $forwardEnd) {
+                  $skipped_inner_gap++;
                   next;
               }
               
@@ -2477,6 +2518,7 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
               
               my $innerSpacing = $reverseStart - ($forwardEnd + 1);
               if($innerSpacing < $minInnerPairSpacing) {
+                  $skipped_inner_gap++;
                   next;
               }
               
@@ -2603,7 +2645,8 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
           val_rejected => $chunk_val_rejected,
           immediate_rejections => $chunk_immediate,
           rejected_max_len => $chunk_rejected_max_len,
-          rejected_min_len => $chunk_rejected_min_len
+          rejected_min_len => $chunk_rejected_min_len,
+          skipped_inner_gap => $skipped_inner_gap
       };
       1;
       };
@@ -2617,6 +2660,14 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
   }
   
   $val_pm->wait_all_children;
+  if (@val_worker_failures) {
+      print_zero_signature_diagnostic(0, $innerForwardCount, $outerForwardCount,
+        $_fwd_rej_geometry, $_fwd_rej_spacing, $_fwd_rej_loopgap,
+        $_fwd_rej_tm_inner_loop, $_fwd_rej_tm_loop_middle, $_fwd_rej_tm_inner_middle, $_fwd_rej_tm_middle_outer,
+        $_fwd_min_delta_tm_inner_loop, $_fwd_min_delta_tm_loop_middle, $_fwd_min_delta_tm_inner_middle, $_fwd_min_delta_tm_middle_outer,
+        $_fwd_min_span_needed, $signatureMaxLength, $maxDeltaTm, $options_r,
+        { worker_failures => \@val_worker_failures, stage => "Combinaison & Validation (stem)" });
+  }
   LLNL::LAVA::ForkManager::check_worker_failures(\@val_worker_failures, "Combinaison & Validation (stem)");
   
   my @flat_retained;
@@ -2857,6 +2908,38 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
 
   # Remplacer la référence globale par la nouvelle liste triée / Replace global reference with sorted list
   $possibleSignatures_r = \@possibleSignatures;
+
+  # Si aucune signature finale n'a survecu, afficher le diagnostic structure
+  # If no final signature survived, print the structured diagnostic
+  if (scalar(@possibleSignatures) == 0) {
+      print_zero_signature_diagnostic(
+          0, $innerForwardCount, $outerForwardCount,
+          $_fwd_rej_geometry + $_rev_rej_geometry,
+          $_fwd_rej_spacing + $_rev_rej_spacing,
+          $_fwd_rej_loopgap + $_rev_rej_loopgap,
+          $_fwd_rej_tm_inner_loop + $_rev_rej_tm_inner_loop,
+          $_fwd_rej_tm_loop_middle + $_rev_rej_tm_loop_middle,
+          $_fwd_rej_tm_inner_middle + $_rev_rej_tm_inner_middle,
+          $_fwd_rej_tm_middle_outer + $_rev_rej_tm_middle_outer,
+          $_fwd_min_delta_tm_inner_loop, $_fwd_min_delta_tm_loop_middle,
+          $_fwd_min_delta_tm_inner_middle, $_fwd_min_delta_tm_middle_outer,
+          $_fwd_min_span_needed, $signatureMaxLength, $maxDeltaTm, $options_r,
+          {
+              stage                => "combine",
+              pool_counts          => \%pool_counts,
+              include_special      => $includeStemPrimers,
+              forward_set_count    => $forwardSetCount,
+              reverse_set_count    => $reverseSetCount,
+              combined_count       => $combinedSignatureCount,
+              immediate_rejections => $immediate_rejections,
+              rejected_max_len     => $rejected_max_len,
+              rejected_min_len     => $rejected_min_len,
+              skipped_inner_gap    => $global_skipped_inner_gap,
+              val_rejected         => $val_rejected,
+              min_target_pct       => $signatureCommonTargetMinPercent,
+          }
+      );
+  }
 
   # RECALCUL des intersections complètes (arrays) UNIQUEMENT pour les signatures survivantes
   print "Recalculating complete intersections for " . scalar(@possibleSignatures) . " surviving signatures...\n";
@@ -3224,95 +3307,165 @@ sub binary_search_last_le {
     }
     return $ans;
 }
+# Diagnostic structure en cas de 0 signature finale ou d'echec de worker
+# Structured diagnostic when 0 final signatures are produced or a worker fails
 sub print_zero_signature_diagnostic {
     my ($is_forward, $innerCount, $outerCount, 
         $rej_geometry, $rej_spacing, $rej_loopgap, 
         $rej_tm_inner_loop, $rej_tm_loop_middle, $rej_tm_inner_middle, $rej_tm_middle_outer,
         $min_tm_inner_loop, $min_tm_loop_middle, $min_tm_inner_middle, $min_tm_middle_outer,
-        $min_span_needed, $signatureMaxLength, $maxTmDiff, $opts_r) = @_;
+        $min_span_needed, $signatureMaxLength, $maxTmDiff, $opts_r, $extra_r) = @_;
 
+    $extra_r = {} unless defined $extra_r && ref($extra_r) eq 'HASH';
     my $outBase = defined $opts_r->{'output_file'} ? $opts_r->{'output_file'} : "lava_run";
     my $diagFile = "${outBase}_diagnostic.txt";
     open(my $dfh, '>', $diagFile) or warn "Cannot open $diagFile\n";
-    
-    my $side = $is_forward ? "Forward" : "Reverse";
-    
+
+    # 1. Priorite absolue : echecs de workers enfants (aucune cause dominante designee)
+    # 1. Absolute priority: child worker failures (no dominant cause designated)
+    my $worker_failures_r = $extra_r->{worker_failures};
+    if ($worker_failures_r && ref($worker_failures_r) eq 'ARRAY' && @$worker_failures_r) {
+        my $stage_label = $extra_r->{stage} || "Workers";
+        my $msg = "================================================================================\n";
+        $msg .= "DIAGNOSTIC LAVA (STEM) : ECHEC DE WORKERS ENFANTS ($stage_label)\n";
+        $msg .= "================================================================================\n\n";
+        $msg .= "[ERREURS DE WORKERS ENFANTS]\n";
+        foreach my $werr (@$worker_failures_r) {
+            $msg .= "  - $werr\n";
+        }
+        $msg .= "\nAucune cause biologique ou geometrique dominante n'est designee car au moins\n";
+        $msg .= "un worker enfant a echoue en cours de calcul.\n";
+        $msg .= "================================================================================\n";
+        print $msg;
+        print $dfh $msg if $dfh;
+        close($dfh) if $dfh;
+        return;
+    }
+
+    my $stage = $extra_r->{stage} || ($is_forward ? "forward" : "reverse");
+    my $side  = $is_forward ? "Forward" : "Reverse";
+    my $pc_r  = $extra_r->{pool_counts};
+    my $inc_stem = defined $extra_r->{include_special} ? $extra_r->{include_special} : 1;
+    my $cur_poly = defined $opts_r->{'max_poly_bases'} ? $opts_r->{'max_poly_bases'} : 2;
+    my $cur_cov  = defined $opts_r->{'primer_min_coverage_percent'} ? $opts_r->{'primer_min_coverage_percent'}
+                 : (defined $opts_r->{'min_primer_coverage'} ? $opts_r->{'min_primer_coverage'} : 95);
+    my $cur_deg  = defined $opts_r->{'max_degenerate_bases'} ? $opts_r->{'max_degenerate_bases'}
+                 : (defined $opts_r->{'max_total_degenerate_bases'} ? $opts_r->{'max_total_degenerate_bases'} : 1);
+    my $cur_mm   = defined $opts_r->{'max_tolerated_mismatches'} ? $opts_r->{'max_tolerated_mismatches'} : 0;
+
+    my $header_title = ($stage eq "combine")
+        ? "DIAGNOSTIC LAVA (STEM) : 0 SIGNATURE COMPLETE VALIDEE"
+        : "DIAGNOSTIC LAVA (STEM) : AUCUNE DEMI-SIGNATURE $side TROUVEE";
+
     my $msg = "================================================================================\n";
-    $msg .= "DIAGNOSTIC LAVA : AUCUNE DEMI-SIGNATURE $side TROUVÉE\n";
+    $msg .= "$header_title\n";
     $msg .= "================================================================================\n\n";
 
-    if ($innerCount == 0 || $outerCount == 0) {
-        $msg .= "[CAS 1] PROBLÈME EN AMONT : Pools d'amorces vides.\n";
-        $msg .= "Aucune amorce n'a passé la validation initiale (0 candidat généré).\n";
-        $msg .= "Le problème se situe avant l'assemblage : vos séquences sont probablement trop\n";
-        $msg .= "divergentes dans cette région, ou les contraintes sont trop strictes.\n\n";
-        $msg .= "Pistes de résolution :\n";
-        $msg .= "  - Abaisser --min_primer_coverage (actuel : " . (defined $opts_r->{'min_primer_coverage'} ? $opts_r->{'min_primer_coverage'} : 100) . "%)\n";
-        $msg .= "  - Augmenter --max_total_degenerate_bases (actuel : " . (defined $opts_r->{'max_total_degenerate_bases'} ? $opts_r->{'max_total_degenerate_bases'} : 0) . ")\n";
-        $msg .= "  - Augmenter --max_tolerated_mismatches (actuel : " . (defined $opts_r->{'max_tolerated_mismatches'} ? $opts_r->{'max_tolerated_mismatches'} : 0) . ")\n";
-        $msg .= "  - Élargir la plage de Tm (tm_min, tm_max) des amorces individuelles.\n";
+    my @empty_pools;
+    if ($pc_r && ref($pc_r) eq 'HASH') {
+        my $f_str = sprintf("F3=%d, F2=%d, F1c=%d%s",
+            $pc_r->{F3} // 0, $pc_r->{F2} // 0, $pc_r->{F1c} // 0,
+            $inc_stem ? sprintf(", SF=%d", $pc_r->{SF} // 0) : "");
+        my $r_str = sprintf("B1c=%d, B2=%d, B3=%d%s",
+            $pc_r->{B1c} // 0, $pc_r->{B2} // 0, $pc_r->{B3} // 0,
+            $inc_stem ? sprintf(", SR=%d", $pc_r->{SR} // 0) : "");
+        $msg .= "Pools d'amorces Primer3 (amont) :\n";
+        $msg .= "  Forward : $f_str\n";
+        $msg .= "  Reverse : $r_str\n\n";
+
+        my @req_pools = qw(F3 F2 F1c B1c B2 B3);
+        push @req_pools, qw(SF SR) if $inc_stem;
+        @empty_pools = grep { ($pc_r->{$_} // 0) == 0 } @req_pools;
+    }
+
+    if ($stage eq "combine") {
+        my $fwd_cnt = $extra_r->{forward_set_count} // 0;
+        my $rev_cnt = $extra_r->{reverse_set_count} // 0;
+        my $imm_rej = $extra_r->{immediate_rejections} // 0;
+        my $max_rej = $extra_r->{rejected_max_len} // 0;
+        my $min_rej = $extra_r->{rejected_min_len} // 0;
+        my $gap_rej = $extra_r->{skipped_inner_gap} // 0;
+        my $cov_rej = $extra_r->{val_rejected} // 0;
+        my $min_pct = $extra_r->{min_target_pct} // 95;
+
+        $msg .= "Demi-signatures assemblees : Forward=$fwd_cnt, Reverse=$rev_cnt -> Signatures finales=0\n\n";
+
+        my @p5_causes;
+        push @p5_causes, { name => "Collision geometrique / espacement F-R invalide", rej => $imm_rej, type => "imm" } if $imm_rej > 0;
+        push @p5_causes, { name => "Chevauchement interne F1c/B1c (inner_gap)", rej => $gap_rej, type => "gap" } if $gap_rej > 0;
+        push @p5_causes, { name => "Longueur totale > signature_max_length ($signatureMaxLength nt)", rej => $max_rej, type => "maxlen" } if $max_rej > 0;
+        push @p5_causes, { name => "Longueur totale < signature_min_length", rej => $min_rej, type => "minlen" } if $min_rej > 0;
+        push @p5_causes, { name => "Couverture d'intersection insuffisante (< $min_pct%)", rej => $cov_rej, type => "cov" } if $cov_rej > 0;
+
+        @p5_causes = sort { $b->{rej} <=> $a->{rej} } @p5_causes;
+        if (@p5_causes) {
+            my $top = $p5_causes[0];
+            $msg .= "[CAUSE DOMINANTE] $top->{name} ($top->{rej} rejets en Phase 5)\n";
+            if ($top->{type} eq "imm" || $top->{type} eq "gap" || $top->{type} eq "maxlen") {
+                $msg .= "  -> Les demi-signatures Forward et Reverse (8 amorces avec FSTEM/BSTEM) se\n";
+                $msg .= "     chevauchent dans la fenetre disponible ou depassent --signature_max_length ($signatureMaxLength nt).\n";
+            } elsif ($top->{type} eq "cov") {
+                $msg .= "  -> Aucune signature complete n'atteint le seuil --signature_common_target_min_percent ($min_pct%).\n";
+            }
+        } else {
+            $msg .= "[CAUSE DOMINANTE] Aucune paire Forward/Reverse compatible lors de la combinaison.\n";
+        }
+    } elsif ($innerCount == 0 || $outerCount == 0 || @empty_pools) {
+        my $empty_str = @empty_pools ? join(", ", @empty_pools) : "Inner/Outer";
+        $msg .= "[CAUSE DOMINANTE] Pools d'amorces vides en amont (0 candidat pour : $empty_str)\n";
+        $msg .= "Le filtrage initial (Primer3 / homopolymeres / conservation) a elimine tous les\n";
+        $msg .= "candidats sur au moins un pool obligatoire avant ou pendant l'assemblage.\n\n";
+        $msg .= "Pistes de resolution :\n";
+        $msg .= "  - Augmenter --max_poly_bases (actuel : $cur_poly)\n";
+        $msg .= "  - Reduire les longueurs d'amorces stem (--stem_primer_min_length 15 --stem_primer_target_length 18 --stem_primer_max_length 22)\n";
+        $msg .= "  - Abaisser --primer_min_coverage_percent (actuel : $cur_cov%)\n";
+        $msg .= "  - Augmenter --max_degenerate_bases (actuel : $cur_deg) ou --max_tolerated_mismatches (actuel : $cur_mm)\n";
     } else {
-        $msg .= "[CAS 2] PROBLÈME D'ASSEMBLAGE : Incompatibilité des contraintes.\n";
-        $msg .= "Les pools sont non vides (ex: $innerCount amorces F1c/B1c), mais aucune combinaison\n";
-        $msg .= "ne respecte toutes les contraintes de température et d'espacement.\n\n";
-        
         my @causes;
         push @causes, { name => "Thermodynamique (Inner/Stem)", rej => $rej_tm_inner_loop, min => $min_tm_inner_loop, param => "max_tm_diff", type => "tm" } if $rej_tm_inner_loop > 0;
         push @causes, { name => "Thermodynamique (Stem/Middle)", rej => $rej_tm_loop_middle, min => $min_tm_loop_middle, param => "max_tm_diff", type => "tm" } if $rej_tm_loop_middle > 0;
         push @causes, { name => "Thermodynamique (Inner/Middle)", rej => $rej_tm_inner_middle, min => $min_tm_inner_middle, param => "max_tm_diff", type => "tm" } if $rej_tm_inner_middle > 0;
         push @causes, { name => "Thermodynamique (Middle/Outer)", rej => $rej_tm_middle_outer, min => $min_tm_middle_outer, param => "max_tm_diff", type => "tm" } if $rej_tm_middle_outer > 0;
-        
-        push @causes, { name => "Espacement / Géométrie (Trop court)", rej => $rej_spacing, min => $min_span_needed, param => "signature_max_length", type => "span" } if $rej_spacing > 0;
+        push @causes, { name => "Espacement / Geometrie (Trop court)", rej => $rej_spacing, min => $min_span_needed, param => "signature_max_length", type => "span" } if $rej_spacing > 0;
         push @causes, { name => "Espacement (Loop Gap)", rej => $rej_loopgap, min => 0, param => "loop_min_gap", type => "gap" } if $rej_loopgap > 0;
-        push @causes, { name => "Contraintes Géométriques Générales", rej => $rej_geometry, min => 0, param => "search_range", type => "geom" } if $rej_geometry > 0;
-        
+        push @causes, { name => "Contraintes Geometriques Generales", rej => $rej_geometry, min => 0, param => "search_range", type => "geom" } if $rej_geometry > 0;
+
         @causes = sort { $b->{rej} <=> $a->{rej} } @causes;
-        
         my $total_rej = $rej_geometry + $rej_spacing + $rej_loopgap + $rej_tm_inner_loop + $rej_tm_loop_middle + $rej_tm_inner_middle + $rej_tm_middle_outer;
-        
+
         if (@causes && $total_rej > 0) {
             my $primary = $causes[0];
             my $pct = sprintf("%.1f", ($primary->{rej} / $total_rej) * 100);
-            $msg .= "-> Cause principale : $primary->{name} ($pct% des rejets)\n";
-            
+            $msg .= "[CAUSE DOMINANTE] $primary->{name} ($pct% des $total_rej rejets $side)\n";
             if ($primary->{type} eq 'tm') {
-                $msg .= "   - Meilleur écart atteignable : " . sprintf("%.2f", $primary->{min}) . " °C.\n";
-                $msg .= "   - Votre limite --max_tm_diff est : " . sprintf("%.2f", $maxTmDiff) . " °C.\n";
-                my $suggest = int($primary->{min} + 1.5);
-                if ($suggest > 10) {
-                    $msg .= "   => SUGGESTION : Les séquences sont très divergentes. Une valeur > 10 °C n'est pas recommandée.\n";
-                    $msg .= "      Envisagez de segmenter la cible ou de relâcher les paramètres d'amont.\n";
-                } else {
-                    $msg .= "   => SUGGESTION : Essayez --max_tm_diff $suggest\n";
-                }
+                $msg .= "   - Meilleur ecart atteignable : " . sprintf("%.2f", $primary->{min}) . " C (limite --max_tm_diff : " . sprintf("%.2f", $maxTmDiff) . " C).\n";
             } elsif ($primary->{type} eq 'span') {
-                $msg .= "   - Empan minimal nécessaire : $primary->{min} nt.\n";
-                $msg .= "   - Votre --signature_max_length est : $signatureMaxLength nt.\n";
-                my $suggest = $primary->{min} + 20;
-                $msg .= "   => SUGGESTION : Essayez --signature_max_length $suggest\n";
-            } elsif ($primary->{type} eq 'gap') {
-                $msg .= "   - Collision avec le loop_min_gap détectée.\n";
-                $msg .= "   => SUGGESTION : Essayez de réduire --loop_min_gap ou d'augmenter l'espace total.\n";
+                $msg .= "   - Empan minimal necessaire : $primary->{min} nt (--signature_max_length : $signatureMaxLength nt).\n";
             }
-            
-            if (scalar(@causes) > 1) {
-                my $sec = $causes[1];
-                my $pct2 = sprintf("%.1f", ($sec->{rej} / $total_rej) * 100);
-                $msg .= "\n-> Cause secondaire : $sec->{name} ($pct2% des rejets)\n";
-                if ($sec->{type} eq 'tm') {
-                    $msg .= "   - Meilleur écart atteignable : " . sprintf("%.2f", $sec->{min}) . " °C.\n";
-                } elsif ($sec->{type} eq 'span') {
-                    $msg .= "   - Empan minimal nécessaire : $sec->{min} nt.\n";
-                }
-            }
+        } else {
+            $msg .= "[CAUSE DOMINANTE] Incompatibilite geometrique des pools $side ($innerCount amorces internes, $outerCount externes).\n";
         }
     }
-    
-    if ($is_forward) {
-        $msg .= "\nLe scan Reverse n'a pas été exécuté car aucune demi-signature Forward n'a été trouvée.\n";
+
+    if ($stage eq "forward") {
+        $msg .= "\nLe scan Reverse n'a pas ete execute car aucune demi-signature Forward n'a ete trouvee.\n";
+    }
+
+    if ($cur_poly <= 2) {
+        $msg .= "\nNote : max_poly_bases est au defaut strict (2) et les longueurs d'amorces stem\n";
+        $msg .= "       par defaut (18/22/25 nt) exigent un empan important pour loger 8 amorces.\n";
+        $msg .= "       Sur un alignement viral court ou riche en A/T, essayez --max_poly_bases 5\n";
+        $msg .= "       avec des amorces stem plus courtes (--stem_primer_min_length 15\n";
+        $msg .= "       --stem_primer_target_length 18 --stem_primer_max_length 22), ou directement\n";
+        $msg .= "       --option_file t_data/normal_stem_parameters.xml.\n";
+    } else {
+        $msg .= "\nNote : les longueurs d'amorces stem par defaut (18/22/25 nt) exigent un empan\n";
+        $msg .= "       important pour loger 8 amorces sans chevauchement. Sur une cible courte,\n";
+        $msg .= "       essayez --stem_primer_min_length 15 --stem_primer_target_length 18\n";
+        $msg .= "       --stem_primer_max_length 22 ou --option_file t_data/normal_stem_parameters.xml.\n";
     }
     $msg .= "================================================================================\n";
-    
+
     print $msg;
     print $dfh $msg if $dfh;
     close($dfh) if $dfh;

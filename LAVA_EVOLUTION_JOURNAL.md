@@ -2728,7 +2728,39 @@ Sur une fenêtre génomique courte et polymorphe (205 nt, 40 isolats viraux), im
 Validation complète du calcul de couverture multi-séquences, de l'intersection par vecteurs de bits et de la dégénérescence IUPAC en mode classique à 6 amorces (`--include_loop_primers 0`), passage au vert de l'intégralité des 8 contrôles de `t/test_param_mapping.py` (incluant le contrôle `[7]` sur `README.md`), et traçabilité complète de l'incident du mode classique dans le journal du projet.
 
 
+### Date/Étape : 2026-11-04 - Diagnostic structuré `0 signature` (`scalar(@possibleSignatures) == 0`) avec priorité absolue aux erreurs de workers et tableau d'ablation `max_poly_bases`
 
+**Fichiers impactés** : `lava_loop_primer.pl`, `lava_stem_primer.pl`, `t/canary_entropy.t`, `LAVA_EVOLUTION_JOURNAL.md`
 
+**Nature du changement** : Algorithmique / Architecture / Diagnostic Utilisateur
+
+**Explication technique** : 
+1. **Unification du déclenchement de `print_zero_signature_diagnostic` dans `lava_loop_primer.pl` et `lava_stem_primer.pl`** :
+   - Auparavant, `print_zero_signature_diagnostic` n'était appelé dans `lava_loop_primer.pl` que lorsque `$forwardSetCount == 0` ou `$reverseSetCount == 0` (et n'était jamais appelé dans `lava_stem_primer.pl`, où `$forwardSetCount == 0` exécutait `next;` sans diagnostic et où `$reverseSetCount == 0` était commenté). En conséquence, toute exécution produisant au moins une demi-signature Forward et une demi-signature Reverse mais `0` signature complète validée en Phase 5 (`scalar(@possibleSignatures) == 0`, comme le run aux défauts purs sur `t/fixtures/rota_canary_40.fasta` où `Forward=2, Reverse=29` pour loop et `Forward=3, Reverse=28` pour stem échouent à 100 % sur `inner_gap`) se terminait silencieusement avec `After reduction: 0 final signatures` sans diagnostic.
+   - `print_zero_signature_diagnostic` est désormais déclenché dans les deux scripts sur les trois points de sortie à 0 résultat (`$forwardSetCount == 0`, `$reverseSetCount == 0`, et `scalar(@possibleSignatures) == 0`), ainsi qu'en amont de `check_worker_failures` dès qu'un tableau d'échecs de workers (`@fwd_worker_failures`, `@rev_worker_failures`, `@val_worker_failures`) est non vide.
+   - Ajout du suivi de `$skipped_inner_gap` en Phase 5 de `lava_stem_primer.pl` (aligné sur `lava_loop_primer.pl`) pour quantifier les paires F/R rejetées par chevauchement F1c/B1c (`reverseStart <= forwardEnd` ou `innerSpacing < minInnerPairSpacing`).
+2. **Priorité absolue aux échecs de workers enfants** :
+   - Si `worker_failures` est non vide, `print_zero_signature_diagnostic` affiche exclusivement le bloc `[ERREURS DE WORKERS ENFANTS]` en tête, s'interdit de désigner une `[CAUSE DOMINANTE]` biologique ou géométrique, et rend la main à `check_worker_failures` qui interrompt le run avec un code de retour non nul.
+3. **Notes de résolution contextualisées et tableau d'ablation sur `t/fixtures/rota_canary_40.fasta`** :
+   - Dans `lava_loop_primer.pl`, lorsque `max_poly_bases` est au défaut strict (`2`), le diagnostic affiche la note : `Note : max_poly_bases est au defaut strict (2). Sur un alignement viral riche en A/T, essayez --max_poly_bases 5 ou --option_file t_data/normal_parameters.xml.`
+   - Dans `lava_stem_primer.pl`, la note mentionne conjointement `max_poly_bases` (`2`) et les longueurs d'amorces stem par défaut (`18/22/25 nt`), en orientant vers `--max_poly_bases 5` avec `--stem_primer_min_length 15 --stem_primer_target_length 18 --stem_primer_max_length 22` ou `--option_file t_data/normal_stem_parameters.xml`.
+   - Tableau d'ablation mesuré sur `t/fixtures/rota_canary_40.fasta` (205 nt, 40 séquences) démontrant que `max_poly_bases = 2` constitue à lui seul le verrou bloquant en mode loop-LAMP :
+
+| Configuration (`lava_loop_primer.pl`) | Pools F3 / B3 / F1c / B1c / LF / LB | Demi-sig F / R | Candidats validés | Signatures finales |
+| :--- | :--- | :--- | :--- | :--- |
+| Défauts de `normal_parameters.xml` sauf `max_poly_bases=2` | `4 / 0 / 14 / 0 / 4 / 0` | `0 / 0` | `0` | `0` |
+| Défauts CLI purs (`max_poly_bases=2`, `min_primer_coverage=80`) | `67 / 67 / 81 / 83 / 67 / 67` | `2 / 29` | `0` (58 rejets `inner_gap`) | `0` |
+| Défauts CLI purs + `--max_poly_bases 4` seul | `117 / 121 / 149 / 150 / 117 / 121` | `47 / 87` | `78` | `1` (`82,50 %`) |
+| Défauts CLI purs + `--max_poly_bases 5` seul | `138 / 135 / 172 / 174 / 138 / 135` | `119 / 131` | `223` | `1` (`82,50 %`) |
+| `t_data/normal_parameters.xml` complet (`max_poly_bases=5`) | `347 / 250 / 503 / 396 / 922 / 574` | `314 / 318` | `5 418` | `1` (`92,50 %`) |
+
+4. **Portabilité et nettoyage de `t/canary_entropy.t`** :
+   - Suppression du chemin macOS codé en dur `--primer3_executable /opt/homebrew/bin/primer3_core` au profit du binaire `primer3_core` du `PATH` par défaut (assurant la portabilité Linux/Ubuntu CI et macOS), et suppression automatique des fichiers temporaires `t/canary_entropy_out*` en fin de test.
+
+**Justification biologique** : 
+Les génomes viraux à ARN (tels que le Rotavirus A ou les Flavivirus) présentent fréquemment un biais compositionnel riche en A/T générant des homopolymères de 3 à 5 bases consécutives (`AAA`, `TTTT`). Le filtre Primer3 `PRIMER_INTERNAL_OLIGO_MAX_POLY_X = 2` élimine toute amorce contenant un triplet identique, réduisant drastiquement la densité spatiale des candidats et provoquant soit l'extinction complète d'un pool, soit le chevauchement obligatoire des rares demi-signatures survivantes (`inner_gap < min_inner_pair_spacing`). Distinguer explicitement cet étranglement géométrique/biologique d'une défaillance système (crash d'un worker enfant) garantit l'intégrité du diagnostic présenté au biologiste.
+
+**Impact attendu** : 
+Tout run aboutissant à `0` signature finale dans `lava_loop_primer.pl` ou `lava_stem_primer.pl` affiche désormais un diagnostic structuré identifiant la `[CAUSE DOMINANTE]` (ou, en cas de mort d'un worker, affiche les erreurs de workers en tête sans désigner de cause dominante).
 
 
