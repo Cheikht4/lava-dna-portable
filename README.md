@@ -86,13 +86,39 @@ sudo systemctl restart lava-dna
 * **Moteur scientifique Perl (`lava_loop_primer.pl`, `lava_stem_primer.pl`, modules hérités)** : sous licence open-source BSD 3-Clause (LLNL / Clinton Torres / Cheikh Talibouya).
 * **Interface Graphique Web & Suite de Déploiement (`lava_flask_app.py`, `templates/`, `static/`, `deployment/`)** : **Licence Propriétaire - Tous droits réservés (Cheikh Talibouya)**. L'utilisation, la reproduction, la modification, la distribution ou le déploiement clinique/commercial de cette interface web est strictement soumis à l'autorisation écrite préalable de l'auteur. Voir le fichier `LICENSE` pour les détails complets.
 
-## Vérification de l'installation
+## Vérification de l'installation et Utilisation CLI / Command-Line Usage & Presets
 
-Vous pouvez vérifier que le moteur scientifique fonctionne correctement en lançant un test de fumée avec les données de test fournies (dossier `t_data/`) :
+LAVA fournit deux scripts de conception indépendants :
+- `lava_loop_primer.pl` : conçoit des signatures LAMP avec amorces de boucle (`F3, B3, FIP [F1c+F2], BIP [B1c+B2], FLOOP, BLOOP`) ou en mode classique à 6 amorces (`--include_loop_primers 0`).
+- `lava_stem_primer.pl` : conçoit des signatures LAMP avec amorces de tige (`F3, B3, FIP [F1c+F2], BIP [B1c+B2], FSTEM, BSTEM`) ou en mode classique à 6 amorces (`--include_stem_primers 0`).
+
+### 1. Commandes de démarrage rapide (Quick Start)
+
+Vous pouvez vérifier que le moteur scientifique fonctionne correctement sur l'alignement de référence fourni (`t/fixtures/rota_canary_40.fasta`, 40 séquences de Rotavirus A) :
 
 ```bash
-# Vérifier la conception d'amorces STEM sur un gène cible (S. aureus)
-perl lava_stem_primer.pl --params t_data/s_aureus_parameters.xml
+# 1. Conception loop-LAMP (8 amorces : F3, B3, F2, B2, F1, B1, FLOOP, BLOOP)
+perl -Ilib lava_loop_primer.pl --option_file t_data/normal_parameters.xml \
+  --alignment_fasta t/fixtures/rota_canary_40.fasta --output_file /tmp/out_loop.fasta
+
+# 2. Conception stem-LAMP (8 amorces : F3, B3, F2, B2, F1, B1, FSTEM, BSTEM)
+perl -Ilib lava_stem_primer.pl --option_file t_data/normal_stem_parameters.xml \
+  --alignment_fasta t/fixtures/rota_canary_40.fasta --output_file /tmp/out_stem.fasta
+
+# 3. Conception LAMP classique à 6 amorces (sans amorces de boucle : F3, B3, F2, B2, F1, B1)
+perl -Ilib lava_loop_primer.pl --option_file t_data/normal_parameters.xml \
+  --alignment_fasta t/fixtures/rota_canary_40.fasta --output_file /tmp/out_classic.fasta \
+  --include_loop_primers 0
 ```
 
-Si la commande réussit, vous verrez des fichiers de sortie générés dans le dossier courant (ex: `results_stem_*.primers`). Assurez-vous d'avoir installé les modules Perl `BioPerl` et `XML::LibXML` et que `primer3_core` est bien dans le PATH.
+### 2. Fichiers de préréglages (`t_data/`) et priorité des options
+
+- **Priorité de la ligne de commande** : toute option passée explicitement sur la ligne de commande l'emporte sur la balise correspondante du fichier `--option_file` (par exemple `--alignment_fasta`, `--output_file` ou `--include_loop_primers 0`).
+- **Gradation des préréglages loop-LAMP** sur `t/fixtures/rota_canary_40.fasta` (40 séquences) :
+  - `t_data/strict_parameters.xml` : **1 121** combinaisons candidates évaluées -> **1** signature finale retenue (`37/40` séquences, couverture `92,50 %`, pénalité `7,90`).
+  - `t_data/normal_parameters.xml` : **5 418** combinaisons candidates évaluées -> **1** signature finale retenue (`37/40` séquences, couverture `92,50 %`, pénalité `7,90`).
+  - `t_data/loose_parameters.xml` : **17 333** combinaisons candidates évaluées -> **1** signature finale retenue (`37/40` séquences, couverture `92,50 %`, pénalité `7,90`).
+  - En mode classique à 6 amorces (`--option_file t_data/normal_parameters.xml --include_loop_primers 0`) : **27 433** combinaisons candidates évaluées -> **1** signature finale retenue (`37/40` séquences, couverture `92,50 %`, pénalité `3,70`).
+- **Note sur `t_data/normal_stem_parameters.xml`** : la fixture `t/fixtures/rota_canary_40.fasta` n'offre que **205 nucléotides exploitables**, ce qui est très court pour empiler 8 amorces sans chevauchement (`F3, F2, F1, FSTEM, BSTEM, B1, B2, B3`). Le fichier `t_data/normal_stem_parameters.xml` utilise donc des longueurs d'amorces stem réduites (`15/18/22 nt`) adaptées à cette fenêtre courte (**417** candidats évalués -> **1** signature finale, couverture `92,50 %`, pénalité `7,89`) ; il constitue un point de départ pour vérifier l'installation plutôt qu'un préréglage de production universel.
+
+Assurez-vous d'avoir installé les modules Perl requis (`Bio::SeqIO`, `Bio::AlignIO`, `Bio::SimpleAlign`, `Bio::LocatableSeq`, `XML::LibXML`, ainsi que `Clone` via `Bio::Root::Root`) et que `primer3_core` (>= 2.5) est bien dans le `PATH`.

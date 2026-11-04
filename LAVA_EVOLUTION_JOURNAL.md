@@ -2696,6 +2696,39 @@ Un essai LAMP classique selon Notomi et al. (2000) repose sur 6 amorces (F3, B3,
 Le fichier d'options historique `t_data/s_aureus_parameters.xml` (`<include_loop_primers>0</include_loop_primers>`) s'exécute désormais sans modification et produit 8 220 candidats validés réduits à 1 signature finale à 6 amorces (`F3, B3, F2, B2, F1, B1`, couverture 100 %, pénalité 2,36), cohérente géométriquement avec l'exécution en mode `1` (qui ajoute `FLOOP` et `BLOOP` sur les mêmes amorces Forward `F3: 76-95, F2: 130-149, F1: 187-209`). Le mode "Classic LAMP (6 primers)" de l'interface Web redevient pleinement fonctionnel.
 
 
+### Date/Étape : 2026-11-04 - Post-mortem du faux négatif en mode LAMP Classique (25 juillet - 4 novembre 2026), validation multi-séquences sur Rotavirus et mise à jour du démarrage rapide (README.md)
+
+**Fichiers impactés** : `README.md`, `LAVA_EVOLUTION_JOURNAL.md`
+
+**Nature du changement** : Documentation / Post-mortem / Validation Scientifique
+
+**Explication technique** : 
+1. **Consignation de l'incident du service Web : un faux négatif présenté comme un résultat biologique du 25 juillet 2026 (`f9de513`) au 4 novembre 2026 (`e4682da` / `9e5d2f2`)** :
+   - Dans l'interface Web (`templates/index.html`, lignes 115-120), l'utilisateur disposait du bouton radio `name="lamp_mode" value="classic"` intitulé :
+     - en français : `"LAMP Classique (6 primers) - F3, F2, F1, B1, B2, B3 seulement"` ;
+     - en anglais : `"Classic LAMP (6 primers) - F3, F2, F1, B1, B2, B3 only"`.
+   - Dans `lava_flask_app.py` (`_apply_lamp_mode`, lignes 643-649), ce choix affectait `params['include_loop_primers'] = False`, traduit à la ligne 1240 en `--include_loop_primers 0`.
+   - En phase 5 de `lava_loop_primer.pl`, tous les workers enfants mouraient sur `Can't call method "getLocation" on unblessed reference at lib/LLNL/LAVA/Validator.pm line 485`, mais le processus parent ignorait `$exit_code` et se terminait avec `Exiting normally` (`code 0`) et `0` signature écrite.
+   - L'application Flask interprétait ce code `0` sans signature comme un résultat négatif normal (`status = 'completed_no_results'`) et affichait à l'utilisateur le badge `"Terminé (0 signature)"` / `"Completed (0 signatures)"` accompagné du diagnostic (`lava_flask_app.py`, lignes 201 et 415) :
+     - `"Exécution terminée : aucune signature trouvée avec les paramètres actuels. Essayez d'assouplir les seuils (couverture, dégénérescence) ou de vérifier l'alignement d'entrée."`
+     - `"Execution completed: no signatures found with the current parameters. Try relaxing thresholds (coverage, degeneracy) or check the input alignment."`
+   - Durant trois mois et dix jours (du 25 juillet au 4 novembre 2026), toute sélection de ce mode pour `lava_loop_primer.pl` retournait donc un **faux négatif présenté comme une conclusion biologique valide** (absence d'amorces compatibles sur l'alignement soumis), alors même que le manuscrit (`LAVA_virus_article_v12.docx`, paragraphes 13 et 24) décrivait explicitement le support de l'architecture classique à 6 amorces (`F3, F2, F1, B1, B2, B3`) et ses seuils dédiés (`49` et `76 nt` entre F2 et F1c lorsque les amorces de boucle sont omises).
+   - Sur les 225 fichiers `.params.txt` archivés localement dans `results/` (du 27 avril au 3 septembre 2026), les 4 exécutions en mode `classic` sur `lava_loop_primer.pl` (`fievre_jaune_..._03072026`, `HPA-Gallele2A2142G`, `HPA-Gallele2A2142G_Loop`, `testMAIN`) datent des 3 et 24 juillet 2026 (antérieures à `f9de513`) ; aucune des 58 exécutions locales postérieures au 25 juillet n'a utilisé `include_loop_primers: 0`.
+2. **Validation du mode classique (`--include_loop_primers 0`) sur un véritable alignement multi-séquences (`t/fixtures/rota_canary_40.fasta`, 40 séquences)** :
+   - Exécuté avec `--option_file t_data/normal_parameters.xml --include_loop_primers 0`, `lava_loop_primer.pl` évalue et valide **27 433** candidats (100 % >= seuil de couverture 70 %), réduits par NMS à **1** signature finale de **159 bp** couvrant **37/40 séquences (92,50 %)** avec **1 base dégénérée** (`>1_F3 ATTTCACCRGATGCAGAAGC`, base `R` en position génomique 54) et une pénalité totale de **3,7028035** (`Total F:1.0 R:2.7`).
+   - Comparaison géométrique avec le mode 1 (`--include_loop_primers 1`, **5 418** candidats -> **1** signature finale de **205 bp**, `37/40` séquences / `92,50 %`, pénalité **7,8984695**) : contrairement au segment de *S. aureus* (560 nt) où F3/F2/F1 restaient immobiles, sur les 205 nt de la fixture Rotavirus la levée de la contrainte `loop_min_gap = 20 nt` décale tout le demi-ensemble Forward vers le coeur conservé de l'amplicon (`F3: 46-65`, `F2: 79-98`, `F1: 104-126` en mode 0, contre `F3: 0-19`, `F2: 22-43`, `FLOOP: 46-65`, `F1: 78-100` en mode 1). En mode 0, `F3 (46-65)` occupe exactement le locus de `FLOOP (46-65)` du mode 1 (portant le même polymorphisme en position 54 : `R` sur brin plus contre `Y` sur brin moins), `F2 (79-98)` occupe le locus de `F1 (78-100)` du mode 1, et `F1 (104-126)` occupe le locus de `B1 (104-126)` du mode 1, évitant ainsi les régions 5' plus pénalisées (`0-19` et `22-43`).
+3. **Mise à jour de `README.md`** :
+   - Remplacement de la commande invalide `perl lava_stem_primer.pl --params t_data/s_aureus_parameters.xml` par les trois commandes courtes validées (loop-LAMP 8 amorces avec `t_data/normal_parameters.xml`, stem-LAMP 8 amorces avec `t_data/normal_stem_parameters.xml`, et LAMP classique 6 amorces avec `--include_loop_primers 0`).
+   - Documentation de la priorité de la ligne de commande sur `--option_file`, de la gradation `strict` (`1 121` candidats) / `normal` (`5 418`) / `loose` (`17 333`), et de la note explicative sur les 205 nt exploitables de `t/fixtures/rota_canary_40.fasta` justifiant les longueurs stem réduites (`15/18/22 nt`) de `t_data/normal_stem_parameters.xml`.
+
+**Justification biologique** : 
+Sur une fenêtre génomique courte et polymorphe (205 nt, 40 isolats viraux), imposer deux amorces de boucle (`FLOOP` et `BLOOP`) avec un espacement minimal `loop_min_gap = 20 nt` entre F2 et F1c / B1c et B2 force l'algorithme à repousser F3 et F2 vers les extrémités 5' de la fenêtre (`0-19` et `22-43`), où la stabilité thermodynamique est moins optimale (`Thm[M:2.8 O:1.7]`). L'omission des amorces de boucle en mode classique (`--include_loop_primers 0`) permet de compacter l'amplicon de 205 bp à 159 bp (`46..204`) en réutilisant les îlots internes les mieux conservés (`46-65`, `79-98`, `104-126`, `130-152`), divisant par plus de deux la pénalité thermodynamique (`3,70` contre `7,90`) tout en conservant la même couverture virale (`37/40` séquences, `92,50 %`) et une seule base dégénérée (`R` en position 54).
+
+**Impact attendu** : 
+Validation complète du calcul de couverture multi-séquences, de l'intersection par vecteurs de bits et de la dégénérescence IUPAC en mode classique à 6 amorces (`--include_loop_primers 0`), passage au vert de l'intégralité des 8 contrôles de `t/test_param_mapping.py` (incluant le contrôle `[7]` sur `README.md`), et traçabilité complète de l'incident du mode classique dans le journal du projet.
+
+
+
 
 
 
