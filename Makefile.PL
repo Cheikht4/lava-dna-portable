@@ -59,8 +59,18 @@ use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
-    'NAME'      => 'LLNL::LAVA::Constants',
+    'NAME'         => 'LLNL::LAVA::Constants',
     'VERSION_FROM' => 'lib/LLNL/LAVA/Constants.pm', # finds $VERSION
+    # Dépendances directes du moteur LAVA / Direct dependencies of the LAVA engine
+    # Note : Clone est requis transitivement par Bio::Root::Root (BioPerl), pas directement par LAVA.
+    # Note: Clone is required transitively by Bio::Root::Root (BioPerl), not directly by LAVA.
+    'PREREQ_PM'    => {
+        'Bio::SeqIO'        => 0,
+        'Bio::AlignIO'      => 0,
+        'Bio::SimpleAlign'  => 0,
+        'Bio::LocatableSeq' => 0,
+        'XML::LibXML'       => 0,
+    },
     #'PREFIX' => '/usr/local/perl-5.6.1/lib/site_perl', # Where to install to
 );
 

@@ -19,7 +19,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y primer3 bioperl libxml-libxml-perl
+          sudo apt-get install -y primer3 bioperl libxml-libxml-perl libclone-perl
 
       - name: Verify primer3_core is in PATH
         run: which primer3_core || echo "primer3_core not found in PATH"
@@ -50,6 +50,12 @@ jobs:
 
       - name: Run Engine Parameters Mapping Audit
         run: python3 t/test_param_mapping.py
+
+      - name: Run Full Test Suite
+        run: |
+          export PERL5LIB=$GITHUB_WORKSPACE/lib
+          prove -v -Ilib t/*.t
+          rm -rf t/canary_*_per_signature t/canary_*_signatures_individuelles t/canary_entropy_out*
 
       - name: Run Canary Regression Test
         run: |

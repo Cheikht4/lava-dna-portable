@@ -471,6 +471,24 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
   # the file IO parameters.
   GetOptions(%optionMap) or die "FATAL: Options de ligne de commande invalides (Unknown option).\n";
   loadOptionsFromFile(\%options);
+  # Validation des balises chargees depuis option_file contre %optionMap
+  # Validate tags loaded from option_file against %optionMap
+  {
+    my %validOptionNames;
+    foreach my $spec (keys %optionMap) {
+      my ($names) = split(/[=:]/, $spec, 2);
+      foreach my $alias (split(/\|/, $names)) {
+        $validOptionNames{$alias} = 1;
+      }
+    }
+    foreach my $optKey (sort keys %options) {
+      next if $optKey =~ /^#/; # Ignorer les noeuds #comment / #text de XML::LibXML / Skip XML::LibXML #comment / #text nodes
+      if (!exists $validOptionNames{$optKey}) {
+        my $optFile = defined $options{"option_file"} ? $options{"option_file"} : "option_file";
+        die "FATAL: Balise d'option inconnue '$optKey' dans le fichier d'options '$optFile' (Unknown option in option_file).\n";
+      }
+    }
+  }
   my $options_r = \%options;
 
   # TODO: perl-check for file existence cause BioPerl dump isn't useful

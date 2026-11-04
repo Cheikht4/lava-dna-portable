@@ -92,10 +92,22 @@ WHITELIST=(
     "lava_loop_primer.pl"
     "lava_stem_primer.pl"
     "lava_flask_app.py"
+    "Makefile.PL"
     "templates"
     "lib"
     "t/baseline"
+    "t/10_testConstants.t"
+    "t/10_testOptions.t"
+    "t/20_testTagHolder.t"
+    "t/30_testValidator.t"
+    "t/31_testCore.t"
+    "t/32_testPipelineUtils.t"
+    "t/33_testDistanceMath.t"
+    "t/canary_entropy.t"
     "t/canary_regression.t"
+    "t/synthetic_entropy.fasta"
+    "t_data/test_options_file.xml"
+    "t_data/normal_stem_parameters.xml"
     "t/fixtures"
     "t/test_form_names.py"
     "t/test_flask_param_mapping.py"
@@ -252,7 +264,19 @@ verify_checksum_coherence() {
         "lava_loop_primer.pl"
         "lava_stem_primer.pl"
         "lava_flask_app.py"
+        "Makefile.PL"
+        "t/10_testConstants.t"
+        "t/10_testOptions.t"
+        "t/20_testTagHolder.t"
+        "t/30_testValidator.t"
+        "t/31_testCore.t"
+        "t/32_testPipelineUtils.t"
+        "t/33_testDistanceMath.t"
+        "t/canary_entropy.t"
         "t/canary_regression.t"
+        "t/synthetic_entropy.fasta"
+        "t_data/test_options_file.xml"
+        "t_data/normal_stem_parameters.xml"
         "t/test_form_names.py"
         "t/test_flask_param_mapping.py"
         "t/test_param_mapping.py"
@@ -350,32 +374,81 @@ verify_baseline_counts 0
 
 echo ""
 echo "============================================================"
-echo "TESTS CANARY SUR LES DEPOTS CIBLES"
+echo "SUITE COMPLETE DE TESTS SUR LA SOURCE ET LES DEPOTS CIBLES"
 echo "============================================================"
+
+# Execute prove -v -Ilib t/*.t in a repository and clean up generated artifacts
+# Executer prove -v -Ilib t/*.t dans un depot et nettoyer les artefacts generes
+run_suite_in_repo() {
+    local repo_dir="$1"
+    local out_file="$2"
+    (
+        cd "$repo_dir"
+        export PERL5LIB="$PWD/lib"
+        rm -rf t/canary_*_per_signature t/canary_*_signatures_individuelles t/canary_entropy_out*
+        set +e
+        prove -v -Ilib t/*.t > "$out_file" 2>&1
+        local rc=$?
+        rm -rf t/canary_*_per_signature t/canary_*_signatures_individuelles t/canary_entropy_out*
+        exit $rc
+    )
+}
+
+# Parse TAP plans (1..N) and ok/not ok lines from prove -v output
+# Extraire les plans TAP (1..N) et les lignes ok/not ok depuis la sortie de prove -v
+parse_tap_counts() {
+    local out_file="$1"
+    awk '
+        /^1\.\.[0-9]+$/ { sub(/^1\.\./, ""); plan += $1; files++ }
+        /^ok [0-9]+/ { passed++ }
+        /^[Nn][Oo][Tt] ok [0-9]+/ { failed++ }
+        END { printf "%d %d %d %d\n", files+0, plan+0, passed+0, failed+0 }
+    ' "$out_file"
+}
+
+PROVE_TMP="$(mktemp)"
+trap 'rm -f "$PROVE_TMP"' EXIT
+SUITE_OK=1
+
+echo "-> Lancement de la suite complete sur la source ($REPO_ROOT)"
+set +e
+run_suite_in_repo "$REPO_ROOT" "$PROVE_TMP"
+SRC_RC=$?
+set -e
+read -r SRC_FILES SRC_PLAN SRC_PASSED SRC_FAILED < <(parse_tap_counts "$PROVE_TMP")
+
+if [ "$SRC_RC" -ne 0 ] || [ "$SRC_FAILED" -ne 0 ] || [ "$SRC_PASSED" -ne "$SRC_PLAN" ] || [ "$SRC_PLAN" -eq 0 ]; then
+    echo "   [FAIL] ERREUR LORS DE LA SUITE DE TESTS SUR LA SOURCE ($REPO_ROOT) (plan: $SRC_PLAN, reussis: $SRC_PASSED, echecs: $SRC_FAILED, fichiers: $SRC_FILES) !" >&2
+    cat "$PROVE_TMP" >&2
+    SUITE_OK=0
+else
+    echo "   [PASS] Source $SRC_PASSED/$SRC_PLAN OK ($SRC_FILES fichiers .t)"
+fi
 
 for target in "${TARGETS[@]}"; do
     if [ ! -d "$target" ]; then
         continue
     fi
-    echo "-> Lancement du canary sur $target"
-    (
-        cd "$target"
-        export PERL5LIB="$PWD/lib"
-        rm -rf t/canary_*_per_signature t/canary_*_signatures_individuelles
-        if prove t/canary_regression.t > /dev/null 2>&1; then
-            echo "   [PASS] Canary 15/15 OK"
-            exit 0
-        else
-            echo "   [FAIL] ERREUR LORS DU CANARY !"
-            prove t/canary_regression.t # Run again to show output before exit
-            exit 1
-        fi
-    )
-    if [ $? -ne 0 ]; then
-        echo "ERREUR CRITIQUE: Le depot $target a echoue au canary test."
-        exit 1
+    echo "-> Lancement de la suite complete sur $target"
+    set +e
+    run_suite_in_repo "$target" "$PROVE_TMP"
+    TGT_RC=$?
+    set -e
+    read -r TGT_FILES TGT_PLAN TGT_PASSED TGT_FAILED < <(parse_tap_counts "$PROVE_TMP")
+
+    if [ "$TGT_RC" -ne 0 ] || [ "$TGT_FAILED" -ne 0 ] || [ "$TGT_PASSED" -ne "$TGT_PLAN" ] || [ "$TGT_PLAN" -ne "$SRC_PLAN" ] || [ "$TGT_PASSED" -ne "$SRC_PASSED" ] || [ "$TGT_FILES" -ne "$SRC_FILES" ]; then
+        echo "   [FAIL] ERREUR LORS DE LA SUITE DE TESTS SUR $target (attendu : $SRC_PASSED/$SRC_PLAN sur $SRC_FILES fichiers, obtenu : $TGT_PASSED/$TGT_PLAN reussis, $TGT_FAILED echecs sur $TGT_FILES fichiers) !" >&2
+        cat "$PROVE_TMP" >&2
+        SUITE_OK=0
+    else
+        echo "   [PASS] Suite complete $TGT_PASSED/$TGT_PLAN OK ($TGT_FILES fichiers .t, conforme a la source $SRC_PASSED/$SRC_PLAN)"
     fi
 done
+
+if [ "$SUITE_OK" -ne 1 ]; then
+    echo "ERREUR CRITIQUE: Au moins un depot a echoue a la suite de tests." >&2
+    exit 1
+fi
 
 echo ""
 echo "============================================================"

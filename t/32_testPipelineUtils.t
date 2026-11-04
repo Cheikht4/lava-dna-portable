@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # Copyright (c) 2026, Cheikh Talibouya <cheikhtalibouya.toure04@gmail.com | cheikhtalibouya.toure@pasteur.sn>.
-# BSD 3-Clause License — See LICENSE at root of project.
+# BSD 3-Clause License - See LICENSE at root of project.
 #
 # Tests unitaires pour LLNL::LAVA::PipelineUtils
 # Unit tests for LLNL::LAVA::PipelineUtils
@@ -64,8 +64,8 @@ ok($single_result->[0]->getLocation() == 50, 'reducePrimersByWindow: single prim
 # Zone d'exclusion = window_size = 20 centré sur le premier candidat
 # max_per_window = 1 -> un seul candidat par zone
 # ─────────────────────────────────────────────────────────
-# 3 candidats dans la même fenêtre (positions 50, 55, 58) — pénalités croissantes
-# 3 candidates in the same window (positions 50, 55, 58) — increasing penalties
+# 3 candidats dans la même fenêtre (positions 50, 55, 58) - pénalités croissantes
+# 3 candidates in the same window (positions 50, 55, 58) - increasing penalties
 my @same_window = (
     MockPrimer->new(location => 50, penalty => 1.0), # meilleur / best
     MockPrimer->new(location => 55, penalty => 2.0),

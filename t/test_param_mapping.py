@@ -18,6 +18,7 @@ import re
 import sys
 import glob
 import subprocess
+import xml.etree.ElementTree as ET
 
 
 def get_repo_root():
@@ -81,8 +82,10 @@ def load_known_defects(repo_root):
 
 def extract_option_map(repo_root, relpath):
     """
-    Extrait les cles et variables cibles du hash %optionMap passe a GetOptions.
-    Extracts keys and target variables from %optionMap passed to GetOptions.
+    Extrait les cles, options distinctes, entrees GetOptions (alias compris)
+    et doublons du hash %optionMap passe a GetOptions.
+    Extracts keys, distinct options, GetOptions entries (including aliases),
+    and duplicates from %optionMap passed to GetOptions.
     """
     filepath = os.path.join(repo_root, relpath)
     with open(filepath, "r", encoding="utf-8", errors="replace") as f:
@@ -93,10 +96,14 @@ def extract_option_map(repo_root, relpath):
         raise ValueError(f"Impossible de localiser %optionMap dans {relpath}")
 
     block = match.group(1)
+    block_start_line = content.count("\n", 0, match.start(1)) + 1
     declared_options = {}
+    distinct_options = set()
+    duplicates = []
 
-    for line in block.splitlines():
-        line = line.strip()
+    for offset, raw_line in enumerate(block.splitlines()):
+        line_no = block_start_line + offset
+        line = raw_line.strip()
         if not line or line.startswith("#"):
             continue
 
@@ -110,11 +117,26 @@ def extract_option_map(repo_root, relpath):
             target = m_target.group(2)
             base = spec.split("=")[0].split("!")[0].split(":")[0]
             aliases = [a.strip() for a in base.split("|") if a.strip()]
+            primary = aliases[0]
+            distinct_options.add(primary)
             for alias in aliases:
+                if alias in declared_options:
+                    duplicates.append(
+                        {
+                            "file": relpath,
+                            "alias": alias,
+                            "spec": spec,
+                            "line": line_no,
+                            "prev_spec": declared_options[alias]["spec"],
+                            "prev_line": declared_options[alias]["line"],
+                        }
+                    )
                 declared_options[alias] = {
                     "target": target,
+                    "primary": primary,
                     "spec": spec,
                     "file": relpath,
+                    "line": line_no,
                 }
         else:
             m_simple = re.search(r'\"([^\"]+)\"', line)
@@ -122,14 +144,29 @@ def extract_option_map(repo_root, relpath):
                 spec = m_simple.group(1)
                 base = spec.split("=")[0].split("!")[0].split(":")[0]
                 aliases = [a.strip() for a in base.split("|") if a.strip()]
+                primary = aliases[0]
+                distinct_options.add(primary)
                 for alias in aliases:
+                    if alias in declared_options:
+                        duplicates.append(
+                            {
+                                "file": relpath,
+                                "alias": alias,
+                                "spec": spec,
+                                "line": line_no,
+                                "prev_spec": declared_options[alias]["spec"],
+                                "prev_line": declared_options[alias]["line"],
+                            }
+                        )
                     declared_options[alias] = {
                         "target": alias,
+                        "primary": primary,
                         "spec": spec,
                         "file": relpath,
+                        "line": line_no,
                     }
 
-    return declared_options
+    return declared_options, distinct_options, duplicates
 
 
 def find_inert_option_reads(repo_root, scripts):
@@ -191,23 +228,177 @@ def find_inert_option_reads(repo_root, scripts):
     return inert_reads
 
 
+def find_invalid_readme_options(repo_root, loop_options, stem_options):
+    """
+    Extrait de chaque README*.md du depot les commandes invoquant
+    lava_loop_primer.pl ou lava_stem_primer.pl, releve chaque --option
+    et verifie qu'elle existe dans %optionMap du script concerne.
+    Extracts from each README*.md in the repository commands invoking
+    lava_loop_primer.pl or lava_stem_primer.pl, collects every --option,
+    and checks that it exists in the script's %optionMap.
+    """
+    readme_paths = sorted(glob.glob(os.path.join(repo_root, "README*.md")))
+    invalid_entries = []
+    checked_commands = 0
+
+    for full_path in readme_paths:
+        relpath = os.path.relpath(full_path, repo_root)
+        with open(full_path, "r", encoding="utf-8", errors="replace") as f:
+            lines = f.read().splitlines()
+
+        active_script = None
+        continued = False
+        in_code_block = False
+
+        cmd_start_re = re.compile(
+            r"(?:^|\s)(?:perl\s+(?:-\S+\s+)*|\./)(lava_(?:loop|stem)_primer\.pl)\b"
+            r"|(?:^|\s)(lava_(?:loop|stem)_primer\.pl)(?=\s+--|\s*\\$)"
+        )
+
+        for idx, raw_line in enumerate(lines, start=1):
+            stripped = raw_line.strip()
+
+            # Fin ou debut de bloc de code markdown
+            if stripped.startswith("```"):
+                in_code_block = not in_code_block
+                active_script = None
+                continued = False
+                continue
+
+            # Ignorer les commentaires shell dans les blocs de code
+            if in_code_block and stripped.startswith("#"):
+                continue
+
+            # Retirer un commentaire en fin de ligne eventuel dans un bloc de code
+            code_part = (
+                re.sub(r"\s+#.*$", "", raw_line).rstrip()
+                if in_code_block
+                else raw_line.rstrip()
+            )
+
+            # Detecter si la ligne lance une commande lava_loop_primer.pl ou lava_stem_primer.pl
+            cmd_match = cmd_start_re.search(code_part)
+            if cmd_match:
+                active_script = cmd_match.group(1) or cmd_match.group(2)
+                checked_commands += 1
+            elif active_script and (continued or stripped.startswith("--")):
+                pass
+            else:
+                active_script = None
+                continued = False
+                continue
+
+            valid_map = (
+                loop_options
+                if active_script == "lava_loop_primer.pl"
+                else stem_options
+            )
+
+            for m in re.finditer(r"(?:^|\s)--([a-zA-Z0-9_-]+)", code_part):
+                opt_name = m.group(1)
+                if opt_name == "help":
+                    continue
+                if opt_name not in valid_map:
+                    invalid_entries.append(
+                        {
+                            "file": relpath,
+                            "line": idx,
+                            "script": active_script,
+                            "option": opt_name,
+                        }
+                    )
+
+            continued = code_part.endswith("\\")
+            if not continued:
+                active_script = None
+
+    return invalid_entries, checked_commands
+
+
+def find_invalid_xml_options(repo_root, valid_options):
+    """
+    Verifie que toutes les balises enfants de <option_set> dans les fichiers
+    t_data/*.xml (hors test_options_file.xml et hors balises slava_* de
+    slava_example_parameters.xml) appartiennent au %optionMap du moteur.
+    Verifies that all child tags of <option_set> in t_data/*.xml files
+    (excluding test_options_file.xml and slava_* tags in
+    slava_example_parameters.xml) belong to the engine's %optionMap.
+    """
+    xml_paths = sorted(glob.glob(os.path.join(repo_root, "t_data", "*.xml")))
+    invalid_xml_tags = []
+    checked_xml_files = 0
+
+    for full_path in xml_paths:
+        basename = os.path.basename(full_path)
+        if basename == "test_options_file.xml":
+            continue
+
+        relpath = os.path.relpath(full_path, repo_root)
+        checked_xml_files += 1
+
+        tree = ET.parse(full_path)
+        root = tree.getroot()
+        option_sets = [root] if root.tag == "option_set" else root.findall(".//option_set")
+
+        for opt_set in option_sets:
+            for child in opt_set:
+                if not isinstance(child.tag, str):
+                    continue
+                tag_name = child.tag
+                if basename == "slava_example_parameters.xml" and tag_name.startswith(
+                    "slava_"
+                ):
+                    continue
+                if tag_name not in valid_options:
+                    invalid_xml_tags.append(
+                        {
+                            "file": relpath,
+                            "tag": tag_name,
+                        }
+                    )
+
+    return invalid_xml_tags, checked_xml_files
+
+
 def run_audit():
     repo_root = get_repo_root()
     print("=" * 70)
     print("AUDIT BIDIRECTIONNEL DES PARAMETRES DU MOTEUR LAVA")
     print("=" * 70)
 
-    loop_options = extract_option_map(repo_root, "lava_loop_primer.pl")
-    stem_options = extract_option_map(repo_root, "lava_stem_primer.pl")
+    loop_options, loop_distinct, loop_dups = extract_option_map(
+        repo_root, "lava_loop_primer.pl"
+    )
+    stem_options, stem_distinct, stem_dups = extract_option_map(
+        repo_root, "lava_stem_primer.pl"
+    )
+    option_map_duplicates = loop_dups + stem_dups
+
+    common_distinct = loop_distinct & stem_distinct
+    union_distinct = loop_distinct | stem_distinct
+    common_entries = set(loop_options.keys()) & set(stem_options.keys())
 
     all_declared = {}
     all_declared.update(loop_options)
     all_declared.update(stem_options)
 
-    print(f"[1] Options declarees dans GetOptions :")
-    print(f"    - lava_loop_primer.pl : {len(loop_options)} options")
-    print(f"    - lava_stem_primer.pl : {len(stem_options)} options")
-    print(f"    - Total unique        : {len(all_declared)} options")
+    print("[1] Options declarees dans GetOptions :")
+    print(
+        f"    - lava_loop_primer.pl : {len(loop_distinct)} options distinctes (noms longs), "
+        f"{len(loop_options)} entrees GetOptions alias compris"
+    )
+    print(
+        f"    - lava_stem_primer.pl : {len(stem_distinct)} options distinctes (noms longs), "
+        f"{len(stem_options)} entrees GetOptions alias compris"
+    )
+    print(
+        f"    - Communes LOOP/STEM  : {len(common_distinct)} options distinctes (noms longs), "
+        f"{len(common_entries)} entrees GetOptions alias compris"
+    )
+    print(
+        f"    - Union (total unique): {len(union_distinct)} options distinctes (noms longs), "
+        f"{len(all_declared)} entrees GetOptions alias compris"
+    )
 
     code_files = get_code_files(repo_root)
 
@@ -400,6 +591,56 @@ def run_audit():
         success = False
     else:
         print("    PASS: Aucun parametre interdit detecte dans le code executable.")
+
+    print("\n[6] Resultat de l'audit des entrees dupliquees dans %optionMap :")
+    if option_map_duplicates:
+        print(
+            f"    FAIL: {len(option_map_duplicates)} entree(s) dupliquee(s) dans %optionMap :"
+        )
+        for dup in option_map_duplicates:
+            print(
+                f"      - '{dup['alias']}' dans {dup['file']} ligne {dup['line']} "
+                f"(spec '{dup['spec']}') duplique la ligne {dup['prev_line']} (spec '{dup['prev_spec']}')"
+            )
+        success = False
+    else:
+        print("    PASS: Aucune entree dupliquee dans %optionMap.")
+
+    readme_invalid, readme_cmd_count = find_invalid_readme_options(
+        repo_root, loop_options, stem_options
+    )
+    print(
+        f"\n[7] Resultat de l'audit des options CLI dans les exemples README ({readme_cmd_count} commande(s) verifiee(s)) :"
+    )
+    if readme_invalid:
+        print(
+            f"    FAIL: {len(readme_invalid)} option(s) invalide(s) detectee(s) dans la documentation :"
+        )
+        for item in readme_invalid:
+            print(
+                f"      - '--{item['option']}' pour {item['script']} dans {item['file']} ligne {item['line']}"
+            )
+        success = False
+    else:
+        print(
+            "    PASS: Toutes les options CLI des exemples README existent dans %optionMap."
+        )
+
+    xml_invalid, xml_file_count = find_invalid_xml_options(repo_root, all_declared)
+    print(
+        f"\n[8] Resultat de l'audit des balises XML dans t_data/*.xml ({xml_file_count} fichier(s) verifie(s)) :"
+    )
+    if xml_invalid:
+        print(
+            f"    FAIL: {len(xml_invalid)} balise(s) XML invalide(s) detectee(s) :"
+        )
+        for item in xml_invalid:
+            print(f"      - '<{item['tag']}>' dans {item['file']}")
+        success = False
+    else:
+        print(
+            "    PASS: Toutes les balises XML des fichiers t_data/*.xml existent dans %optionMap."
+        )
 
     print("=" * 70)
     if success:

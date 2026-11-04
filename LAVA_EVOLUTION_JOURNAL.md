@@ -2601,3 +2601,51 @@ Depuis Primer3 2.5 (et 2.6.1 utilisé en production), les tables d'enthalpie et 
 **Impact attendu** : 
 Comportement à deux états strictement honnêtes : sans `--thermodynamic_path`, Primer3 utilise ses tables embarquées (`prove t/canary_regression.t` 20/20, `git diff -- t/baseline/` vide) ; avec `--thermodynamic_path`, le chemin est validé au démarrage et transmis aux 4 énumérateurs comme aux amorces fixées (produisant des sorties identiques au bit près avec `/opt/homebrew/share/primer3/primer3_config/`). L'audit `t/test_param_mapping.py` passe en `PASS` avec un fichier `t/param_audit_known.txt` vide.
 
+
+### Date/Étape : 2026-11-04 - Réparation de t/31_testCore.t, branchement de la suite unitaire complète (100 tests) et décompte reproductible des options
+
+**Fichiers impactés** : `t/31_testCore.t`, `t/32_testPipelineUtils.t`, `lava_loop_primer.pl`, `t/test_param_mapping.py`, `sync_repos.sh`, `.github/workflows/canary.yml`, `LAVA_EVOLUTION_JOURNAL.md`
+
+**Nature du changement** : Tests / Architecture / Intégration Continue / Bug Fix
+
+**Explication technique** : 
+1. **Réparation et mise à jour de `t/31_testCore.t` (plan `1..10`)** :
+   - Suppression de l'import et de la Section 4 portant sur `calculate_proportional_geometry`, fonction morte retirée par `b112550`.
+   - Mise à jour de la Section 2 (qui testait l'ancien plateau relatif de `+25 %` supprimé par `78b7414` le 6 août 2026) : le test 6 vérifie désormais l'encadrement strict de la borne exclusive juste au-delà du seuil (`generateSigmoidPenalty(21, 20)` entre `0` et `100`, le test 1 tenant la borne inclusive `(24, 24) == 0`), et le test 7 vérifie l'influence du facteur de pente `$k_slope` (`generateSigmoidPenalty(25, 20, 0.10) < generateSigmoidPenalty(25, 20, 0.30)`, soit `24,49 < 63,52`).
+   - Ajout du test 10 vérifiant la valeur exacte de la pénalité sigmoïdale au seuil de saturation (`$k = 4.6 / (86 - 49)`, `generateSigmoidPenalty(86, 49, $k)` à `98,01` à `0,01` près), rendant reproductible par une commande le chiffre asymptotique publié dans le manuscrit.
+2. **Intégration des 9 fichiers `.t` et de leurs fixtures dans `sync_repos.sh` et la CI** :
+   - Ajout de `t/10_testConstants.t`, `t/10_testOptions.t`, `t/20_testTagHolder.t`, `t/30_testValidator.t`, `t/31_testCore.t`, `t/32_testPipelineUtils.t`, `t/33_testDistanceMath.t`, `t/canary_entropy.t`, `t/synthetic_entropy.fasta` et `t_data/test_options_file.xml` dans `WHITELIST` et dans `verify_checksum_coherence` (`FILES_TO_CHECK`) de `sync_repos.sh`. Ce périmètre corrige l'absence de `t/33_testDistanceMath.t` et `t/canary_entropy.t` dans le dépôt public du moteur ainsi que le décalage de version de `t/30_testValidator.t` (resté à 34 assertions au lieu de 38 depuis juillet).
+   - Dans `.github/workflows/canary.yml`, ajout de l'étape inconditionnelle `Run Full Test Suite` (`prove -v -Ilib t/*.t`) après l'installation des dépendances (`primer3`, `bioperl`, `libxml-libxml-perl`) et en complément de l'étape `Run Canary Regression Test`.
+   - Dans `sync_repos.sh`, remplacement du test isolé `prove t/canary_regression.t` et du message figé `[PASS] Canary 15/15 OK` par l'exécution de `prove -v -Ilib t/*.t` sur la source puis sur chaque cible, avec lecture automatique des plans TAP (`1..N`) et du nombre d'assertions réussies (`100/100` sur 9 fichiers `.t`) et arrêt immédiat en cas d'écart.
+3. **Suppression du doublon `dna_conc=f` et décompte reproductible des options dans `t/test_param_mapping.py`** :
+   - Suppression de la ligne dupliquée `"dna_conc=f" => \$options{"dna_conc"}` dans `%optionMap` de `lava_loop_primer.pl`.
+   - Ajout dans `t/test_param_mapping.py` de la détection des entrées dupliquées au sein de `%optionMap` (contrôle `[6]`) et de l'affichage systématique des deux conventions de comptage : `77` options distinctes (`81` entrées `GetOptions` alias compris) pour `lava_loop_primer.pl`, `75` (`79`) pour `lava_stem_primer.pl`, `67` (`71`) communes, et `85` options distinctes (`89` entrées `GetOptions` alias compris) à l'union.
+
+**Justification biologique** : 
+L'exécution automatique des 100 assertions de la suite complète (couvrant la compatibilité IUPAC, la recherche combinatoire de dégénérescences consécutives dans `Validator.pm`, la pénalité sigmoïdale asymétrique et son asymptote à `98,01` dans `Core.pm`, la réduction spatiale par fenêtre NMS dans `PipelineUtils.pm`, l'arithmétique exacte des distances inter-amorces avec `+1`, le filtrage par entropie de Shannon et les 20 tests de régression et de déterminisme du canary) garantit l'intégrité mathématique et thermodynamique de chaque composant du moteur LAVA à chaque synchronisation et à chaque commit CI.
+
+**Impact attendu** : 
+Passage de 100/100 tests (`Files=9, Tests=100`) sur la source et les dépôts cibles, couverture MD5 intégrale des fichiers de test et de leurs données, et reproductibilité directe par commande des métriques citées dans le manuscrit (85 options distinctes à l'union ; pénalité de 98,01 au seuil de saturation).
+
+
+### Date/Étape : 2026-11-04 - Validation stricte des fichiers d'options XML, déclaration des prérequis dans Makefile.PL, retrait du Makefile généré de 2010 et audit automatique README / XML
+
+**Fichiers impactés** : `lava_loop_primer.pl`, `lava_stem_primer.pl`, `Makefile.PL`, `.gitignore`, `Makefile` (retiré du suivi Git), `.github/workflows/canary.yml`, `sync_repos.sh`, `t/test_param_mapping.py`, `LAVA_EVOLUTION_JOURNAL.md`
+
+**Nature du changement** : Architecture / Intégration Continue / Documentation / Bug Fix
+
+**Explication technique** : 
+1. **Validation fatale des balises de `--option_file` contre `%optionMap` dans `lava_loop_primer.pl` et `lava_stem_primer.pl`** : Après `loadOptionsFromFile(\%options)`, chaque clé chargée dans `%options` (hors noeuds `#comment` / `#text` issus de `XML::LibXML`) est confrontée à l'ensemble des noms et alias déclarés dans `%optionMap`. Toute balise inconnue interrompt immédiatement l'exécution (`die`) en nommant la balise et le fichier d'options concerné, alignant le comportement de `--option_file` sur celui de `GetOptions` (tout en laissant `LLNL::LAVA::Options::loadOptionsFromFile` générique pour `t/10_testOptions.t`).
+2. **Déclaration explicite des dépendances directes dans `Makefile.PL`** : Ajout de la clé `PREREQ_PM` dans `WriteMakefile(...)` listant les 5 modules externes appelés directement par le moteur LAVA : `Bio::SeqIO`, `Bio::AlignIO`, `Bio::SimpleAlign`, `Bio::LocatableSeq` et `XML::LibXML` (chargé par `use` indenté dans `LLNL::LAVA::Options`), avec un commentaire bilingue précisant que `Clone` est une dépendance transitive indirecte de `Bio::Root::Root`. Ajout de `Makefile.PL` à `WHITELIST` et `FILES_TO_CHECK` dans `sync_repos.sh`.
+3. **Retrait du `Makefile` généré de 2010 du suivi Git** : Suppression de l'index (`git rm --cached Makefile`) du fichier `Makefile` généré le 11 novembre 2010 par `ExtUtils::MakeMaker 6.42` sur `perl 5.8.8` (`x86_64-linux-thread-multi`, `/usr/lib64/perl5/5.8.8/...`), et ajout de `Makefile` dans `.gitignore`.
+4. **Explicitation de `libclone-perl` dans `.github/workflows/canary.yml`** : Ajout de `libclone-perl` sur la ligne `sudo apt-get install -y primer3 bioperl libxml-libxml-perl libclone-perl`.
+5. **Garde-fous automatiques des options CLI des `README*.md` (contrôle `[7]`) et des balises `t_data/*.xml` (contrôle `[8]`) dans `t/test_param_mapping.py`** : Ajout de `find_invalid_readme_options` (vérifiant chaque `--option` des commandes `lava_loop_primer.pl` et `lava_stem_primer.pl` dans `README*.md`) et de `find_invalid_xml_options` (vérifiant toutes les balises enfants de `<option_set>` dans `t_data/*.xml`, hors `test_options_file.xml` et hors balises `slava_*` de `slava_example_parameters.xml`).
+
+**Justification biologique** : 
+La cohérence entre la ligne de commande et les fichiers de paramètres XML garantit qu'aucun paramètre obsolète ou mal orthographié (tel qu'un ancien paramètre géométrique supprimé) ne puisse être ignoré silencieusement lors de la conception d'amorces LAMP à partir d'un fichier de configuration, évitant toute divergence silencieuse entre le protocole voulu par l'utilisateur et l'exécution réelle du moteur.
+
+**Impact attendu** : 
+Arrêt immédiat et explicite sur toute balise XML inconnue dans `--option_file`, validation automatique par `t/test_param_mapping.py` des exemples CLI de `README*.md` et des fichiers `t_data/*.xml`, et déclaration propre des prérequis CPAN dans `Makefile.PL`.
+
+
+
