@@ -1825,7 +1825,13 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       my $currentSetPenalty = $spacingPenalty + $primer3Penalty;
                                       if ($currentSetPenalty < $bestSetPenalty) {
                                           $chunk_hits++ unless exists $chunk_infos{$innerIndex};
-                                          $chunk_infos{$innerIndex} = $includeLoopPrimers ? [$loopInfo, $middleInfo, $outerInfo] : [$middleInfo, $outerInfo];
+                                          # Hash nomme pour eviter tout decalage d indice entre mode 8 amorces (loop=1) et 6 amorces (loop=0)
+                                          # Named hash to avoid any index shift between 8-primer (loop=1) and 6-primer (loop=0) modes
+                                          $chunk_infos{$innerIndex} = {
+                                              loop   => ($includeLoopPrimers ? $loopInfo : undef),
+                                              middle => $middleInfo,
+                                              outer  => $outerInfo,
+                                          };
                                           $chunk_penalties{$innerIndex} = [$spacingPenalty, $primer3Penalty, $detailStr];
                                           $bestSetPenalty = $currentSetPenalty;
                                       }
@@ -2292,7 +2298,13 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                                       my $currentSetPenalty = $spacingPenalty + $primer3Penalty;
                                       if ($currentSetPenalty < $bestSetPenalty) {
                                           $chunk_hits++ unless exists $chunk_infos{$innerIndex};
-                                          $chunk_infos{$innerIndex} = $includeLoopPrimers ? [$loopInfo, $middleInfo, $outerInfo] : [$middleInfo, $outerInfo];
+                                          # Hash nomme pour eviter tout decalage d indice entre mode 8 amorces (loop=1) et 6 amorces (loop=0)
+                                          # Named hash to avoid any index shift between 8-primer (loop=1) and 6-primer (loop=0) modes
+                                          $chunk_infos{$innerIndex} = {
+                                              loop   => ($includeLoopPrimers ? $loopInfo : undef),
+                                              middle => $middleInfo,
+                                              outer  => $outerInfo,
+                                          };
                                           $chunk_penalties{$innerIndex} = [$spacingPenalty, $primer3Penalty, $detailStr];
                                           $bestSetPenalty = $currentSetPenalty;
                                       }
@@ -2543,26 +2555,32 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               my @fwdPrimers = ();
               my @revPrimers = ();
               
-              my $outF_v = $f_set_infos->[2];
-              my $midF_v = $f_set_infos->[1];
+              my $outF_v = $f_set_infos->{outer};
+              my $midF_v = $f_set_infos->{middle};
+              die "FATAL: Amorce manquante dans le demi-ensemble Forward (F3/F2/F1)"
+                  unless defined $outF_v && defined $midF_v && defined $innerF;
               $outF_v->{name} = 'F3';
               $midF_v->{name} = 'F2';
               $innerF->{name} = 'F1';
               push @fwdPrimers, $outF_v, $midF_v, $innerF;
               if ($includeLoopPrimers) {
-                my $loopF_v = $f_set_infos->[0];
+                my $loopF_v = $f_set_infos->{loop};
+                die "FATAL: Amorce FL manquante dans le demi-ensemble Forward" unless defined $loopF_v;
                 $loopF_v->{name} = 'FL';
                 push @fwdPrimers, $loopF_v;
               }
               
-              my $outR_v = $r_set_infos->[2];
-              my $midR_v = $r_set_infos->[1];
+              my $outR_v = $r_set_infos->{outer};
+              my $midR_v = $r_set_infos->{middle};
+              die "FATAL: Amorce manquante dans le demi-ensemble Reverse (B1/B2/B3)"
+                  unless defined $innerR && defined $midR_v && defined $outR_v;
               $innerR->{name} = 'B1';
               $midR_v->{name} = 'B2';
               $outR_v->{name} = 'B3';
               push @revPrimers, $innerR, $midR_v, $outR_v;
               if ($includeLoopPrimers) {
-                my $loopR_v = $r_set_infos->[0];
+                my $loopR_v = $r_set_infos->{loop};
+                die "FATAL: Amorce BL manquante dans le demi-ensemble Reverse" unless defined $loopR_v;
                 $loopR_v->{name} = 'BL';
                 unshift @revPrimers, $loopR_v;
               }
@@ -2572,8 +2590,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   next;
               }
 
-              my $fStart_v   = $f_set_infos->[2]->getLocation();   # F3, brin plus : bord gauche
-              my $rEnd_v     = $r_set_infos->[2]->getLocation();   # B3, brin moins : bord droit
+              my $fStart_v   = $outF_v->getLocation();   # F3, brin plus : bord gauche
+              my $rEnd_v     = $outR_v->getLocation();   # B3, brin moins : bord droit
               my $totalLen_v = $rEnd_v - $fStart_v + 1;
               if ($totalLen_v > $signatureMaxLength) {
                   $chunk_rejected_max_len++;
@@ -2586,10 +2604,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
               
               my $innerPair = LLNL::LAVA::PrimerSet::PCRPair->new({ "forward_info" => $innerF, "reverse_info" => $innerR });
               my $innerSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({ "analyzed_pair" => $innerPair, "penalty" => $innerF->getPenalty() + $innerR->getPenalty() });
-              my $midF = $f_set_infos->[1]; my $midR = $r_set_infos->[1];
+              my $midF = $f_set_infos->{middle}; my $midR = $r_set_infos->{middle};
               my $middlePair = LLNL::LAVA::PrimerSet::PCRPair->new({ "forward_info" => $midF, "reverse_info" => $midR });
               my $middleSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({ "analyzed_pair" => $middlePair, "penalty" => $midF->getPenalty() + $midR->getPenalty() });
-              my $outF = $f_set_infos->[2]; my $outR = $r_set_infos->[2];
+              my $outF = $f_set_infos->{outer}; my $outR = $r_set_infos->{outer};
               my $outerPair = LLNL::LAVA::PrimerSet::PCRPair->new({ "forward_info" => $outF, "reverse_info" => $outR });
               my $outerSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({ "analyzed_pair" => $outerPair, "penalty" => $outF->getPenalty() + $outR->getPenalty() });
               
@@ -2597,7 +2615,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
                   "inner_info" => $innerSetInfo, "middle_info" => $middleSetInfo, "outer_info" => $outerSetInfo,
               });
               if($includeLoopPrimers) {
-                   my $loopF = $f_set_infos->[0]; my $loopR = $r_set_infos->[0];
+                   my $loopF = $f_set_infos->{loop}; my $loopR = $r_set_infos->{loop};
                    $lampSignature->setTag("has_loop_primers", 1);
                    $lampSignature->setTag("floop_info", $loopF);
                    $lampSignature->setTag("bloop_info", $loopR);
@@ -2703,10 +2721,10 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       
       my $innerPair = LLNL::LAVA::PrimerSet::PCRPair->new({ "forward_info" => $innerF, "reverse_info" => $innerR });
       my $innerSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({ "analyzed_pair" => $innerPair, "penalty" => $innerF->getPenalty() + $innerR->getPenalty() });
-      my $midF = $f_set_infos->[1]; my $midR = $r_set_infos->[1];
+      my $midF = $f_set_infos->{middle}; my $midR = $r_set_infos->{middle};
       my $middlePair = LLNL::LAVA::PrimerSet::PCRPair->new({ "forward_info" => $midF, "reverse_info" => $midR });
       my $middleSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({ "analyzed_pair" => $middlePair, "penalty" => $midF->getPenalty() + $midR->getPenalty() });
-      my $outF = $f_set_infos->[2]; my $outR = $r_set_infos->[2];
+      my $outF = $f_set_infos->{outer}; my $outR = $r_set_infos->{outer};
       my $outerPair = LLNL::LAVA::PrimerSet::PCRPair->new({ "forward_info" => $outF, "reverse_info" => $outR });
       my $outerSetInfo = LLNL::LAVA::PrimerSetInfo::PCRPair->new({ "analyzed_pair" => $outerPair, "penalty" => $outF->getPenalty() + $outR->getPenalty() });
       
@@ -2715,8 +2733,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       });
       if($includeLoopPrimers) {
            $lampSignature->setTag("has_loop_primers", 1);
-           $lampSignature->setTag("floop_info", $f_set_infos->[0]);
-           $lampSignature->setTag("bloop_info", $r_set_infos->[0]);
+           $lampSignature->setTag("floop_info", $f_set_infos->{loop});
+           $lampSignature->setTag("bloop_info", $r_set_infos->{loop});
       } else {
            $lampSignature->setTag("has_loop_primers", 0);
       }

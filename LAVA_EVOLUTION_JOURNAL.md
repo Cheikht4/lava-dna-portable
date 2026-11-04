@@ -2672,5 +2672,30 @@ Dans un pipeline de conception d'amorces LAMP parallélisé en Map-Reduce sur 8 
 Interruption immédiate et bruyante (`die`, code de sortie non nul) dès qu'un worker enfant échoue par exception Perl ou par signal système (`SIGKILL` / signal 9), en nommant la phase, le nombre d'enfants en échec, leur `chunk_id` et la cause exacte.
 
 
+### Date/Étape : 2026-11-04 - Réparation du mode LAMP classique à 6 amorces (include_loop_primers=0) par hachage nommé et gardes explicites (Étage 2)
+
+**Fichiers impactés** : `lava_loop_primer.pl`, `lava_stem_primer.pl`, `LAVA_EVOLUTION_JOURNAL.md`
+
+**Nature du changement** : Bug Fix / Architecture / Algorithmique
+
+**Explication technique** : 
+1. **Diagnostic de la régression introduite par `f9de513` (25 juillet 2026)** :
+   - Dans `lava_loop_primer.pl`, les demi-signatures Forward et Reverse stockaient leurs amorces dans un tableau positionnel dont la longueur dépendait de `$includeLoopPrimers` : `[$loopInfo, $middleInfo, $outerInfo]` (3 éléments) lorsque `$includeLoopPrimers == 1`, mais `[$middleInfo, $outerInfo]` (2 éléments, indices `0` et `1`) lorsque `$includeLoopPrimers == 0`.
+   - En phase 5, le lecteur lisait inconditionnellement `$outF_v = $f_set_infos->[2]` et `$outR_v = $r_set_infos->[2]`. En mode `0`, l'indice `2` valait `undef`. L'affectation `$outF_v->{name} = 'F3'` auto-vivifiait un hash non béni `{ name => 'F3' }`, qui était poussé dans `@fwdPrimers` puis transmis à `validateCompleteSignatureSpacing`, provoquant l'exception fatale `Can't call method "getLocation" on unblessed reference at lib/LLNL/LAVA/Validator.pm line 485` dans tous les workers enfants.
+   - Dans `lava_stem_primer.pl`, le mode `include_stem_primers=0` ne plantait pas car le producteur insérait un `placeHolderInfo` factice en position `0` (`[$stemInfo, $middleInfo, $outerInfo]` gardant toujours 3 éléments).
+2. **Remplacement du tableau positionnel par un hash nommé dans `lava_loop_primer.pl`** :
+   - Les producteurs Forward (ligne 1828) et Reverse (ligne 2300) stockent désormais `{ loop => ($includeLoopPrimers ? $loopInfo : undef), middle => $middleInfo, outer => $outerInfo }`.
+   - Tous les lecteurs en phase 5 (workers d'assemblage/validation et reconstruction finale dans le parent) lisent désormais `$f_set_infos->{outer}`, `$f_set_infos->{middle}` et `$f_set_infos->{loop}` (et de même pour `$r_set_infos`), éliminant toute dépendance à l'indice positionnel.
+3. **Gardes `defined` explicites avant l'affectation de `{name}` dans `lava_loop_primer.pl` et `lava_stem_primer.pl`** :
+   - Ajout de vérifications fatales (`die ... unless defined ...`) sur `F3/F2/F1`, `FL`/`F_STEM`, `B1/B2/B3` et `BL`/`B_STEM` avant toute écriture de clé `{name}`, interdisant toute auto-vivification silencieuse de référence non bénie.
+
+**Justification biologique** : 
+Un essai LAMP classique selon Notomi et al. (2000) repose sur 6 amorces (F3, B3, F2, B2, F1c, B1c) reconnaissant 6 régions distinctes, tandis que le mode accéléré de Nagamine et al. (2002) y ajoute 2 amorces de boucle (LF, LB). Lorsque la contrainte géométrique d'un segment génomique très court ou hypervariable ne laisse pas l'espace nécessaire pour loger des amorces de boucle entre F2 et F1c, l'utilisateur bascule en mode LAMP classique à 6 amorces (`--include_loop_primers 0` ou option "Classic LAMP (6 primers)" dans l'interface Web). La réparation du mode `include_loop_primers=0` restitue le fonctionnement nominal de ce mode fondamental.
+
+**Impact attendu** : 
+Le fichier d'options historique `t_data/s_aureus_parameters.xml` (`<include_loop_primers>0</include_loop_primers>`) s'exécute désormais sans modification et produit 8 220 candidats validés réduits à 1 signature finale à 6 amorces (`F3, B3, F2, B2, F1, B1`, couverture 100 %, pénalité 2,36), cohérente géométriquement avec l'exécution en mode `1` (qui ajoute `FLOOP` et `BLOOP` sur les mêmes amorces Forward `F3: 76-95, F2: 130-149, F1: 187-209`). Le mode "Classic LAMP (6 primers)" de l'interface Web redevient pleinement fonctionnel.
+
+
+
 
 

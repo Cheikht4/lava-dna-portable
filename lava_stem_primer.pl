@@ -2485,24 +2485,30 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
               
               my $outF_v = $fouterInfo;
               my $midF_v = $fmiddleInfo;
+              die "FATAL: Amorce manquante dans le demi-ensemble Forward (F3/F2/F1)"
+                  unless defined $outF_v && defined $midF_v && defined $finnerInfo;
               $outF_v->{name} = 'F3';
               $midF_v->{name} = 'F2';
               $finnerInfo->{name} = 'F1';
               push @fwdPrimers, $outF_v, $midF_v, $finnerInfo;
               if ($includeStemPrimers) {
                 my $stemF_v = $fstemInfo;
+                die "FATAL: Amorce F_STEM manquante dans le demi-ensemble Forward" unless defined $stemF_v;
                 $stemF_v->{name} = 'F_STEM';
                 push @fwdPrimers, $stemF_v;
               }
               
               my $outR_v = $bouterInfo;
               my $midR_v = $bmiddleInfo;
+              die "FATAL: Amorce manquante dans le demi-ensemble Reverse (B1/B2/B3)"
+                  unless defined $binnerInfo && defined $midR_v && defined $outR_v;
               $binnerInfo->{name} = 'B1';
               $midR_v->{name} = 'B2';
               $outR_v->{name} = 'B3';
               push @revPrimers, $binnerInfo, $midR_v, $outR_v;
               if ($includeStemPrimers) {
                 my $stemR_v = $bstemInfo;
+                die "FATAL: Amorce B_STEM manquante dans le demi-ensemble Reverse" unless defined $stemR_v;
                 $stemR_v->{name} = 'B_STEM';
                 unshift @revPrimers, $stemR_v;
               }
