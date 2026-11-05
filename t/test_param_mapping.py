@@ -360,6 +360,75 @@ def find_invalid_xml_options(repo_root, valid_options):
     return invalid_xml_tags, checked_xml_files
 
 
+def find_logical_or_option_defaults(repo_root):
+    """
+    Scanne lava_loop_primer.pl, lava_stem_primer.pl et lib/LLNL/LAVA/**/*.pm
+    a la recherche de replis logiques '$quelque_chose->{cle} || <valeur>'
+    ou la valeur de repli est non nulle (ex: 42, 100000, 1.5, 'valeur').
+    Les compteurs inoffensifs '|| 0' et les conditions logiques (if/elsif, sort)
+    sont ignores.
+    Scans scripts and PM modules for '$hash->{key} || <val>' fallbacks where
+    val is non-zero. Harmless '|| 0' and boolean conditions are ignored.
+    """
+    targets = [
+        os.path.join(repo_root, "lava_loop_primer.pl"),
+        os.path.join(repo_root, "lava_stem_primer.pl"),
+    ]
+    targets.extend(
+        glob.glob(
+            os.path.join(repo_root, "lib", "LLNL", "LAVA", "**", "*.pm"),
+            recursive=True,
+        )
+    )
+
+    pattern = re.compile(
+        r"(\$[a-zA-Z_][a-zA-Z0-9_]*(?:->)?\{['\"]?[a-zA-Z0-9_]+['\"]?\}\s*\|\|\s*([^;\n,]+))"
+    )
+
+    violations = []
+
+    for filepath in sorted(targets):
+        relpath = os.path.relpath(filepath, repo_root)
+        with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+            lines = f.readlines()
+
+        for idx, line in enumerate(lines, 1):
+            stripped = line.strip()
+            if stripped.startswith("#"):
+                continue
+
+            code_line = re.sub(r"#.*$", "", line).strip()
+            if not code_line:
+                continue
+
+            if "<=>" in code_line or "cmp" in code_line:
+                continue
+
+            if re.search(r"\b(?:if|elsif|while|unless)\s*\(.*\|\|", code_line):
+                continue
+
+            for match in pattern.finditer(code_line):
+                full_expr = match.group(1).strip()
+                fallback_val = match.group(2).strip()
+
+                if re.match(r"^0(?:\.0+)?$", fallback_val) or fallback_val in ('"0"', "'0'"):
+                    continue
+
+                if re.match(r"^(?:!|exists\b|defined\b|\$|\()", fallback_val):
+                    continue
+
+                violations.append(
+                    {
+                        "file": relpath,
+                        "line": idx,
+                        "expr": full_expr,
+                        "fallback": fallback_val,
+                    }
+                )
+
+    return violations
+
+
 def run_audit():
     repo_root = get_repo_root()
     print("=" * 70)
@@ -640,6 +709,22 @@ def run_audit():
     else:
         print(
             "    PASS: Toutes les balises XML des fichiers t_data/*.xml existent dans %optionMap."
+        )
+
+    logical_or_violations = find_logical_or_option_defaults(repo_root)
+    print("\n[9] Resultat de l'audit des replis logiques '||' sur options/parametres :")
+    if logical_or_violations:
+        print(
+            f"    FAIL: {len(logical_or_violations)} repli(s) logique(s) '||' non nul(s) detecte(s) (utiliser '//') :"
+        )
+        for viol in logical_or_violations:
+            print(
+                f"      - {viol['file']}:{viol['line']} : '{viol['expr']}' (repli = {viol['fallback']})"
+            )
+        success = False
+    else:
+        print(
+            "    PASS: Aucun repli '|| <non-zero>' detecte sur lecture d'options/parametres."
         )
 
     print("=" * 70)

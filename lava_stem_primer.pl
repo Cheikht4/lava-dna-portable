@@ -2411,7 +2411,7 @@ print "Combining Best F/R Halves to create LAMP Signatures (Partitioned Workers)
   my $combine_total = $innerForwardCount;
   my $combine_t0 = time();
 
-  my $max_retained_signatures = $options_r->{"max_retained_signatures"} || 100000;
+  my $max_retained_signatures = $options_r->{"max_retained_signatures"} // 100000;
   
   my $val_pm = LLNL::LAVA::ForkManager->new($options_r->{"threads"});
   my $actual_threads = $val_pm->{max_processes};
@@ -3325,7 +3325,7 @@ sub print_zero_signature_diagnostic {
     # 1. Absolute priority: child worker failures (no dominant cause designated)
     my $worker_failures_r = $extra_r->{worker_failures};
     if ($worker_failures_r && ref($worker_failures_r) eq 'ARRAY' && @$worker_failures_r) {
-        my $stage_label = $extra_r->{stage} || "Workers";
+        my $stage_label = $extra_r->{stage} // "Workers";
         my $msg = "================================================================================\n";
         $msg .= "DIAGNOSTIC LAVA (STEM) : ECHEC DE WORKERS ENFANTS ($stage_label)\n";
         $msg .= "================================================================================\n\n";
@@ -3342,7 +3342,7 @@ sub print_zero_signature_diagnostic {
         return;
     }
 
-    my $stage = $extra_r->{stage} || ($is_forward ? "forward" : "reverse");
+    my $stage = $extra_r->{stage} // ($is_forward ? "forward" : "reverse");
     my $side  = $is_forward ? "Forward" : "Reverse";
     my $pc_r  = $extra_r->{pool_counts};
     my $inc_stem = defined $extra_r->{include_special} ? $extra_r->{include_special} : 1;
