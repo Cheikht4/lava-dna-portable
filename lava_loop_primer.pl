@@ -300,6 +300,15 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "primer_iupac_min_percent" => 98,
       "primer_min_coverage_percent" => 80,
       "min_primer_coverage" => 80,
+      "max_total_degenerate_bases" => 2,
+      "max_consecutive_degenerate_bases" => 2,
+      "max_3prime_degenerate_bases" => 2,
+      "max_tolerated_mismatches" => 0,
+      "three_prime_zone_size" => 6,
+      "min_base_frequency" => 0.05,
+      "entropy_threshold" => 1.5,
+      "max_tm_diff" => 5.0,
+      "fixed_primer_margin" => 200,
       # -----------------------------------------
       "dntp_conc" => 1.4,
       "salt_divalent" => 8,
@@ -504,15 +513,15 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       $totalSignatureLength = $signatureMaxLength;
   }
 
-  my $maxTotalDegen = optionWithDefault($options_r, "max_total_degenerate_bases", 2);
-  my $maxConsecDegen = optionWithDefault($options_r, "max_consecutive_degenerate_bases", 2);
-  my $max3PrimeDegen = optionWithDefault($options_r, "max_3prime_degenerate_bases", 2);
-  my $maxToleratedMismatches = optionWithDefault($options_r, "max_tolerated_mismatches", 0);
-  my $threePrimeZoneSize = optionWithDefault($options_r, "three_prime_zone_size", 6);
-  my $minBaseFrequency = optionWithDefault($options_r, "min_base_frequency", 0.05);
+  my $maxTotalDegen = optionWithDefault($options_r, "max_total_degenerate_bases", $optionDefaults{"max_total_degenerate_bases"});
+  my $maxConsecDegen = optionWithDefault($options_r, "max_consecutive_degenerate_bases", $optionDefaults{"max_consecutive_degenerate_bases"});
+  my $max3PrimeDegen = optionWithDefault($options_r, "max_3prime_degenerate_bases", $optionDefaults{"max_3prime_degenerate_bases"});
+  my $maxToleratedMismatches = optionWithDefault($options_r, "max_tolerated_mismatches", $optionDefaults{"max_tolerated_mismatches"});
+  my $threePrimeZoneSize = optionWithDefault($options_r, "three_prime_zone_size", $optionDefaults{"three_prime_zone_size"});
+  my $minBaseFrequency = optionWithDefault($options_r, "min_base_frequency", $optionDefaults{"min_base_frequency"});
   print "Config: Min Base Frequency = $minBaseFrequency\n";
-  my $entropyThreshold = optionWithDefault($options_r, "entropy_threshold", 1.5);
-  my $maxTmDiff = optionWithDefault($options_r, "max_tm_diff", 5.0);
+  my $entropyThreshold = optionWithDefault($options_r, "entropy_threshold", $optionDefaults{"entropy_threshold"});
+  my $maxTmDiff = optionWithDefault($options_r, "max_tm_diff", $optionDefaults{"max_tm_diff"});
 
   # --- Parsing des amorces fixees / Parsing of fixed primers ---
   # Format accepte : TYPE:SEQUENCE  ou  TYPE:SEQUENCE:POSITION
@@ -842,8 +851,8 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       }
     }
 
-    my $fixed_window_margin = optionWithDefault($options_r, "fixed_primer_margin", 200);
-    my $current_sig_max = optionWithDefault($options_r, "signature_max_length", 320);
+    my $fixed_window_margin = optionWithDefault($options_r, "fixed_primer_margin", $optionDefaults{"fixed_primer_margin"});
+    my $current_sig_max = optionWithDefault($options_r, "signature_max_length", $optionDefaults{"signature_max_length"});
     $fixedPrimerWindows_r = computeFixedPrimerWindows(
       \@fixedPrimerSpecs, $current_sig_max, $fixed_window_margin, $sequenceLength
     );
