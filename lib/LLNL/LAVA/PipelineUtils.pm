@@ -1550,7 +1550,8 @@ sub analyzeSignatureCombinations {
   my $max_combination_size = ($num_signatures > 8) ? 4 : $num_signatures;
   
   if ($max_combination_size < $num_signatures) {
-    print "   Limitation des combinaisons a $max_combination_size par $max_combination_size (sur $num_signatures signatures)\n";
+    print "  ATTENTION: Le plafond de combinaison (taille maximale: $max_combination_size au-dela de 8 signatures) a ete applique.\n";
+    print "             Des combinaisons d'ordre superieur n'ont pas ete evaluees.\n";
   }
   
   for my $combination_size (1 .. $max_combination_size) {
