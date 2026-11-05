@@ -641,6 +641,36 @@ def find_missing_usage_options(repo_root):
     return missing_by_script, undeclared_by_script, undeclared_defaults_by_script
 
 
+def check_architecture_symmetry(loop_distinct, stem_distinct):
+    """
+    Verifie la symetrie stricte entre les options de lava_loop_primer.pl et lava_stem_primer.pl (Sens D).
+    Les ensembles doivent etre identiques, a l'exception :
+      - des options prefixees par 'loop_' ou 'include_loop_primers' (specifiques LOOP)
+      - des options prefixees par 'stem_' ou 'include_stem_primers' (specifiques STEM)
+      - d'une liste explicite d'exceptions assumees (ASSUMED_ASYMMETRIC_OPTIONS).
+    Toute divergence non declaree fait echouer l'audit.
+    Verifies strict option symmetry between LOOP and STEM architectures (Direction D).
+    """
+    ASSUMED_ASYMMETRIC_OPTIONS = set()
+
+    def is_architecture_specific(opt, arch):
+        if opt in ASSUMED_ASYMMETRIC_OPTIONS:
+            return True
+        if arch == "loop":
+            return opt.startswith("loop_") or opt == "include_loop_primers"
+        elif arch == "stem":
+            return opt.startswith("stem_") or opt == "include_stem_primers"
+        return False
+
+    loop_generic = {opt for opt in loop_distinct if not is_architecture_specific(opt, "loop")}
+    stem_generic = {opt for opt in stem_distinct if not is_architecture_specific(opt, "stem")}
+
+    missing_in_stem = sorted(loop_generic - stem_generic)
+    missing_in_loop = sorted(stem_generic - loop_generic)
+
+    return missing_in_stem, missing_in_loop
+
+
 def run_audit():
     repo_root = get_repo_root()
     print("=" * 70)
@@ -963,7 +993,8 @@ def run_audit():
         )
 
     missing_usage, undeclared_usage, undeclared_defaults = find_missing_usage_options(repo_root)
-    print("\n[11] Resultat de l'audit tripartite options / defauts / aide en ligne :")
+    missing_in_stem, missing_in_loop = check_architecture_symmetry(loop_distinct, stem_distinct)
+    print("\n[11] Resultat de l'audit quadripartite options / defauts / aide en ligne / symetrie :")
     usage_ok = True
     if missing_usage:
         total_missing = sum(len(opts) for opts in missing_usage.values())
@@ -995,9 +1026,18 @@ def run_audit():
         usage_ok = False
         success = False
 
+    if missing_in_stem or missing_in_loop:
+        print("    FAIL (Sens D : asymetrie inter-architectures non declaree) :")
+        if missing_in_stem:
+            print(f"      - Absente(s) dans lava_stem_primer.pl : {', '.join(missing_in_stem)}")
+        if missing_in_loop:
+            print(f"      - Absente(s) dans lava_loop_primer.pl : {', '.join(missing_in_loop)}")
+        usage_ok = False
+        success = False
+
     if usage_ok:
         print(
-            "    PASS: Concordance tripartite parfaite entre %optionMap, %optionDefaults et $usageString."
+            "    PASS: Concordance quadripartite parfaite entre %optionMap, %optionDefaults, $usageString et symetrie LOOP/STEM."
         )
 
     print("=" * 70)
