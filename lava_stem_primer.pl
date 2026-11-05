@@ -177,6 +177,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "output_file=s" => \$options{"output_file"}, 
       "threads|cpu=s" => \$options{"threads"},
       "signature_max_length=i" => \$options{"signature_max_length"},
+      "signature_min_length=i" => \$options{"signature_min_length"},
       "total_signature_length=i" => \$options{"total_signature_length"},
       "signature_length_penalty_weight=f" => \$options{"signature_length_penalty_weight"},
       "verbose_validation" => \$options{"verbose_validation"},
@@ -267,6 +268,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       # --- FIXED PRIMERS (can be repeated multiple times) ---
       "fixed_primer=s" => \@{$options{"fixed_primer"}},
       "fixed_primer_optimize=i" => \$options{"fixed_primer_optimize"},
+      "fixed_primer_margin=i" => \$options{"fixed_primer_margin"},
     );
 
   my %optionDefaults =
@@ -513,6 +515,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
         $optionDefaults{"spacing_inner_inner_saturation"} .
 	">]\n" .
       # --- LONGUEUR DE SIGNATURE ET GEOMETRIE GLOBALE ---
+      "    [--signature_min_length <length, default=" .
+        $optionDefaults{"signature_min_length"} .
+	">]\n" .
       "    [--total_signature_length <length, default=" .
         $optionDefaults{"total_signature_length"} .
 	">]\n" .
@@ -533,6 +538,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "    [--fixed_primer <TYPE:SEQUENCE[:POSITION]> (can be repeated)]\n" .
       "    [--fixed_primer_optimize <0|1, default=" .
         $optionDefaults{"fixed_primer_optimize"} .
+	">]\n" .
+      "    [--fixed_primer_margin <bp, default=" .
+        $optionDefaults{"fixed_primer_margin"} .
 	">]\n" .
       "    [--stem_orientation <0|1, default=" .
         $optionDefaults{"stem_orientation"} .

@@ -256,6 +256,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       # --- FIXED PRIMERS (can be repeated multiple times) ---
       "fixed_primer=s" => \@{$options{"fixed_primer"}},
       "fixed_primer_optimize=i" => \$options{"fixed_primer_optimize"},
+      "fixed_primer_margin=i" => \$options{"fixed_primer_margin"},
     );
 
   my %optionDefaults =
@@ -531,6 +532,9 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "    [--fixed_primer <TYPE:SEQUENCE[:POSITION]> (can be repeated)]\n" .
       "    [--fixed_primer_optimize <0|1, default=" .
         $optionDefaults{"fixed_primer_optimize"} .
+	">]\n" .
+      "    [--fixed_primer_margin <bp, default=" .
+        $optionDefaults{"fixed_primer_margin"} .
 	">]\n" .
       # --- EXECUTION ET GESTION MEMOIRE ---
       "    [--threads <threads, default=\"" .

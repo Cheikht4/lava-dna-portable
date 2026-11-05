@@ -566,15 +566,16 @@ def find_option_with_default_mismatches(repo_root):
 
 def find_missing_usage_options(repo_root):
     """
-    Verifie la concordance bidirectionnelle stricte entre %optionMap et $usageString (--help)
-    pour lava_loop_primer.pl et lava_stem_primer.pl :
+    Verifie la concordance tripartite stricte entre %optionMap, %optionDefaults et $usageString :
       - Sens A : Toute option distincte declaree dans %optionMap doit apparaitre dans $usageString.
       - Sens B : Toute option documentee dans $usageString doit exister dans %optionMap.
-    Verifies bidirectional concordance between %optionMap and $usageString (--help).
+      - Sens C : Toute entree de %optionDefaults doit exister dans %optionMap (pas de constante deguisee).
+    Verifies tripartite concordance between %optionMap, %optionDefaults, and $usageString.
     """
     scripts = ["lava_loop_primer.pl", "lava_stem_primer.pl"]
     missing_by_script = {}
     undeclared_by_script = {}
+    undeclared_defaults_by_script = {}
 
     for relpath in scripts:
         filepath = os.path.join(repo_root, relpath)
@@ -620,7 +621,24 @@ def find_missing_usage_options(repo_root):
         if undeclared:
             undeclared_by_script[relpath] = undeclared
 
-    return missing_by_script, undeclared_by_script
+        # Sens C : cle dans %optionDefaults -> declaree dans %optionMap
+        defaults_match = re.search(
+            r"my\s+%optionDefaults\s*=\s*\((.*?)\);", content, re.DOTALL
+        )
+        if defaults_match:
+            defaults_block = defaults_match.group(1)
+            undef_defs = []
+            for line in defaults_block.splitlines():
+                line_clean = re.sub(r"#.*$", "", line).strip()
+                kv = re.search(r'["\']([a-zA-Z0-9_]+)["\']\s*=>', line_clean)
+                if kv:
+                    def_key = kv.group(1)
+                    if def_key not in declared_map and def_key not in undef_defs:
+                        undef_defs.append(def_key)
+            if undef_defs:
+                undeclared_defaults_by_script[relpath] = undef_defs
+
+    return missing_by_script, undeclared_by_script, undeclared_defaults_by_script
 
 
 def run_audit():
@@ -944,8 +962,8 @@ def run_audit():
             "    PASS: Tous les appels optionWithDefault concordent rigoureusement avec %optionDefaults."
         )
 
-    missing_usage, undeclared_usage = find_missing_usage_options(repo_root)
-    print("\n[11] Resultat de l'audit bidirectionnel de l'aide en ligne ($usageString / --help) :")
+    missing_usage, undeclared_usage, undeclared_defaults = find_missing_usage_options(repo_root)
+    print("\n[11] Resultat de l'audit tripartite options / defauts / aide en ligne :")
     usage_ok = True
     if missing_usage:
         total_missing = sum(len(opts) for opts in missing_usage.values())
@@ -967,9 +985,19 @@ def run_audit():
         usage_ok = False
         success = False
 
+    if undeclared_defaults:
+        total_undef_defaults = sum(len(opts) for opts in undeclared_defaults.values())
+        print(
+            f"    FAIL (Sens C : defaut sans declaration dans %optionMap) : {total_undef_defaults} option(s) de %optionDefaults absente(s) de %optionMap :"
+        )
+        for scr, opts in undeclared_defaults.items():
+            print(f"      - {scr} ({len(opts)} non declaree(s)) : {', '.join(opts)}")
+        usage_ok = False
+        success = False
+
     if usage_ok:
         print(
-            "    PASS: Concordance bidirectionnelle parfaite entre %optionMap et $usageString."
+            "    PASS: Concordance tripartite parfaite entre %optionMap, %optionDefaults et $usageString."
         )
 
     print("=" * 70)
