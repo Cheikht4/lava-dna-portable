@@ -452,6 +452,34 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "    [--primer_min_coverage_percent <percent, default=" .
         $optionDefaults{"primer_min_coverage_percent"} .
 	"> (alias: --min_primer_coverage)]\n" .
+      # --- PARAMETRES DE DEGENERESCENCE ET THERMODYNAMIQUE ---
+      "    [--max_total_degenerate_bases <max, default=" .
+        $optionDefaults{"max_total_degenerate_bases"} .
+	">]\n" .
+      "    [--max_consecutive_degenerate_bases <max, default=" .
+        $optionDefaults{"max_consecutive_degenerate_bases"} .
+	">]\n" .
+      "    [--max_3prime_degenerate_bases <max, default=" .
+        $optionDefaults{"max_3prime_degenerate_bases"} .
+	">]\n" .
+      "    [--max_tolerated_mismatches <max, default=" .
+        $optionDefaults{"max_tolerated_mismatches"} .
+	">]\n" .
+      "    [--three_prime_zone_size <bp, default=" .
+        $optionDefaults{"three_prime_zone_size"} .
+	">]\n" .
+      "    [--min_base_frequency <freq, default=" .
+        $optionDefaults{"min_base_frequency"} .
+	">]\n" .
+      "    [--entropy_threshold <threshold, default=" .
+        $optionDefaults{"entropy_threshold"} .
+	">]\n" .
+      "    [--max_tm_diff <delta_c, default=" .
+        $optionDefaults{"max_tm_diff"} .
+	">]\n" .
+      "    [--fixed_primer_margin <bp, default=" .
+        $optionDefaults{"fixed_primer_margin"} .
+	">]\n" .
       # -----------------------------------------
       "    [--primer3_executable <path_to_primer3, default=" .
         $optionDefaults{"primer3_executable"} .
