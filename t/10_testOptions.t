@@ -65,7 +65,7 @@ use Carp;
 
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
-BEGIN {print "1..10\n";}
+BEGIN {print "1..11\n";}
 
 my $TRUE = 1;
 my $FALSE = 0;
@@ -292,6 +292,46 @@ $| = 1;
     print "Error when loading option file: $@";
   }
   printTestResult(10, $testSuccess);
+
+  # Test 11: Coherence de la valeur par defaut et des replis de max_poly_bases
+  # Test 11: Consistency of default value and fallbacks for max_poly_bases
+  $testSuccess = $TRUE;
+  eval
+  {
+    my $extract_val = sub {
+      my ($filepath, $regex) = @_;
+      open(my $fh, '<', $filepath) or confess("Impossible d'ouvrir $filepath: $!");
+      my $found = undef;
+      while (my $line = <$fh>) {
+        if ($line =~ $regex) {
+          $found = int($1);
+          last;
+        }
+      }
+      close($fh);
+      return $found;
+    };
+
+    my $loop_def = $extract_val->("lava_loop_primer.pl", qr/"max_poly_bases"\s*=>\s*(\d+)/);
+    my $stem_def = $extract_val->("lava_stem_primer.pl", qr/"max_poly_bases"\s*=>\s*(\d+)/);
+    my $pipe_fb  = $extract_val->("lib/LLNL/LAVA/PipelineUtils.pm", qr/\$options_r->\{"max_poly_bases"\}\s*\/\/\s*(\d+)/);
+    my $p3_fb    = $extract_val->("lib/LLNL/LAVA/OligoEnumerator/Primer3Conserved.pm", qr/\$lavaParams_r->\{"max_poly_bases"\}\s*\/\/\s*(\d+)/);
+
+    confess("Defaut max_poly_bases introuvable dans lava_loop_primer.pl") unless defined $loop_def;
+    confess("Defaut max_poly_bases introuvable dans lava_stem_primer.pl") unless defined $stem_def;
+    confess("Repli max_poly_bases introuvable dans PipelineUtils.pm") unless defined $pipe_fb;
+    confess("Repli max_poly_bases introuvable dans Primer3Conserved.pm") unless defined $p3_fb;
+
+    if ($loop_def != 5 || $stem_def != 5 || $pipe_fb != 5 || $p3_fb != 5) {
+      confess("Incoherence detectee sur max_poly_bases: loop=$loop_def, stem=$stem_def, PipelineUtils=$pipe_fb, Primer3Conserved=$p3_fb (toutes doivent valoir 5)");
+    }
+  };
+  if($@)
+  {
+    $testSuccess = $FALSE;
+    print "Error in max_poly_bases consistency test: $@";
+  }
+  printTestResult(11, $testSuccess);
      
   print "END\n";
 } # end fake main()

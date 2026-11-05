@@ -294,7 +294,7 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "inner_primer_min_length" => 20,
       "inner_primer_max_length" => 26,
       "inner_primer_target_tm" => "62.0",
-      "max_poly_bases" => 2,
+      "max_poly_bases" => 5,
       "include_stem_primers" => 1,
       "stem_orientation" => 0,
 
@@ -3346,7 +3346,7 @@ sub print_zero_signature_diagnostic {
     my $side  = $is_forward ? "Forward" : "Reverse";
     my $pc_r  = $extra_r->{pool_counts};
     my $inc_stem = defined $extra_r->{include_special} ? $extra_r->{include_special} : 1;
-    my $cur_poly = defined $opts_r->{'max_poly_bases'} ? $opts_r->{'max_poly_bases'} : 2;
+    my $cur_poly = defined $opts_r->{'max_poly_bases'} ? $opts_r->{'max_poly_bases'} : 5;
     my $cur_cov  = defined $opts_r->{'primer_min_coverage_percent'} ? $opts_r->{'primer_min_coverage_percent'}
                  : (defined $opts_r->{'min_primer_coverage'} ? $opts_r->{'min_primer_coverage'} : 95);
     my $cur_deg  = defined $opts_r->{'max_degenerate_bases'} ? $opts_r->{'max_degenerate_bases'}

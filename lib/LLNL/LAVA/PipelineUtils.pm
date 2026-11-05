@@ -2176,7 +2176,7 @@ sub getPrimer3ParamsForType {
   my $min_tm     = $options_r->{$pfx . "_min_tm"}        // ($target_tm - 1.0);
   my $max_tm     = $options_r->{$pfx . "_max_tm"}        // ($target_tm + 1.0);
 
-  my $max_poly_x = $options_r->{"max_poly_bases"} // 2;
+  my $max_poly_x = $options_r->{"max_poly_bases"} // 5;
   my $min_gc     = $options_r->{"min_gc"} // 30;
   my $max_gc     = $options_r->{"max_gc"} // 80;
 

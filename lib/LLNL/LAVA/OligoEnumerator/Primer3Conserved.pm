@@ -439,7 +439,9 @@ sub getOligos
   # FILTRE HOMOPOLYMÈRES (Post-Processing LAVA 2026)
   # Rétabli à la demande de l'utilisateur.
   # Ce filtre élimine les amorces contenant des répétitions consécutives de la même base
-  # strictement supérieures à $maxPolyBases (par défaut 2 dans lava_loop_primer.pl, modifiable via --max_poly_bases).
+  # strictement supérieures à $maxPolyBases (par défaut 5 dans lava_loop_primer.pl, modifiable via --max_poly_bases).
+  # This filter eliminates primers containing consecutive repeats of the same base
+  # strictly greater than $maxPolyBases (default 5 in lava_loop_primer.pl, configurable via --max_poly_bases).
   
   my $maxPolyBases = $p3Targets_r->{"PRIMER_INTERNAL_OLIGO_MAX_POLY_X"};
   # Fallback sur les paramètres globaux si non défini par Primer3
