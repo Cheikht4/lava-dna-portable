@@ -566,12 +566,15 @@ def find_option_with_default_mismatches(repo_root):
 
 def find_missing_usage_options(repo_root):
     """
-    Verifie que chaque option distincte de %optionMap apparait dans $usageString (--help)
-    pour lava_loop_primer.pl et lava_stem_primer.pl.
-    Verifies that every distinct option from %optionMap appears in $usageString (--help).
+    Verifie la concordance bidirectionnelle stricte entre %optionMap et $usageString (--help)
+    pour lava_loop_primer.pl et lava_stem_primer.pl :
+      - Sens A : Toute option distincte declaree dans %optionMap doit apparaitre dans $usageString.
+      - Sens B : Toute option documentee dans $usageString doit exister dans %optionMap.
+    Verifies bidirectional concordance between %optionMap and $usageString (--help).
     """
     scripts = ["lava_loop_primer.pl", "lava_stem_primer.pl"]
     missing_by_script = {}
+    undeclared_by_script = {}
 
     for relpath in scripts:
         filepath = os.path.join(repo_root, relpath)
@@ -590,9 +593,9 @@ def find_missing_usage_options(repo_root):
 
         declared_map, distinct_options, dups = extract_option_map(repo_root, relpath)
 
+        # Sens A : declare dans %optionMap -> documente dans $usageString
         missing = []
         for opt in sorted(distinct_options):
-            # Chercher --opt ou -opt dans usageString
             if not re.search(r"--" + re.escape(opt) + r"\b", usage_text) and not re.search(
                 r"-" + re.escape(opt) + r"\b", usage_text
             ):
@@ -601,7 +604,23 @@ def find_missing_usage_options(repo_root):
         if missing:
             missing_by_script[relpath] = missing
 
-    return missing_by_script
+        # Sens B : documente dans $usageString -> declare dans %optionMap
+        doc_options = set()
+        for m in re.finditer(r"--([a-zA-Z0-9_]+)\b", usage_text):
+            doc_opt = m.group(1)
+            if doc_opt == "help":
+                continue
+            doc_options.add(doc_opt)
+
+        undeclared = []
+        for d_opt in sorted(doc_options):
+            if d_opt not in declared_map:
+                undeclared.append(d_opt)
+
+        if undeclared:
+            undeclared_by_script[relpath] = undeclared
+
+    return missing_by_script, undeclared_by_script
 
 
 def run_audit():
@@ -925,19 +944,32 @@ def run_audit():
             "    PASS: Tous les appels optionWithDefault concordent rigoureusement avec %optionDefaults."
         )
 
-    missing_usage = find_missing_usage_options(repo_root)
-    print("\n[11] Resultat de l'audit d'exhaustivite de l'aide en ligne ($usageString / --help) :")
+    missing_usage, undeclared_usage = find_missing_usage_options(repo_root)
+    print("\n[11] Resultat de l'audit bidirectionnel de l'aide en ligne ($usageString / --help) :")
+    usage_ok = True
     if missing_usage:
         total_missing = sum(len(opts) for opts in missing_usage.values())
         print(
-            f"    FAIL: {total_missing} option(s) de %optionMap absente(s) de $usageString :"
+            f"    FAIL (Sens A : declare -> non documente) : {total_missing} option(s) de %optionMap absente(s) de $usageString :"
         )
         for scr, opts in missing_usage.items():
             print(f"      - {scr} ({len(opts)} manquante(s)) : {', '.join(opts)}")
+        usage_ok = False
         success = False
-    else:
+
+    if undeclared_usage:
+        total_undeclared = sum(len(opts) for opts in undeclared_usage.values())
         print(
-            "    PASS: Toutes les options de %optionMap apparaissent dans $usageString."
+            f"    FAIL (Sens B : documente -> non declare) : {total_undeclared} option(s) de $usageString absente(s) de %optionMap :"
+        )
+        for scr, opts in undeclared_usage.items():
+            print(f"      - {scr} ({len(opts)} non declaree(s)) : {', '.join(opts)}")
+        usage_ok = False
+        success = False
+
+    if usage_ok:
+        print(
+            "    PASS: Concordance bidirectionnelle parfaite entre %optionMap et $usageString."
         )
 
     print("=" * 70)

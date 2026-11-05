@@ -481,9 +481,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "    [--max_tm_diff <delta_c, default=" .
         $optionDefaults{"max_tm_diff"} .
 	">]\n" .
-      "    [--fixed_primer_margin <bp, default=" .
-        $optionDefaults{"fixed_primer_margin"} .
-	">]\n" .
       # --- PARAMETRES DE SEUILS DE DISTANCE SIGMOÏDE (TABLE 1) ---
       "    [--spacing_middle_outer_free <bp, default=" .
         $optionDefaults{"spacing_middle_outer_free"} .

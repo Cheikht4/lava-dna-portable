@@ -170,7 +170,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "total_signature_length=i" => \$options{"total_signature_length"},
       "signature_length_penalty_weight=f" => \$options{"signature_length_penalty_weight"},
       "verbose_validation" => \$options{"verbose_validation"},
-      "output_dir=s" => \$options{"output_dir"},
 
       "outer_primer_target_length=i" => \$options{"outer_primer_target_length"},
       "outer_primer_min_length=i" => \$options{"outer_primer_min_length"},
@@ -477,9 +476,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "    [--max_tm_diff <delta_c, default=" .
         $optionDefaults{"max_tm_diff"} .
 	">]\n" .
-      "    [--fixed_primer_margin <bp, default=" .
-        $optionDefaults{"fixed_primer_margin"} .
-	">]\n" .
       # --- PARAMETRES DE SEUILS DE DISTANCE SIGMOÏDE (TABLE 1) ---
       "    [--spacing_middle_outer_free <bp, default=" .
         $optionDefaults{"spacing_middle_outer_free"} .
@@ -528,7 +524,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "    [--window_size <bp, default=" .
         $optionDefaults{"window_size"} .
 	">]\n" .
-
       "    [--max_per_window <max, default=" .
         $optionDefaults{"max_per_window"} .
 	">]\n" .
@@ -545,7 +540,6 @@ our $_LAVA_IS_TTY = -t STDERR ? 1 : 0;
       "    [--max_retained_signatures <max, default=" .
         $optionDefaults{"max_retained_signatures"} .
 	">]\n" .
-      "    [--output_dir <dir> (pour compatibilite interface)]\n" .
       # -----------------------------------------
       "    [--primer3_executable <path_to_primer3, default=" .
         $optionDefaults{"primer3_executable"} .
